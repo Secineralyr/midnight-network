@@ -1,0 +1,22 @@
+name = "midnight-network-backend"
+main = "src/index.ts"
+compatibility_date = "2025-12-16"
+compatibility_flags = ["nodejs_compat"]
+
+[observability]
+enabled = true
+
+[triggers]
+crons = ["0 * * * *"]
+
+[[kv_namespaces]]
+binding = "SESSION_KV"
+id = "REPLACE_ME"
+preview_id = "REPLACE_ME"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "midnight-network"
+database_id = "REPLACE_ME"
+migrations_dir = "../entity/prisma/migrations"
+

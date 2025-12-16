@@ -1,0 +1,149 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.3.9/schema.json",
+  "files": {
+    "ignoreUnknown": true,
+    "includes": [
+      "**",
+      "!**/node_modules",
+      "!**/dist",
+      "!**/build",
+      "!**/coverage",
+      "!**/.wrangler",
+      "!**/.svelte-kit",
+      "!**/package.json",
+      "!.vscode/**/*",
+      "!scripts/**/*"
+    ]
+  },
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "complexity": {
+        "noVoid": "error",
+        "useDateNow": "error",
+        "useSimplifiedLogicExpression": "warn",
+        "noExcessiveCognitiveComplexity": {
+          "level": "warn",
+          "options": {
+            "maxAllowedComplexity": 20
+          }
+        },
+        "noUselessStringConcat": "error",
+        "noStaticOnlyClass": "off"
+      },
+      "correctness": {
+        "noConstantMathMinMaxClamp": "warn",
+        "noNodejsModules": "warn",
+        "noUndeclaredDependencies": "error",
+        "noUndeclaredVariables": "error",
+        "noUnusedFunctionParameters": "error",
+        "noUnusedImports": "error",
+        "noUnusedPrivateClassMembers": "error",
+        "noUnusedVariables": "error",
+        "useValidTypeof": "error"
+      },
+      "performance": {
+        "noBarrelFile": "error",
+        "useTopLevelRegex": "warn"
+      },
+      "style": {
+        "noNamespace": "warn",
+        "noNegationElse": "info",
+        "noYodaExpression": "error",
+        "useBlockStatements": "error",
+        "useCollapsedElseIf": "error",
+        "useConsistentArrayType": "error",
+        "useConsistentBuiltinInstantiation": "error",
+        "useDefaultSwitchClause": "warn",
+        "useExplicitLengthCheck": "error",
+        "useFilenamingConvention": {
+          "level": "warn",
+          "options": {
+            "strictCase": false,
+            "requireAscii": true,
+            "filenameCases": ["PascalCase", "kebab-case"]
+          }
+        },
+        "useForOf": "error",
+        "useShorthandAssign": "warn",
+        "useThrowNewError": "error",
+        "useThrowOnlyError": "error",
+        "useArrayLiterals": "error"
+      },
+      "suspicious": {
+        "noConsole": {
+          "fix": "none",
+          "level": "info",
+          "options": {
+            "allow": ["assert", "error", "info", "warn"]
+          }
+        },
+        "noEmptyBlockStatements": "error",
+        "useAwait": "error",
+        "useErrorMessage": "warn",
+        "useNumberToFixedDigitsArgument": "warn"
+      }
+    }
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "tab",
+    "indentWidth": 4,
+    "lineEnding": "lf",
+    "lineWidth": 128
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "trailingCommas": "all",
+      "semicolons": "always",
+      "arrowParentheses": "always",
+      "indentStyle": "tab",
+      "indentWidth": 4,
+      "lineEnding": "lf",
+      "lineWidth": 128,
+      "bracketSpacing": true
+    }
+  },
+  "json": {
+    "parser": {
+      "allowComments": true,
+      "allowTrailingCommas": false
+    },
+    "formatter": {
+      "indentStyle": "space",
+      "indentWidth": 2,
+      "lineEnding": "lf",
+      "lineWidth": 128
+    }
+  },
+  "css": {
+    "formatter": {
+      "indentStyle": "tab",
+      "indentWidth": 4,
+      "lineEnding": "lf",
+      "lineWidth": 128,
+      "quoteStyle": "single"
+    }
+  },
+  "assist": { "actions": { "source": { "organizeImports": "on" } } },
+  "overrides": [
+    {
+      "includes": ["**/*.svelte"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noUnusedImports": "off",
+            "noUnusedVariables": "off"
+          }
+        }
+      }
+    }
+  ]
+}

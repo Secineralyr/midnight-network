@@ -1,0 +1,39 @@
+{
+  "name": "@midnight-network/frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "dependencies": {
+    "@midnight-network/shared": "workspace:*",
+    "@opentelemetry/api": "catalog:",
+    "@orpc/client": "catalog:",
+    "@tabler/icons-svelte": "catalog:",
+    "motion": "catalog:",
+    "particles.js": "catalog:"
+  },
+  "scripts": {
+    "prepare": "svelte-kit sync",
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "preview:worker": "pnpm build && wrangler dev",
+    "playwright:install": "playwright install",
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json",
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "catalog:",
+    "@orpc/server": "catalog:",
+    "@playwright/test": "catalog:",
+    "@sveltejs/adapter-static": "catalog:",
+    "@sveltejs/kit": "catalog:",
+    "@sveltejs/vite-plugin-svelte": "catalog:",
+    "@types/node": "catalog:",
+    "@typescript-eslint/types": "catalog:",
+    "svelte": "catalog:",
+    "svelte-check": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "wrangler": "catalog:"
+  }
+}

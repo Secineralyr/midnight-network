@@ -1,0 +1,29 @@
+{
+  "name": "@midnight-network/entity",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    "./*": {
+      "types": "./src/generated/prisma/*.ts",
+      "default": "./dist/generated/prisma/*.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "pnpm prisma:generate && tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate:dev": "prisma migrate dev --skip-generate",
+    "prisma:format": "prisma format"
+  },
+  "devDependencies": {
+    "prisma": "catalog:",
+    "typescript": "catalog:"
+  },
+  "dependencies": {
+    "@prisma/client": "catalog:"
+  }
+}

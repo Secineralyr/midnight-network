@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Logs
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.idea/
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# Framework/tooling outputs
+.wrangler/
+.svelte-kit/
+.turbo/
+
+# Env files
+.env
+.env.*
+!.env.example
+

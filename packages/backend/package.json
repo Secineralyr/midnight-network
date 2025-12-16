@@ -1,0 +1,30 @@
+{
+  "name": "@midnight-network/backend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "dependencies": {
+    "@midnight-network/entity": "workspace:*",
+    "@midnight-network/rank-calc": "workspace:*",
+    "@midnight-network/shared": "workspace:*",
+    "@opentelemetry/api": "catalog:",
+    "@orpc/server": "catalog:",
+    "@prisma/adapter-d1": "catalog:",
+    "elysia": "catalog:",
+    "misskey-js": "catalog:",
+    "p-retry": "catalog:"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "wrangler": "catalog:"
+  }
+}

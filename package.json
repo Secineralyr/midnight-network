@@ -1,0 +1,25 @@
+{
+  "name": "midnight-network",
+  "private": true,
+  "version": "0.0.0",
+  "packageManager": "pnpm@10.26.0",
+  "volta": {
+    "node": "24.12.0",
+    "pnpm": "10.26.0"
+  },
+  "scripts": {
+    "check": "biome check .",
+    "check:write": "biome check --write .",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "typecheck": "pnpm -r typecheck",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "front:dev": "pnpm --filter @midnight-network/frontend dev",
+    "postinstall": "lefthook install"
+  },
+  "devDependencies": {
+    "lefthook": "catalog:",
+    "@biomejs/biome": "catalog:"
+  }
+}
