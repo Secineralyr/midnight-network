@@ -11,6 +11,7 @@
       "!**/.wrangler",
       "!**/.svelte-kit",
       "!**/package.json",
+      "!**/worker-configuration.d.ts",
       "!.vscode/**/*",
       "!scripts/**/*"
     ]

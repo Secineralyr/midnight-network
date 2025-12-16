@@ -2,6 +2,7 @@
 import { IconMoonStars } from '@tabler/icons-svelte';
 import { animate } from 'motion';
 import { onMount } from 'svelte';
+import { fade } from 'svelte/transition';
 
 import { orpc } from '$lib/orpc';
 
@@ -32,7 +33,7 @@ onMount(async () => {
 
 <div id="particles" class="particles"></div>
 
-<main class="container">
+<main class="container" in:fade={{ duration: 300, delay: 150 }} out:fade={{ duration: 150 }}>
   <h1 class="title">
     <IconMoonStars size={28} />
     midnight-network

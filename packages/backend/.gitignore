@@ -3,3 +3,4 @@ dist/
 coverage/
 .wrangler/
 
+./worker-configuration.d.ts

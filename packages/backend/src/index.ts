@@ -5,15 +5,11 @@ import { CORSPlugin } from '@orpc/server/plugins';
 import { Elysia } from 'elysia';
 import { CloudflareAdapter } from 'elysia/adapter/cloudflare-worker';
 
-type Env = {
-	DB: D1Database;
-	SESSION_KV: KVNamespace;
-};
-
 const rpc = new RPCHandler(router, {
 	plugins: [
 		new CORSPlugin({
-			origin: ['http://localhost:5173'],
+			origin: (origin) => origin,
+			allowMethods: ['GET', 'HEAD', 'PUT', 'POST', 'DELETE', 'PATCH'],
 			credentials: true,
 		}),
 	],
@@ -48,13 +44,14 @@ const app = new Elysia({
 		{
 			parse: 'none',
 		},
-	);
+	)
+	.compile();
 
 export default {
 	fetch: app.fetch,
-	scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+	scheduled(event: ScheduledEvent): Promise<void> {
 		console.info('cron', event.cron);
-		ctx.waitUntil(env.SESSION_KV.put('last_cron', new Date().toISOString()));
+		//ctx.waitUntil(env.SESSION_KV.put('last_cron', new Date().toISOString()));
 		return Promise.resolve();
 	},
 };
