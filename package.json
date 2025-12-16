@@ -16,6 +16,7 @@
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "front:dev": "pnpm --filter @midnight-network/frontend dev",
+    "back:dev": "pnpm --filter @midnight-network/backend dev",
     "postinstall": "lefthook install"
   },
   "devDependencies": {

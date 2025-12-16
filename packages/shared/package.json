@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@opentelemetry/api": "catalog:",
-    "@orpc/server": "catalog:",
+    "@orpc/contract": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

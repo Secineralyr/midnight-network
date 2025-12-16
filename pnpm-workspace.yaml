@@ -6,6 +6,7 @@ catalog:
   '@cloudflare/workers-types': 4.20251216.0
   '@opentelemetry/api': 1.9.0
   '@orpc/client': ^1.12.3
+  '@orpc/contract': 1.12.3
   '@orpc/server': 1.12.3
   '@playwright/test': ^1.57.0
   '@prisma/adapter-d1': 7.1.0

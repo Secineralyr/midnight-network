@@ -1,9 +1,9 @@
-import { router } from '@midnight-network/shared/rpc';
 import { onError } from '@orpc/server';
 import { RPCHandler } from '@orpc/server/fetch';
 import { CORSPlugin } from '@orpc/server/plugins';
 import { Elysia } from 'elysia';
 import { CloudflareAdapter } from 'elysia/adapter/cloudflare-worker';
+import { router } from './rpc';
 
 const rpc = new RPCHandler(router, {
 	plugins: [

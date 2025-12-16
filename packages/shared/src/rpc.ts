@@ -1,26 +1,15 @@
-import { os } from '@orpc/server';
+import type { ContractRouterClient } from '@orpc/contract';
+import { oc } from '@orpc/contract';
 import { z } from 'zod';
 
-export type RpcContext = {
-	headers: Headers;
-	env?: unknown;
+export const EchoMessageSchema = z.object({
+	message: z.string().min(1),
+});
+
+export const contract = {
+	ping: oc.input(z.void()).output(z.literal('pong')),
+	echo: oc.input(EchoMessageSchema).output(EchoMessageSchema),
 };
 
-const base = os.$context<RpcContext>();
-
-const ping = base.handler(async () => 'pong');
-
-const echo = base
-	.input(
-		z.object({
-			message: z.string().min(1),
-		}),
-	)
-	.handler(async ({ input }) => ({ message: input.message }));
-
-export const router = {
-	ping,
-	echo,
-};
-
-export type AppRouter = typeof router;
+export type AppContract = typeof contract;
+export type AppClient = ContractRouterClient<AppContract>;

@@ -16,8 +16,8 @@
   },
   "scripts": {
     "build": "pnpm type:sync && tsc -p tsconfig.json",
-    "dev": "pnpm type:sync && wrangler dev",
-    "deploy": "pnpm type:sync && wrangler deploy",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
     "typecheck": "pnpm type:sync && tsc -p tsconfig.json",
     "test": "pnpm type:sync && vitest run --passWithNoTests",
     "type:sync": "wrangler types"

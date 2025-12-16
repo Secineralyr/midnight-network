@@ -23,7 +23,6 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "catalog:",
-    "@orpc/server": "catalog:",
     "@playwright/test": "catalog:",
     "@sveltejs/adapter-static": "catalog:",
     "@sveltejs/kit": "catalog:",
