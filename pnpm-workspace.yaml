@@ -17,6 +17,7 @@ catalog:
   '@tabler/icons-svelte': ^3.36.0
   '@types/node': ^25.0.2
   '@typescript-eslint/types': ^8.50.0
+  better-auth: ^1.4.7
   elysia: ^1.4.19
   lefthook: ^2.0.12
   misskey-js: ^2025.12.1

@@ -16,7 +16,6 @@
     "build": "pnpm prisma:generate && tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json",
     "prisma:generate": "prisma generate",
-    "prisma:migrate:dev": "prisma migrate dev --skip-generate",
     "prisma:format": "prisma format"
   },
   "devDependencies": {

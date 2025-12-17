@@ -10,6 +10,7 @@
     "@opentelemetry/api": "catalog:",
     "@orpc/server": "catalog:",
     "@prisma/adapter-d1": "catalog:",
+    "better-auth": "catalog:",
     "elysia": "catalog:",
     "misskey-js": "catalog:",
     "p-retry": "catalog:"
@@ -17,6 +18,8 @@
   "scripts": {
     "build": "pnpm type:sync && tsc -p tsconfig.json",
     "dev": "wrangler dev",
+    "migrate:local": "wrangler d1 migrations apply midnight-network --local",
+    "migrate:remote": "wrangler d1 migrations apply midnight-network --remote",
     "deploy": "wrangler deploy",
     "typecheck": "pnpm type:sync && tsc -p tsconfig.json",
     "test": "pnpm type:sync && vitest run --passWithNoTests",
