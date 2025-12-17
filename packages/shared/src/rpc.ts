@@ -8,6 +8,7 @@ export const EchoMessageSchema = z.object({
 
 export const contract = {
 	ping: oc.input(z.void()).output(z.literal('pong')),
+	pingAuth: oc.input(z.void()).output(z.literal('pong')),
 	echo: oc.input(EchoMessageSchema).output(EchoMessageSchema),
 };
 

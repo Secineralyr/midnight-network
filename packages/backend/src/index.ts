@@ -1,12 +1,13 @@
 import { onError } from '@orpc/server';
 import { RPCHandler } from '@orpc/server/fetch';
-import { CORSPlugin } from '@orpc/server/plugins';
+import { CORSPlugin, RequestHeadersPlugin } from '@orpc/server/plugins';
 import { Elysia } from 'elysia';
 import { CloudflareAdapter } from 'elysia/adapter/cloudflare-worker';
 import { router } from './rpc';
 
 const rpc = new RPCHandler(router, {
 	plugins: [
+		new RequestHeadersPlugin(),
 		new CORSPlugin({
 			origin: (origin) => origin,
 			allowMethods: ['GET', 'HEAD', 'PUT', 'POST', 'DELETE', 'PATCH'],
@@ -30,16 +31,16 @@ const app = new Elysia({
 		return new Response(null, { status: 204 });
 	})
 	.all(
-		'/rpc*',
+		'/api*',
 		async ({ request }) => {
 			const { response } = await rpc.handle(request, {
-				prefix: '/rpc',
+				prefix: '/api',
 				context: {
-					headers: request.headers,
+					reqHeaders: request.headers,
 				},
 			});
 
-			return response ?? new Response('Not Found', { status: 404 });
+			return response ?? new Response(null, { status: 404 });
 		},
 		{
 			parse: 'none',

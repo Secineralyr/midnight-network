@@ -8,7 +8,7 @@ const link = new RPCLink({
 		if (configured) {
 			return configured;
 		}
-		return 'http://localhost:8787/rpc';
+		return 'http://localhost:8787/api';
 	},
 });
 
