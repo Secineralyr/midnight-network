@@ -223,6 +223,10 @@ importers:
         version: 4.54.0(@cloudflare/workers-types@4.20251216.0)
 
   packages/rank-calc:
+    dependencies:
+      '@midnight-network/shared':
+        specifier: workspace:*
+        version: link:../shared
     devDependencies:
       typescript:
         specifier: 'catalog:'
