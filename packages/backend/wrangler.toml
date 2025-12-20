@@ -20,3 +20,7 @@ database_name = "midnight-network"
 database_id = "REPLACE_ME"
 migrations_dir = "../entity/prisma/migrations"
 
+[vars]
+MK_HOST = "<host>"
+API_TOKEN = "<token?>"
+WEB_HOST = "test.midnight.network.local"

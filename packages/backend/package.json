@@ -23,9 +23,11 @@
     "deploy": "wrangler deploy",
     "typecheck": "pnpm type:sync && tsc -p tsconfig.json",
     "test": "pnpm type:sync && vitest run --passWithNoTests",
-    "type:sync": "wrangler types"
+    "type:sync": "wrangler types",
+    "auth:gen": "better-auth generate --output ../entity/prisma/auth.prisma"
   },
   "devDependencies": {
+    "@better-auth/cli": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",
     "wrangler": "catalog:"
