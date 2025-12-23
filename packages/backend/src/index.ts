@@ -1,9 +1,12 @@
+import { env } from 'cloudflare:workers';
 import { onError } from '@orpc/server';
 import { RPCHandler } from '@orpc/server/fetch';
 import { CORSPlugin, RequestHeadersPlugin } from '@orpc/server/plugins';
-import { Elysia } from 'elysia';
+import { Elysia, t } from 'elysia';
 import { CloudflareAdapter } from 'elysia/adapter/cloudflare-worker';
+import { processCronMain } from './cron';
 import { router } from './rpc';
+import { mkWebhookTypes, processWebhook } from './webhook';
 
 const rpc = new RPCHandler(router, {
 	plugins: [
@@ -24,12 +27,31 @@ const rpc = new RPCHandler(router, {
 const app = new Elysia({
 	adapter: CloudflareAdapter,
 })
-	.get('/health', () => ({ ok: true }))
-	.post('/webhook/example', async ({ request }) => {
-		const body = await request.text();
-		console.info('webhook/example', body);
-		return new Response(null, { status: 204 });
-	})
+	.post(
+		'/webhook',
+		async ({ body }) => {
+			console.info('start webhook process');
+			await processWebhook(body);
+			console.info('end webhook process');
+			return new Response(null, { status: 204 });
+		},
+		{
+			headers: t.Object({
+				'User-Agent': t.Literal('Misskey-Hooks'),
+				'X-Misskey-Host': t.Literal(env.MK_HOST),
+				'Content-Type': t.Literal('application/json'),
+			}),
+			body: t.Object({
+				eventId: t.String(),
+				hookId: t.String(),
+				type: t.UnionEnum(mkWebhookTypes),
+				body: t.Any(), // typeによってbodyの中身が異なるため、この推論は行わない
+				userId: t.String(),
+				server: t.String(),
+				createdAt: t.Numeric(),
+			}),
+		},
+	)
 	.all(
 		'/api*',
 		async ({ request }) => {
@@ -51,8 +73,9 @@ const app = new Elysia({
 export default {
 	fetch: app.fetch,
 	scheduled(event: ScheduledEvent): Promise<void> {
-		console.info('cron', event.cron);
-		//ctx.waitUntil(env.SESSION_KV.put('last_cron', new Date().toISOString()));
+		console.info('cron start:', event.cron);
+		processCronMain();
+		console.info('cron end:', event.cron);
 		return Promise.resolve();
 	},
 };

@@ -1,3 +1,4 @@
+import { env } from 'cloudflare:workers';
 import type { Endpoints } from 'misskey-js';
 import { APIClient as MkAPIClient, type SwitchCaseResponseType } from 'misskey-js/api.js';
 import { createRetryTask } from './util';
@@ -10,10 +11,10 @@ interface APIClient {
 	): Promise<SwitchCaseResponseType<E, P>>;
 }
 
-export function createRetryMisskeyApiClientFetcher(origin: string, token: string) {
+export function createRetryMisskeyApiClientFetcher() {
 	const client: APIClient = new MkAPIClient({
-		origin,
-		credential: token,
+		origin: `https://${env.MK_HOST}`,
+		credential: env.API_TOKEN,
 	});
 
 	return async <E extends keyof Endpoints, P extends Endpoints[E]['req']>(
