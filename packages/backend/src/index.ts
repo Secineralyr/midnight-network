@@ -4,7 +4,7 @@ import { RPCHandler } from '@orpc/server/fetch';
 import { CORSPlugin, RequestHeadersPlugin } from '@orpc/server/plugins';
 import { Elysia, t } from 'elysia';
 import { CloudflareAdapter } from 'elysia/adapter/cloudflare-worker';
-import { processCronMain } from './cron';
+import { processCronMain, processCronRemind } from './cron';
 import { router } from './rpc';
 import { mkWebhookTypes, processWebhook } from './webhook';
 
@@ -72,10 +72,20 @@ const app = new Elysia({
 
 export default {
 	fetch: app.fetch,
-	scheduled(event: ScheduledEvent): Promise<void> {
-		console.info('cron start:', event.cron);
-		processCronMain();
-		console.info('cron end:', event.cron);
-		return Promise.resolve();
+	async scheduled(event: ScheduledEvent) {
+		const cron = event.cron;
+		console.info('cron start:', cron);
+		switch (cron) {
+			case env.crons.CRON_DAILY:
+				await processCronMain();
+				break;
+			case env.crons.CRON_DAILY_REMIND:
+				await processCronRemind();
+				break;
+			default:
+				break;
+		}
+		console.info('cron end:', cron);
+		return;
 	},
 };
