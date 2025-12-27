@@ -8,6 +8,9 @@
     "@opentelemetry/api": "catalog:",
     "@orpc/client": "catalog:",
     "@tabler/icons-svelte": "catalog:",
+    "@tanstack/svelte-query": "catalog:",
+    "@tanstack/svelte-table": "catalog:",
+    "echarts": "catalog:",
     "motion": "catalog:",
     "particles.js": "catalog:"
   },
