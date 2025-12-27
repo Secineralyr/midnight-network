@@ -12,7 +12,9 @@
     "@tanstack/svelte-table": "catalog:",
     "echarts": "catalog:",
     "motion": "catalog:",
-    "particles.js": "catalog:"
+    "@tsparticles/svelte": "catalog:",
+    "@tsparticles/slim": "catalog:",
+    "@tsparticles/engine": "catalog:"
   },
   "scripts": {
     "prepare": "svelte-kit sync",

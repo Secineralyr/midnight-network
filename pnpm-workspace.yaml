@@ -27,7 +27,9 @@ catalog:
   misskey-js: ^2025.12.1
   motion: ^12.23.26
   p-retry: ^7.1.1
-  particles.js: ^2.0.0
+  '@tsparticles/svelte': ^3.1.1
+  '@tsparticles/slim': ^3.9.1
+  '@tsparticles/engine': ^3.9.1
   prisma: 7.1.0
   svelte: ^5.46.0
   svelte-check: ^4.3.4
