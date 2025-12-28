@@ -14,7 +14,7 @@ describe('ランク更新の計算', () => {
 				consecutiveAbsenceDays: 0,
 				consecutiveFlyingCount: 0,
 			},
-			borderProtection: { isAvailable: true, participationCountSinceUse: 0 },
+			borderProtection: { cooldownDays: 0 },
 		};
 		const event: RankCalculationEvent = {
 			kind: 'participated',
@@ -42,7 +42,7 @@ describe('ランク更新の計算', () => {
 				consecutiveAbsenceDays: 0,
 				consecutiveFlyingCount: 0,
 			},
-			borderProtection: { isAvailable: true, participationCountSinceUse: 0 },
+			borderProtection: { cooldownDays: 0 },
 		};
 		const event: RankCalculationEvent = {
 			kind: 'participated',
@@ -67,7 +67,7 @@ describe('ランク更新の計算', () => {
 				consecutiveAbsenceDays: 0,
 				consecutiveFlyingCount: 0,
 			},
-			borderProtection: { isAvailable: true, participationCountSinceUse: 0 },
+			borderProtection: { cooldownDays: 0 },
 		};
 		const event: RankCalculationEvent = {
 			kind: 'participated',
@@ -85,7 +85,7 @@ describe('ランク更新の計算', () => {
 		expect(result.usedBorderProtection).toBe(true);
 		expect(result.nextTotalPoints).toBe(5000);
 		expect(result.nextRankNumber).toBe(10);
-		expect(result.nextBorderProtection).toEqual({ isAvailable: false, participationCountSinceUse: 0 });
+		expect(result.nextBorderProtection).toEqual({ cooldownDays: 13 });
 		expect(result.nextStreak.consecutiveWithinZoneDays).toBe(0);
 	});
 });

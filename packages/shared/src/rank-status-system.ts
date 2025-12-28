@@ -89,15 +89,11 @@ export type RankStreakState = {
  */
 export type BorderProtectionState = {
 	/**
-	 * プロテクトが利用可能かどうか。
-	 */
-	isAvailable: boolean;
-	/**
-	 * プロテクト消費後の参加回数。
+	 * プロテクトのクールタイム(日数)。
 	 *
-	 * `isAvailable=false` のときのみ回復のためにカウントされる。
+	 * 0 以下の場合はプロテクトが利用可能。
 	 */
-	participationCountSinceUse: number;
+	cooldownDays: number;
 };
 
 /**
