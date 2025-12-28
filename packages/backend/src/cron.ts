@@ -1,16 +1,30 @@
 import { env } from 'cloudflare:workers';
+import { calculateRankUpdate } from '@midnight-network/rank-calc';
+import type {
+	BorderProtectionState,
+	RankCalculationAbsentEvent,
+	RankCalculationEvent,
+	RankCalculationFlyingEvent,
+	RankCalculationParticipatedEvent,
+	RankProgressState,
+	RankStreakState,
+	WithinZoneRankSnapshot,
+} from '@midnight-network/shared/rank-status-system';
 import type { Note } from 'misskey-js/entities.js';
+import { calculateRankStatusFromTotalPoints } from '../../rank-calc/src/rank-number';
 import { placeEmojis } from './consts';
+import { prisma } from './db';
 import { createRetryMisskeyApiClientFetcher } from './misskey';
 
 export async function processCronMain() {
+	// STLからノート取得
 	const mkApi = createRetryMisskeyApiClientFetcher();
 
-	const _target = new Date();
-	_target.setUTCHours(15);
-	_target.setUTCMinutes(0);
-	_target.setUTCSeconds(0);
-	const targetTime = _target.getTime();
+	const targetTimeDate = new Date();
+	targetTimeDate.setUTCHours(15);
+	targetTimeDate.setUTCMinutes(0);
+	targetTimeDate.setUTCSeconds(0);
+	const targetTime = targetTimeDate.getTime();
 
 	let untilTime = targetTime + 60 * 1000;
 	const sinceTime = targetTime - 60 * 1000;
@@ -32,7 +46,7 @@ export async function processCronMain() {
 			limit: 100,
 			withRenotes: false,
 		});
-		if (res.length == 0) {
+		if (res.length === 0) {
 			break;
 		}
 		untilTime = res.map((n) => Date.parse(n.createdAt)).reduce((t, next) => (t < next ? t : next), untilTime);
@@ -40,28 +54,31 @@ export async function processCronMain() {
 		notes = notes.concat(addend);
 	}
 
-	const users = new Map<string, string>();
-	const records = new Map<string, { uid: string; nid: string; dt: number; place: number }>();
+	// データ整理
+	const users: Record<string, string> = {};
+	let records: Record<string, { uid: string; nid: string; postedAt: Date; dt: number; place: number }> = {};
 	notes.forEach((n) => {
 		const uid = n.userId;
 		const dt = Date.parse(n.createdAt) - targetTime;
-		if (!records.has(uid) || records.get(uid)!.dt > dt) {
-			records.set(uid, {
+		if (!records[uid] || records[uid].dt > dt) {
+			records[uid] = {
 				uid: uid,
 				nid: n.id,
+				postedAt: new Date(n.createdAt),
 				dt: dt,
 				place: -1,
-			});
+			};
 		}
-		users.set(uid, n.user.username);
+		users[uid] = n.user.username;
 	});
 
-	const validRecords = [...records.values()].filter((n) => n.dt >= 0);
-	const flyingRecords = [...records.values()].filter((n) => n.dt < 0);
+	const validRecords = [...Object.values(records)].filter((n) => n.dt >= 0);
+	const flyingRecords = [...Object.values(records)].filter((n) => n.dt < 0);
 
 	const validCount = validRecords.length;
-	const flyingCount = [...records.values()].length - validCount;
+	const flyingCount = [...Object.values(records)].length - validCount;
 
+	// 結果をノートする
 	const host = env.WEB_HOST;
 	const noteTitle = env.POST_MATCH_RESULT_TITLE;
 	const noteUrl = env.POST_MATCH_RESULT_URL.replace('{host}', host);
@@ -71,13 +88,13 @@ export async function processCronMain() {
 	dts.sort((a, b) => a - b);
 	for (let i = 0; i < dts.length; i++) {
 		validRecords
-			.filter((r) => r.dt == dts[i])
+			.filter((r) => r.dt === dts[i])
 			.forEach((r) => {
 				r.place = i + 1;
 				if (i < 10) {
 					let mention = '';
-					if (users.has(r.uid)) {
-						mention = `@${users.get(r.uid)!}`;
+					if (users[r.uid]) {
+						mention = `@${users[r.uid]}`;
 					}
 					ranking.push(`${placeEmojis[i + 1]} ${mention} +${(r.dt / 1000).toFixed(3)}s`);
 				}
@@ -92,6 +109,136 @@ export async function processCronMain() {
 		.replace('{url}', noteUrl);
 
 	await mkApi('notes/create', { text: resultText });
+
+	// DBデータ全般更新
+	const matchDate = await prisma.matchDate.create({ data: { date: targetTimeDate } });
+
+	for (const uid in users) {
+		const username = users[uid];
+		if (username !== undefined) {
+			const user = await prisma.user.findUnique({ where: { id: uid } });
+			if (user === null) {
+				await prisma.user.create({
+					data: {
+						id: uid,
+						userName: username,
+					},
+				});
+				await prisma.userRankStatus.create({ data: { id: uid } });
+				await prisma.userSettings.create({ data: { id: uid } });
+			}
+		}
+	}
+
+	for (const rec of [...validRecords, ...flyingRecords]) {
+		await prisma.record.create({
+			data: {
+				noteId: rec.nid,
+				postedAt: rec.postedAt,
+				userId: rec.uid,
+				place: rec.place,
+				matchDateId: matchDate.id,
+			},
+		});
+	}
+	records = Object.fromEntries([...validRecords, ...flyingRecords].map((rec) => [rec.uid, rec]));
+
+	// ランク計算
+	const allUsers = await prisma.user.findMany();
+	const withinTopUids = validRecords.filter((rec) => rec.place <= 10);
+	const withinTopUserRankStatuses = await prisma.userRankStatus.findMany({
+		where: {
+			OR: withinTopUids.map((rec) => ({ id: rec.uid })),
+		},
+	});
+	const withinTopUserRankStatusesMap: Record<string, (typeof withinTopUserRankStatuses)[number]> = Object.fromEntries(
+		withinTopUserRankStatuses.map((rec) => [rec.id, rec]),
+	);
+	const allTotalParticipationCounts = Object.fromEntries(
+		(
+			await prisma.record.groupBy({
+				by: ['userId'],
+				_count: {
+					_all: true,
+				},
+			})
+		).map((rec) => [rec.userId, rec._count._all]),
+	);
+	const withinZoneParticipants: WithinZoneRankSnapshot[] = validRecords
+		.filter((rec) => rec.place <= 10)
+		.map((rec) => ({
+			placement: rec.place,
+			rankNumber: calculateRankStatusFromTotalPoints(
+				withinTopUserRankStatusesMap[rec.uid]?.pt ?? 0,
+				allTotalParticipationCounts[rec.uid] ?? 0,
+			).rankNumber,
+		}));
+	for (const user of allUsers) {
+		const uid = user.id;
+		let userRankStatus = await prisma.userRankStatus.findUnique({ where: { id: uid } });
+		if (userRankStatus === null) {
+			userRankStatus = await prisma.userRankStatus.create({ data: { id: uid } });
+		}
+
+		const totalParticipationCount = allTotalParticipationCounts[uid] ?? 0;
+		const streak: RankStreakState = {
+			consecutiveParticipationDays: userRankStatus.streakParticipationAt,
+			consecutiveWithinZoneDays: userRankStatus.streakWithinTopAt,
+			consecutiveAbsenceDays: userRankStatus.streakAbsenceAt,
+			consecutiveFlyingCount: userRankStatus.streakFlyingAt,
+		};
+		const borderProtection: BorderProtectionState = {
+			cooldownDays: userRankStatus.protectCoolTime,
+		};
+
+		const currentState: RankProgressState = {
+			totalPoints: userRankStatus.pt,
+			totalParticipationCount: totalParticipationCount,
+			streak: streak,
+			borderProtection: borderProtection,
+		};
+
+		let event: RankCalculationEvent;
+		if (records[uid]) {
+			if (records[uid].dt >= 0) {
+				event = {
+					kind: 'participated',
+					participantCount: validCount,
+					placement: records[uid].place,
+					timeSeconds: records[uid].dt,
+					withinZoneParticipants: withinZoneParticipants,
+				} satisfies RankCalculationParticipatedEvent;
+			} else {
+				event = {
+					kind: 'flying',
+					timeSeconds: records[uid].dt,
+				} satisfies RankCalculationFlyingEvent;
+			}
+		} else {
+			event = { kind: 'absent' } satisfies RankCalculationAbsentEvent;
+		}
+
+		const result = calculateRankUpdate(currentState, event);
+		await prisma.userRankHistory.create({
+			data: {
+				userId: uid,
+				pt: result.nextTotalPoints,
+				earnedPt: result.pointDelta,
+				matchId: matchDate.id,
+			},
+		});
+		await prisma.userRankStatus.update({
+			where: { id: uid },
+			data: {
+				pt: result.nextTotalPoints,
+				streakParticipationAt: result.nextStreak.consecutiveParticipationDays,
+				streakAbsenceAt: result.nextStreak.consecutiveAbsenceDays,
+				streakWithinTopAt: result.nextStreak.consecutiveWithinZoneDays,
+				streakFlyingAt: result.nextStreak.consecutiveFlyingCount,
+				protectCoolTime: result.nextBorderProtection.cooldownDays,
+			},
+		});
+	}
 
 	return;
 
