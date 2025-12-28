@@ -15,6 +15,9 @@ catalogs:
     '@cloudflare/workers-types':
       specifier: 4.20251216.0
       version: 4.20251216.0
+    '@elysiajs/cors':
+      specifier: ^1.4.1
+      version: 1.4.1
     '@opentelemetry/api':
       specifier: 1.9.0
       version: 1.9.0
@@ -128,6 +131,9 @@ importers:
 
   packages/backend:
     dependencies:
+      '@elysiajs/cors':
+        specifier: 'catalog:'
+        version: 1.4.1(elysia@1.4.19(@sinclair/typebox@0.34.41)(exact-mirror@0.2.5(@sinclair/typebox@0.34.41))(file-type@21.1.1)(openapi-types@12.1.3)(typescript@5.9.3))
       '@midnight-network/entity':
         specifier: workspace:*
         version: link:../entity
@@ -214,6 +220,9 @@ importers:
       '@tsparticles/svelte':
         specifier: 'catalog:'
         version: 3.1.1(svelte@5.46.0)
+      better-auth:
+        specifier: 'catalog:'
+        version: 1.4.7(eb9bfb48d24a27299a71b64e63fd5a8a)
       echarts:
         specifier: 'catalog:'
         version: 6.0.0
@@ -613,6 +622,11 @@ packages:
 
   '@electric-sql/pglite@0.3.2':
     resolution: {integrity: sha512-zfWWa+V2ViDCY/cmUfRqeWY1yLto+EpxjXnZzenB1TyxsTiXaTWeZFIZw6mac52BsuQm0RjCnisjBtdBaXOI6w==}
+
+  '@elysiajs/cors@1.4.1':
+    resolution: {integrity: sha512-lQfad+F3r4mNwsxRKbXyJB8Jg43oAOXjRwn7sKUL6bcOW3KjUqUimTS+woNpO97efpzjtDE0tEjGk9DTw8lqTQ==}
+    peerDependencies:
+      elysia: '>= 1.4.0'
 
   '@emnapi/runtime@1.7.1':
     resolution: {integrity: sha512-PVtJr5CmLwYAU9PZDMITZoR5iAOShYREoR45EyyLrbntV50mdePTgUn4AmOw90Ifcj+x2kRjdzr1HP3RrNiHGA==}
@@ -3368,6 +3382,10 @@ snapshots:
       '@electric-sql/pglite': 0.3.2
 
   '@electric-sql/pglite@0.3.2': {}
+
+  '@elysiajs/cors@1.4.1(elysia@1.4.19(@sinclair/typebox@0.34.41)(exact-mirror@0.2.5(@sinclair/typebox@0.34.41))(file-type@21.1.1)(openapi-types@12.1.3)(typescript@5.9.3))':
+    dependencies:
+      elysia: 1.4.19(@sinclair/typebox@0.34.41)(exact-mirror@0.2.5(@sinclair/typebox@0.34.41))(file-type@21.1.1)(openapi-types@12.1.3)(typescript@5.9.3)
 
   '@emnapi/runtime@1.7.1':
     dependencies:

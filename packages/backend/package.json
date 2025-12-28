@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "dependencies": {
+    "@elysiajs/cors": "catalog:",
     "@midnight-network/entity": "workspace:*",
     "@midnight-network/rank-calc": "workspace:*",
     "@midnight-network/shared": "workspace:*",

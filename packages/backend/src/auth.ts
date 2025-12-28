@@ -1,14 +1,18 @@
 import { env } from 'cloudflare:workers';
 import { MisskeyOAuthProviderId } from '@midnight-network/shared/auth-misskey';
+import { authBasePath } from '@midnight-network/shared/auth-routes';
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { genericOAuth } from 'better-auth/plugins';
+import { createHostToOrigin } from '../../shared/src/url';
 import { prisma } from './db';
 
 export const auth = betterAuth({
 	database: prismaAdapter(prisma, {
 		provider: 'sqlite',
 	}),
+	baseURL: createHostToOrigin(env.WEB_HOST),
+	basePath: authBasePath,
 	emailAndPassword: {
 		enabled: false,
 	},
@@ -17,8 +21,8 @@ export const auth = betterAuth({
 			config: [
 				{
 					providerId: MisskeyOAuthProviderId,
-					clientId: `https://${env.WEB_HOST}`,
-					discoveryUrl: `https://${env.MK_HOST}/.well-known/oauth-authorization-server`,
+					clientId: createHostToOrigin(env.WEB_HOST),
+					discoveryUrl: createHostToOrigin(`${env.MK_HOST}/.well-known/oauth-authorization-server`),
 				},
 			],
 		}),

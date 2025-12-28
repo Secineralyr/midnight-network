@@ -10,6 +10,7 @@
     "@tabler/icons-svelte": "catalog:",
     "@tanstack/svelte-query": "catalog:",
     "@tanstack/svelte-table": "catalog:",
+    "better-auth": "catalog:",
     "echarts": "catalog:",
     "motion": "catalog:",
     "@tsparticles/svelte": "catalog:",
