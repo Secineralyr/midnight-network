@@ -9,15 +9,27 @@ export const SettingType = z.object({
 	showProfileSearch: z.boolean(),
 });
 
+export type SettingTypeT = z.infer<typeof SettingType>;
+
 export const GetSettingsParams = z.void();
+
+export type GetSettingsParamsT = z.infer<typeof GetSettingsParams>;
 
 export const GetSettingsResponse = SettingType;
 
+export type GetSettingsResponseT = z.infer<typeof GetSettingsResponse>;
+
 export const SetSettingsParams = SettingType.clone().partial();
+
+export type SetSettingsParamsT = z.infer<typeof SetSettingsParams>;
 
 export const SetSettingsResponse = z.void();
 
+export type SetSettingsResponseT = z.infer<typeof SetSettingsResponse>;
+
 export const LastResultParams = z.void();
+
+export type LastResultParamsT = z.infer<typeof LastResultParams>;
 
 export const RankShiftType = {
 	RankUp: 0,
@@ -36,3 +48,5 @@ export const LastResultResponse = z.optional(
 		rankShift: z.enum(RankShiftType),
 	}),
 );
+
+export type LastResultResponseT = z.infer<typeof LastResultResponse>;

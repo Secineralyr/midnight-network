@@ -3,6 +3,8 @@ import { RankType } from '../../rank';
 
 export const UserParams = z.string();
 
+export type UserParamsT = z.infer<typeof UserParams>;
+
 export const CurrentRank = z
 	.object({
 		rank: z.enum(RankType).extract(['NoRank']),
@@ -15,6 +17,8 @@ export const CurrentRank = z
 		}),
 	);
 
+export type CurrentRankT = z.infer<typeof CurrentRank>;
+
 export const RankStatus = z.object({
 	totalPt: z.number(),
 	streakParticipationAt: z.number(),
@@ -23,6 +27,8 @@ export const RankStatus = z.object({
 	streakFlyingAt: z.number(),
 	protectCoolTime: z.number(),
 });
+
+export type RankStatusT = z.infer<typeof RankStatus>;
 
 export const Statistics = z.object({
 	totalParticipationCount: z.number(),
@@ -37,6 +43,8 @@ export const Statistics = z.object({
 	flyingCount: z.number(),
 });
 
+export type StatisticsT = z.infer<typeof Statistics>;
+
 export const UserResponse = z.optional(
 	z.object({
 		currentRank: CurrentRank,
@@ -44,6 +52,8 @@ export const UserResponse = z.optional(
 		statistics: z.optional(Statistics),
 	}),
 );
+
+export type UserResponseT = z.infer<typeof UserResponse>;
 
 export const GraphSpan = {
 	Daily: 0,
@@ -55,12 +65,18 @@ export const GraphParamBase = z.object({
 	span: z.enum(GraphSpan),
 });
 
+export type GraphParamBaseT = z.infer<typeof GraphParamBase>;
+
 export const TotalPtParams = GraphParamBase;
+
+export type TotalPtParamsT = z.infer<typeof TotalPtParams>;
 
 export const LineBarChartData = z.object({
 	value: z.number(),
 	label: z.string(),
 });
+
+export type LineBarChartDataT = z.infer<typeof LineBarChartData>;
 
 export const TotalPtResponse = LineBarChartData.clone()
 	.and(
@@ -70,7 +86,11 @@ export const TotalPtResponse = LineBarChartData.clone()
 	)
 	.array();
 
+export type TotalPtResponseT = z.infer<typeof TotalPtResponse>;
+
 export const EarnedPtParams = GraphParamBase;
+
+export type EarnedPtParamsT = z.infer<typeof EarnedPtParams>;
 
 export const EarnedPtResponse = LineBarChartData.clone()
 	.and(
@@ -80,7 +100,11 @@ export const EarnedPtResponse = LineBarChartData.clone()
 	)
 	.array();
 
+export type EarnedPtResponseT = z.infer<typeof EarnedPtResponse>;
+
 export const PostTimeParams = GraphParamBase;
+
+export type PostTimeParamsT = z.infer<typeof PostTimeParams>;
 
 export const PostTimeResponse = LineBarChartData.clone()
 	.and(
@@ -102,7 +126,11 @@ export const PostTimeResponse = LineBarChartData.clone()
 	)
 	.array();
 
+export type PostTimeResponseT = z.infer<typeof PostTimeResponse>;
+
 export const RadarParams = z.void();
+
+export type RadarParamsT = z.infer<typeof RadarParams>;
 
 export const RadarResponse = z.object({
 	totalPt: z.number(),
@@ -112,7 +140,11 @@ export const RadarResponse = z.object({
 	totalParticipationCount: z.number(),
 });
 
+export type RadarResponseT = z.infer<typeof RadarResponse>;
+
 export const HeatmapParams = z.void();
+
+export type HeatmapParamsT = z.infer<typeof HeatmapParams>;
 
 export const HeatmapType = {
 	NoParticipation: -1,
@@ -131,3 +163,5 @@ export const HeatmapResponse = z
 		}),
 	)
 	.array();
+
+export type HeatmapResponseT = z.infer<typeof HeatmapResponse>;
