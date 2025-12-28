@@ -4,23 +4,25 @@ import { calculateNormalizedRankValue } from './rank-metrics.js';
 import { getMinimumPointsForRankNumber } from './rank-number.js';
 
 /**
- * プロテクト回復に必要な参加回数を計算します。
+ * プロテクト消費後に設定するクールタイム(日数)を計算します。
  *
  * @param rankNumber 現在ランク番号(0=Ø, 12=Ⅰ)
  */
-export function calculateRequiredParticipationsForProtectionRecovery(rankNumber: RankNumber): number {
+export function calculateBorderProtectionCooldownDays(rankNumber: RankNumber): number {
 	const normalizedRank = calculateNormalizedRankValue(rankNumber);
 	return 5 + Math.floor(10 * normalizedRank);
 }
 
 /**
- * ボーダープロテクトを適用し、必要に応じてプロテクト状態を更新します。
+ * ボーダープロテクトを適用し、必要に応じてクールタイムを更新します。
  *
  * 発動条件:
  * - 不参加ではない
  * - ランク降格が発生する
- * - プロテクトが回復している
+ * - クールタイムが 0 以下
  * - 現在ランクが Ø ではない
+ *
+ * 降格が発生せず、かつ参加している場合はクールタイムを 1 減算します(0未満にはしない)。
  *
  * @param currentRankNumber 現在ランク番号(0=Ø, 12=Ⅰ)
  * @param provisionalNextRankNumber 加算後の暫定ランク番号
@@ -36,37 +38,33 @@ export function applyBorderProtection(params: {
 	previousBorderProtection: BorderProtectionState;
 }): { nextTotalPoints: number; nextBorderProtection: BorderProtectionState; usedBorderProtection: boolean } {
 	const isDemoted = params.provisionalNextRankNumber < params.currentRankNumber;
-	const canUseBorderProtection =
-		params.isParticipating && isDemoted && params.previousBorderProtection.isAvailable && params.currentRankNumber !== 0;
+	const currentCooldownDays = params.previousBorderProtection.cooldownDays;
+	const isCooldownReady = currentCooldownDays <= 0;
+	const canUseBorderProtection = params.isParticipating && isDemoted && isCooldownReady && params.currentRankNumber !== 0;
 
 	if (canUseBorderProtection) {
+		const requiredCooldownDays = calculateBorderProtectionCooldownDays(params.currentRankNumber);
+		const nextCooldownDays = Math.max(0, currentCooldownDays) + requiredCooldownDays;
+
 		return {
 			nextTotalPoints: getMinimumPointsForRankNumber(params.currentRankNumber),
-			nextBorderProtection: { isAvailable: false, participationCountSinceUse: 0 },
+			nextBorderProtection: { cooldownDays: nextCooldownDays },
 			usedBorderProtection: true,
 		};
 	}
 
-	if (params.previousBorderProtection.isAvailable) {
+	if (!isDemoted && params.isParticipating) {
+		const nextCooldownDays = Math.max(0, currentCooldownDays - 1);
 		return {
 			nextTotalPoints: params.provisionalNextTotalPoints,
-			nextBorderProtection: { isAvailable: true, participationCountSinceUse: 0 },
+			nextBorderProtection: { cooldownDays: nextCooldownDays },
 			usedBorderProtection: false,
 		};
 	}
 
-	const updatedParticipationCountSinceUse = params.isParticipating
-		? params.previousBorderProtection.participationCountSinceUse + 1
-		: params.previousBorderProtection.participationCountSinceUse;
-
-	const requiredCount = calculateRequiredParticipationsForProtectionRecovery(params.currentRankNumber);
-	const isRecovered = updatedParticipationCountSinceUse >= requiredCount;
-
 	return {
 		nextTotalPoints: params.provisionalNextTotalPoints,
-		nextBorderProtection: isRecovered
-			? { isAvailable: true, participationCountSinceUse: 0 }
-			: { isAvailable: false, participationCountSinceUse: updatedParticipationCountSinceUse },
+		nextBorderProtection: { cooldownDays: currentCooldownDays },
 		usedBorderProtection: false,
 	};
 }
