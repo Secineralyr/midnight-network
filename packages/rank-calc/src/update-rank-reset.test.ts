@@ -14,7 +14,7 @@ describe('アップデート時ランクリセットの適用', () => {
 				consecutiveAbsenceDays: 0,
 				consecutiveFlyingCount: 0,
 			},
-			borderProtection: { isAvailable: true, participationCountSinceUse: 0 },
+			borderProtection: { cooldownDays: 0 },
 		};
 
 		expect(applyUpdateRankReset(state)).toBe(state);
@@ -30,7 +30,7 @@ describe('アップデート時ランクリセットの適用', () => {
 				consecutiveAbsenceDays: 0,
 				consecutiveFlyingCount: 0,
 			},
-			borderProtection: { isAvailable: true, participationCountSinceUse: 0 },
+			borderProtection: { cooldownDays: 0 },
 		};
 
 		expect(applyUpdateRankReset(state).totalPoints).toBe(5500);
@@ -46,7 +46,7 @@ describe('アップデート時ランクリセットの適用', () => {
 				consecutiveAbsenceDays: 0,
 				consecutiveFlyingCount: 0,
 			},
-			borderProtection: { isAvailable: true, participationCountSinceUse: 0 },
+			borderProtection: { cooldownDays: 0 },
 		};
 		const rankTwelveState: RankProgressState = {
 			totalPoints: 700,
@@ -57,7 +57,7 @@ describe('アップデート時ランクリセットの適用', () => {
 				consecutiveAbsenceDays: 0,
 				consecutiveFlyingCount: 0,
 			},
-			borderProtection: { isAvailable: true, participationCountSinceUse: 0 },
+			borderProtection: { cooldownDays: 0 },
 		};
 
 		expect(applyUpdateRankReset(beginnerState).totalPoints).toBe(200);
@@ -74,7 +74,7 @@ describe('アップデート時ランクリセットの適用', () => {
 				consecutiveAbsenceDays: 0,
 				consecutiveFlyingCount: 0,
 			},
-			borderProtection: { isAvailable: true, participationCountSinceUse: 0 },
+			borderProtection: { cooldownDays: 0 },
 		};
 
 		expect(applyUpdateRankReset(state).totalPoints).toBe(1000);

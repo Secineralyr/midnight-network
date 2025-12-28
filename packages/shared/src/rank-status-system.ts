@@ -1,3 +1,4 @@
+import type { RankType } from './rank';
 /**
  * ランクステータスシステムで使用する共通データモデルと定数。
  */
@@ -5,7 +6,9 @@
 /**
  * ランク番号の候補(0〜12)。
  */
-export const rankNumbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
+export const rankNumbers = [
+	0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+] as const satisfies (typeof RankType)[keyof typeof RankType][];
 
 /**
  * ランク番号。
@@ -89,15 +92,11 @@ export type RankStreakState = {
  */
 export type BorderProtectionState = {
 	/**
-	 * プロテクトが利用可能かどうか。
-	 */
-	isAvailable: boolean;
-	/**
-	 * プロテクト消費後の参加回数。
+	 * プロテクトのクールタイム(日数)。
 	 *
-	 * `isAvailable=false` のときのみ回復のためにカウントされる。
+	 * 0 以下の場合はプロテクトが利用可能。
 	 */
-	participationCountSinceUse: number;
+	cooldownDays: number;
 };
 
 /**
