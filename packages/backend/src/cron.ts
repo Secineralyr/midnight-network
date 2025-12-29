@@ -296,10 +296,6 @@ export async function processCronMain() {
 			},
 		});
 	}
-
-	return;
-
-	// TODO: 実際の集計タスク (+ 今回の独自実装ランク計算をrank-calcにあるやつで1ユーザーずつ計算していれる)
 }
 
 export async function processCronRemind() {
@@ -326,6 +322,4 @@ export async function processCronRemind() {
 
 	const mkApi = createRetryMisskeyApiClientFetcher();
 	await mkApi('notes/create', { text: `${env.POST_MATCH_REMIND_TEXT}${crossOverDaysText}` });
-	return;
-	// TODO: リマインド用ノート投稿タスク
 }

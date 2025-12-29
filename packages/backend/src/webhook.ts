@@ -1,5 +1,6 @@
 import { env } from 'cloudflare:workers';
 import type { Note } from 'misskey-js/entities.js';
+import { prisma } from './db';
 import { createRetryMisskeyApiClientFetcher } from './misskey';
 import { numberBetween } from './util';
 
@@ -32,27 +33,75 @@ async function routeBotCommand(note: Note) {
 	const mkApi = createRetryMisskeyApiClientFetcher();
 	await mkApi('notes/reactions/create', { noteId: note.id, reaction: '👍' });
 
-	if (note.text && commands.follow.test(note.text)) {
-		await mkApi('notes/reactions/create', { noteId: note.id, reaction: '✅' });
+	if (!note.text) {
 		return;
 	}
-	if (note.text && commands.unfollow.test(note.text)) {
+	if (commands.follow.test(note.text)) {
+		await mkApi('following/create', { userId: note.userId });
+		await mkApi('notes/reactions/create', { noteId: note.id, reaction: '✅' });
+	} else if (commands.unfollow.test(note.text)) {
+		await mkApi('following/delete', { userId: note.userId });
 		await mkApi('notes/reactions/create', { noteId: note.id, reaction: '👋' });
-		return;
-	}
-	if (note.text && commands.ping.test(note.text)) {
+	} else if (commands.ping.test(note.text)) {
 		await mkApi('notes/reactions/create', { noteId: note.id, reaction: '✅' });
-		return;
-	}
+	} else {
+		const user = await prisma.user.findUnique({ where: { id: note.userId } });
+		if (user) {
+			const count = await prisma.record.count({ where: { userId: user.id } });
+			const WithinTopCount = await prisma.record.count({ where: { userId: user.id, place: { gte: 1, lte: 10 } } });
+			const firstCount = await prisma.record.count({ where: { userId: user.id, place: 1 } });
+			const maxRank = await prisma.record.findFirst({
+				where: { userId: user.id, place: { gte: 1 } },
+				orderBy: [{ place: 'asc' }],
+			});
+			const maxRankString = maxRank ? `${maxRank.place}位` : 'なし';
 
-	// TODO: 旧統計データを返す
+			await mkApi('notes/create', {
+				text: `@${note.user.username}\n参加回数：${count}\nランクイン回数：${WithinTopCount}\n最高ランク:${maxRankString}\n1位獲得回数：${firstCount}`,
+				replyId: note.id
+			});
+		} else {
+			await mkApi('notes/create', {
+				text: `@${note.user.username}\n記録なし`,
+				replyId: note.id
+			});
+		}
+	}
+}
+
+const formatOptions: Intl.DateTimeFormatOptions = {
+	timeZone: 'Asia/Tokyo',
+	hour: 'numeric',
+	minute: "numeric",
+	second: "numeric",
+	fractionalSecondDigits: 3
 }
 
 async function postOriginalReplyAction(note: Note) {
 	const mkApi = createRetryMisskeyApiClientFetcher();
 	await mkApi('notes/reactions/create', { noteId: note.id, reaction: '👍' });
 
-	// TODO: 集計されていれば順位とタイム、そうでなければタイムだけ返す
+	const recordNote = note.reply;
+
+	if (recordNote) {
+		let resultText = '';
+
+		const record = await prisma.record.findUnique({ where: { noteId: recordNote.id } });
+		if (record) {
+			const dateString = new Date(record.createdAt).toLocaleString('ja-JP', formatOptions);
+			const place = record.place;
+
+			resultText = `@${note.user.username}\n順位：${place}位\nノート時刻：${dateString}`;
+		} else {
+			const dateString = new Date(recordNote.createdAt).toLocaleString('ja-JP', formatOptions);
+			resultText = `@${note.user.username}\nノート時刻：${dateString}`;
+		}
+
+		await mkApi('notes/create', {
+			text: resultText,
+			replyId: note.id
+		});
+	}
 }
 
 function isDisableWebhook() {
