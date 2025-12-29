@@ -38,7 +38,7 @@ catalog:
   vite: ^7.3.0
   vitest: 4.0.15
   wrangler: 4.54.0
-  zod: ^4.2.1
+  zod: 4.2.1
 
 onlyBuiltDependencies:
   - '@prisma/client'

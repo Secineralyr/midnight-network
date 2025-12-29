@@ -62,6 +62,7 @@ export const GraphSpan = {
 } as const;
 
 export const GraphParamBase = z.object({
+	userId: z.string(),
 	span: z.enum(GraphSpan),
 });
 

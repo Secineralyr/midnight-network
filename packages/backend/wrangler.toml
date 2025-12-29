@@ -14,6 +14,11 @@ binding = "SESSION_KV"
 id = "REPLACE_ME"
 preview_id = "REPLACE_ME"
 
+[[kv_namespaces]]
+binding = "CACHE"
+id = "REPLACE_ME"
+preview_id = "REPLACE_ME"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "midnight-network"
