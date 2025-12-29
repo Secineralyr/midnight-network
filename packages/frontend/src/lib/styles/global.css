@@ -1,0 +1,214 @@
+/**
+ * グローバルスタイル定義
+ * リセット、ベーススタイル、ユーティリティクラスを定義
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=M+PLUS+2:wght@400;500;600;700&family=Michroma&display=swap');
+@import './variables.css';
+
+/* リセットスタイル */
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+html {
+	font-size: 16px;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+body {
+	font-family: var(--font-japanese);
+	background-color: var(--color-bg-primary);
+	color: var(--color-text-primary);
+	line-height: 1.6;
+	min-height: 100vh;
+}
+
+/* 英数字には Lexend を適用 */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-family: var(--font-alphanumeric);
+}
+
+/* 特殊文字用クラス */
+.font-special {
+	font-family: var(--font-special);
+}
+
+.font-alphanumeric {
+	font-family: var(--font-alphanumeric);
+}
+
+.font-japanese {
+	font-family: var(--font-japanese);
+}
+
+/* リンクスタイル */
+a {
+	color: var(--color-accent-primary);
+	text-decoration: none;
+	transition: color var(--transition-fast);
+}
+
+a:hover {
+	color: var(--color-text-primary);
+}
+
+/* ボタンリセット */
+button {
+	font-family: inherit;
+	font-size: inherit;
+	border: none;
+	background: none;
+	cursor: pointer;
+	color: inherit;
+}
+
+/* 入力リセット */
+input,
+textarea,
+select {
+	font-family: inherit;
+	font-size: inherit;
+	color: inherit;
+	background: none;
+	border: none;
+	outline: none;
+}
+
+/* リストリセット */
+ul,
+ol {
+	list-style: none;
+}
+
+/* 画像リセット */
+img {
+	max-width: 100%;
+	height: auto;
+	display: block;
+}
+
+/* スクロールバースタイル */
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: var(--color-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+	background: var(--color-border-primary);
+	border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: var(--color-accent-secondary);
+}
+
+/* セレクション */
+::selection {
+	background-color: var(--color-accent-primary);
+	color: var(--color-bg-primary);
+}
+
+/* フォーカスアウトライン */
+:focus-visible {
+	outline: 2px solid var(--color-border-focus);
+	outline-offset: 2px;
+}
+
+/* ユーティリティクラス */
+.visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+.truncate {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* コンテナ */
+.container {
+	width: 100%;
+	max-width: var(--content-max-width);
+	margin: 0 auto;
+	padding: 0 var(--spacing-md);
+}
+
+/* カード共通スタイル */
+.card {
+	background-color: var(--color-bg-card);
+	border-radius: var(--radius-lg);
+	border: 1px solid var(--color-border-secondary);
+}
+
+/* スケルトンローディング */
+.skeleton {
+	background: linear-gradient(90deg, var(--color-bg-card) 25%, var(--color-bg-card-hover) 50%, var(--color-bg-card) 75%);
+	background-size: 200% 100%;
+	animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+	0% {
+		background-position: 200% 0;
+	}
+	100% {
+		background-position: -200% 0;
+	}
+}
+
+/* フェードイン */
+@keyframes fade-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+/* スライドアップ */
+@keyframes slide-up {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* スケールイン */
+@keyframes scale-in {
+	from {
+		opacity: 0;
+		transform: scale(0.95);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
