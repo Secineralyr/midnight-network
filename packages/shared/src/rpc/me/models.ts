@@ -2,7 +2,6 @@ import { z } from 'zod';
 import { RankType } from '../../rank';
 
 export const SettingType = z.object({
-	showRank: z.boolean(),
 	showLeaderboardRank: z.boolean(),
 	showLeaderboardRanking: z.boolean(),
 	showProfileStats: z.boolean(),

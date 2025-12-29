@@ -1,3 +1,4 @@
+import { RankType } from '@midnight-network/shared/rank';
 import type {
 	EarnedPtParamsT,
 	EarnedPtResponseT,
@@ -12,51 +13,635 @@ import type {
 	UserParamsT,
 	UserResponseT,
 } from '@midnight-network/shared/rpc/user/models';
+import { GraphSpan, HeatmapType } from '@midnight-network/shared/rpc/user/models';
+import { prisma } from '../../db';
+import { withCache } from '../helpers/cache';
+import { calculateTimeDifferenceSeconds, isFlying } from '../helpers/match';
+import { canViewProfileStats } from '../helpers/privacy';
+import {
+	calculatePointsToNextRank,
+	calculateRankFromPoints,
+	calculateRemainingParticipationCount,
+	rankNumberToRankTypeValue,
+} from '../helpers/rank';
+import { calculateGlobalAverages, calculateUserStatistics } from '../helpers/statistics';
 
-export function profile(_input: UserParamsT): UserResponseT {
-	// TODO: userIdからユーザー情報を取得する。存在しないユーザーはundefinedを返す。
-	// TODO: ログインユーザーが自身ではなくそのユーザーのshowProfileStatsがfalseであればundefinedを返す
-	// TODO: DBから取得する前に、KVのキャッシュがあればそれを返す。
-	// TODO: DBから取得したなら、KVにキャッシュしておく、「プレフィクス: profile」「次の日のTARGET_MATCH_HOURとTARGET_MATCH_MINUTESまでを有効期限とする」
-	return [];
+/** Daily期間の最大日数 */
+const DAILY_MAX_DAYS = 30;
+/** Weekly期間の最大週数 */
+const WEEKLY_MAX_WEEKS = 26;
+/** Monthly期間の最大月数 */
+const MONTHLY_MAX_MONTHS = 12;
+/** ヒートマップの最大日数 */
+const HEATMAP_MAX_DAYS = 30;
+
+/**
+ * ユーザープロフィール情報を取得する。
+ * showProfileStatsがfalseのユーザーはundefinedを返す。
+ * @param userId ユーザーID
+ * @returns ユーザープロフィール情報
+ */
+export async function profile(userId: UserParamsT): Promise<UserResponseT> {
+	return await withCache('profile', userId, async () => {
+		const user = await prisma.user.findUnique({
+			where: { id: userId, banned: false },
+			select: {
+				id: true,
+				userRankStatuses: {
+					select: {
+						pt: true,
+						streakParticipationAt: true,
+						streakAbsenceAt: true,
+						streakWithinTopAt: true,
+						streakFlyingAt: true,
+						protectCoolTime: true,
+					},
+				},
+				userSettings: {
+					select: { showProfileStats: true },
+				},
+				records: {
+					select: {
+						place: true,
+						postedAt: true,
+						matchDate: {
+							select: { date: true },
+						},
+					},
+				},
+			},
+		});
+
+		if (!user) {
+			return undefined;
+		}
+
+		if (user.userSettings?.showProfileStats === false) {
+			return undefined;
+		}
+
+		const totalPt = user.userRankStatuses?.pt ?? 0;
+		const participationCount = user.records.length;
+		const { rankNumber, isNoRank } = calculateRankFromPoints(totalPt, participationCount);
+		const rankValue = rankNumberToRankTypeValue(rankNumber, isNoRank);
+
+		const stats = await calculateUserStatistics(userId);
+
+		const currentRank = isNoRank
+			? {
+					rank: RankType.NoRank,
+					remainingParticipationCount: calculateRemainingParticipationCount(participationCount),
+				}
+			: {
+					rank: rankValue as Exclude<typeof rankValue, typeof RankType.NoRank>,
+					nextRankPt: calculatePointsToNextRank(totalPt, rankNumber),
+				};
+
+		const rankStatus = {
+			totalPt,
+			streakParticipationAt: user.userRankStatuses?.streakParticipationAt ?? 0,
+			streakAbsenceAt: user.userRankStatuses?.streakAbsenceAt ?? 0,
+			streakWithinTopAt: user.userRankStatuses?.streakWithinTopAt ?? 0,
+			streakFlyingAt: user.userRankStatuses?.streakFlyingAt ?? 0,
+			protectCoolTime: user.userRankStatuses?.protectCoolTime ?? 0,
+		};
+
+		const statistics = stats
+			? {
+					totalParticipationCount: stats.totalParticipationCount,
+					averagePlace: stats.averagePlace ?? 0,
+					maxPlace: stats.maxPlace ?? 0,
+					winCount: stats.winCount,
+					withinCount: stats.withinCount,
+					averageTime: stats.averageTime ?? 0,
+					wr: stats.wr,
+					lateTime: stats.lateTime ?? 0,
+					earlyTime: stats.earlyTime ?? 0,
+					flyingCount: stats.flyingCount,
+				}
+			: undefined;
+
+		return {
+			currentRank,
+			rankStatus,
+			statistics,
+		};
+	});
 }
 
-export function earnedPtChart(_input: EarnedPtParamsT): EarnedPtResponseT {
-	// TODO: グラフスパンに合わせたuserIdから獲得ptを取得する (Dailyは最長1ヶ月、Weaklyは最長半年、Monthlyは最長1年)
-	// TODO: ログインユーザーが自身ではなくそのユーザーのshowProfileStatsがfalseであればエラーを返す
-	// TODO: DBから取得する前に、KVのキャッシュがあればそれを返す。
-	// TODO: DBから取得したなら、KVにキャッシュしておく、「プレフィクス: earnedPtChart」「次の日のTARGET_MATCH_HOURとTARGET_MATCH_MINUTESまでを有効期限とする」
-	return [];
+/**
+ * 獲得ptチャートを取得する。
+ * Daily: 最長1ヶ月、Weekly: 最長半年、Monthly: 最長1年
+ * @param params パラメータ（userId, span）
+ * @returns 獲得ptチャートデータ
+ */
+export async function earnedPtChart(params: EarnedPtParamsT): Promise<EarnedPtResponseT> {
+	return await withCache('earnedPtChart', params, async () => {
+		const canView = await canViewProfileStats(params.userId);
+		if (!canView) {
+			return [];
+		}
+
+		const maxDays = getMaxDaysForSpan(params.span);
+		const startDate = new Date();
+		startDate.setUTCDate(startDate.getUTCDate() - maxDays);
+
+		const histories = await prisma.userRankHistory.findMany({
+			where: {
+				userId: params.userId,
+				matchDate: {
+					date: { gte: startDate },
+				},
+			},
+			select: {
+				earnedPt: true,
+				pt: true,
+				matchDate: {
+					select: { date: true },
+				},
+			},
+			orderBy: {
+				matchDate: { date: 'asc' },
+			},
+		});
+
+		return aggregateChartData(
+			histories.map((h) => ({
+				date: h.matchDate.date,
+				value: h.earnedPt,
+				totalPt: h.pt,
+			})),
+			params.span,
+			maxDays,
+		);
+	});
 }
 
-export function heatmapChart(_input: HeatmapParamsT): HeatmapResponseT {
-	// TODO: userIdから試合結果ヒートマップを取得する(最長30日)
-	// TODO: ログインユーザーが自身ではなくそのユーザーのshowProfileStatsがfalseであればエラーを返す
-	// TODO: DBから取得する前に、KVのキャッシュがあればそれを返す。
-	// TODO: DBから取得したなら、KVにキャッシュしておく、「プレフィクス: heatmapChart」「次の日のTARGET_MATCH_HOURとTARGET_MATCH_MINUTESまでを有効期限とする」
-	return [];
+/**
+ * ヒートマップチャートを取得する（最長30日）。
+ * @param userId ユーザーID
+ * @returns ヒートマップデータ
+ */
+export async function heatmapChart(userId: HeatmapParamsT): Promise<HeatmapResponseT> {
+	return await withCache('heatmapChart', userId, async () => {
+		const canView = await canViewProfileStats(userId);
+		if (!canView) {
+			return [];
+		}
+
+		const startDate = new Date();
+		startDate.setUTCDate(startDate.getUTCDate() - HEATMAP_MAX_DAYS);
+
+		const matchDates = await prisma.matchDate.findMany({
+			where: {
+				date: { gte: startDate },
+			},
+			select: {
+				id: true,
+				date: true,
+				records: {
+					where: { userId },
+					select: {
+						place: true,
+						postedAt: true,
+					},
+				},
+			},
+			orderBy: { date: 'asc' },
+		});
+
+		return matchDates.map((matchDate) => {
+			const record = matchDate.records[0];
+			if (!record) {
+				return { type: HeatmapType.NoParticipation };
+			}
+
+			const timeDiff = calculateTimeDifferenceSeconds(record.postedAt, matchDate.date);
+			if (isFlying(timeDiff)) {
+				return { type: HeatmapType.Flying };
+			}
+
+			return {
+				type: HeatmapType.Participation,
+				place: record.place,
+			};
+		});
+	});
 }
 
-export function postTimeChart(_input: PostTimeParamsT): PostTimeResponseT {
-	// TODO: グラフスパンに合わせたuserIdから試合ごとの投稿時間を取得する (Dailyは最長1ヶ月、Weaklyは最長半年、Monthlyは最長1年)
-	// TODO: ログインユーザーが自身ではなくそのユーザーのshowProfileStatsがfalseであればエラーを返す
-	// TODO: DBから取得する前に、KVのキャッシュがあればそれを返す。
-	// TODO: DBから取得したなら、KVにキャッシュしておく、「プレフィクス: postTimeChart」「次の日のTARGET_MATCH_HOURとTARGET_MATCH_MINUTESまでを有効期限とする」
-	return [];
+/**
+ * 投稿時間チャートを取得する。
+ * Weekly/Monthlyは平均化。フライングは除外して平均化。
+ * @param params パラメータ（userId, span）
+ * @returns 投稿時間チャートデータ
+ */
+export async function postTimeChart(params: PostTimeParamsT): Promise<PostTimeResponseT> {
+	return await withCache('postTimeChart', params, async () => {
+		const canView = await canViewProfileStats(params.userId);
+		if (!canView) {
+			return [];
+		}
+
+		const maxDays = getMaxDaysForSpan(params.span);
+		const startDate = new Date();
+		startDate.setUTCDate(startDate.getUTCDate() - maxDays);
+
+		const records = await prisma.record.findMany({
+			where: {
+				userId: params.userId,
+				matchDate: {
+					date: { gte: startDate },
+				},
+			},
+			select: {
+				place: true,
+				postedAt: true,
+				matchDate: {
+					select: { date: true },
+				},
+			},
+			orderBy: {
+				matchDate: { date: 'asc' },
+			},
+		});
+
+		if (params.span === GraphSpan.Daily) {
+			return records.map((r) => {
+				const timeDiff = calculateTimeDifferenceSeconds(r.postedAt, r.matchDate.date);
+				const flying = isFlying(timeDiff);
+
+				if (flying) {
+					return {
+						value: timeDiff,
+						label: formatDateLabel(r.matchDate.date, GraphSpan.Daily),
+						postedAt: r.postedAt,
+						isFlying: true as const,
+					};
+				}
+
+				return {
+					value: timeDiff,
+					label: formatDateLabel(r.matchDate.date, GraphSpan.Daily),
+					postedAt: r.postedAt,
+					isFlying: false as const,
+					place: r.place,
+				};
+			});
+		}
+
+		const buckets = createDateBuckets(startDate, new Date(), params.span);
+
+		return buckets.map((bucket) => {
+			const bucketRecords = records.filter((r) => {
+				const recordDate = r.matchDate.date;
+				return recordDate >= bucket.start && recordDate < bucket.end;
+			});
+
+			const nonFlyingRecords = bucketRecords.filter((r) => {
+				const timeDiff = calculateTimeDifferenceSeconds(r.postedAt, r.matchDate.date);
+				return !isFlying(timeDiff);
+			});
+
+			if (nonFlyingRecords.length === 0) {
+				return {
+					value: 0,
+					label: bucket.label,
+					postedAt: bucket.start,
+					isFlying: false as const,
+					place: 0,
+				};
+			}
+
+			const firstRecord = nonFlyingRecords[0];
+			if (!firstRecord) {
+				return {
+					value: 0,
+					label: bucket.label,
+					postedAt: bucket.start,
+					isFlying: false as const,
+					place: 0,
+				};
+			}
+
+			const avgTime =
+				nonFlyingRecords.reduce((sum, r) => {
+					return sum + calculateTimeDifferenceSeconds(r.postedAt, r.matchDate.date);
+				}, 0) / nonFlyingRecords.length;
+
+			const avgPlace = nonFlyingRecords.reduce((sum, r) => sum + r.place, 0) / nonFlyingRecords.length;
+
+			return {
+				value: avgTime,
+				label: bucket.label,
+				postedAt: firstRecord.postedAt,
+				isFlying: false as const,
+				place: Math.round(avgPlace),
+			};
+		});
+	});
 }
 
-export function radarChart(_input: RadarParamsT): RadarResponseT {
-	// TODO: userIdから各値を「全体平均」を50%とした比較値を取得する
-	// TODO: ログインユーザーが自身ではなくそのユーザーのshowProfileStatsがfalseであればエラーを返す
-	// TODO: DBから取得する前に、KVのキャッシュがあればそれを返す。
-	// TODO: DBから取得したなら、KVにキャッシュしておく、「プレフィクス: radarChart」「次の日のTARGET_MATCH_HOURとTARGET_MATCH_MINUTESまでを有効期限とする」
-	return [];
+/**
+ * レーダーチャートデータを取得する。
+ * 全体平均を50%として比較値を返す。
+ * @param userId ユーザーID
+ * @returns レーダーチャートデータ
+ */
+export async function radarChart(userId: RadarParamsT): Promise<RadarResponseT> {
+	return await withCache('radarChart', userId, async () => {
+		const canView = await canViewProfileStats(userId);
+		if (!canView) {
+			return {
+				totalPt: 0,
+				wr: 0,
+				averagePlace: 0,
+				averageTime: 0,
+				totalParticipationCount: 0,
+			};
+		}
+
+		const user = await prisma.user.findUnique({
+			where: { id: userId },
+			select: {
+				userRankStatuses: {
+					select: { pt: true },
+				},
+				records: {
+					select: {
+						place: true,
+						postedAt: true,
+						matchDate: {
+							select: { date: true },
+						},
+					},
+				},
+			},
+		});
+
+		if (!user || user.records.length === 0) {
+			return {
+				totalPt: 0,
+				wr: 0,
+				averagePlace: 0,
+				averageTime: 0,
+				totalParticipationCount: 0,
+			};
+		}
+
+		const userStats = await calculateUserStatistics(userId);
+		const globalAvg = await calculateGlobalAverages();
+		const totalPt = user.userRankStatuses?.pt ?? 0;
+
+		const calculateRatio = (userValue: number, globalValue: number, inverse: boolean): number => {
+			if (globalValue === 0) {
+				return 50;
+			}
+			if (inverse) {
+				return (globalValue / userValue) * 50;
+			}
+			return (userValue / globalValue) * 50;
+		};
+
+		return {
+			totalPt: calculateRatio(totalPt, globalAvg.totalPt, false),
+			wr: calculateRatio(userStats?.wr ?? 0, globalAvg.wr, false),
+			averagePlace: calculateRatio(userStats?.averagePlace ?? 0, globalAvg.averagePlace, true),
+			averageTime: calculateRatio(userStats?.averageTime ?? 0, globalAvg.averageTime, true),
+			totalParticipationCount: calculateRatio(
+				userStats?.totalParticipationCount ?? 0,
+				globalAvg.totalParticipationCount,
+				false,
+			),
+		};
+	});
 }
 
-export async function totalPtChart(_input: TotalPtParamsT): Promise<TotalPtResponseT> {
-	// TODO: グラフスパンに合わせたuserIdから累計Ptを取得する (Dailyは最長1ヶ月、Weaklyは最長半年、Monthlyは最長1年)
-	// TODO: ログインユーザーが自身ではなくそのユーザーのshowProfileStatsがfalseであればエラーを返す
-	// TODO: DBから取得する前に、KVのキャッシュがあればそれを返す。
-	// TODO: DBから取得したなら、KVにキャッシュしておく、「プレフィクス: totalPtChart」「次の日のTARGET_MATCH_HOURとTARGET_MATCH_MINUTESまでを有効期限とする」
-	return [];
+/**
+ * 累計ptチャートを取得する。
+ * Daily: 最長1ヶ月、Weekly: 最長半年、Monthly: 最長1年
+ * @param params パラメータ（userId, span）
+ * @returns 累計ptチャートデータ
+ */
+export async function totalPtChart(params: TotalPtParamsT): Promise<TotalPtResponseT> {
+	return await withCache('totalPtChart', params, async () => {
+		const canView = await canViewProfileStats(params.userId);
+		if (!canView) {
+			return [];
+		}
+
+		const maxDays = getMaxDaysForSpan(params.span);
+		const startDate = new Date();
+		startDate.setUTCDate(startDate.getUTCDate() - maxDays);
+
+		const histories = await prisma.userRankHistory.findMany({
+			where: {
+				userId: params.userId,
+				matchDate: {
+					date: { gte: startDate },
+				},
+			},
+			select: {
+				pt: true,
+				matchDate: {
+					select: { date: true },
+				},
+			},
+			orderBy: {
+				matchDate: { date: 'asc' },
+			},
+		});
+
+		const user = await prisma.user.findUnique({
+			where: { id: params.userId },
+			select: {
+				records: {
+					select: { id: true },
+				},
+			},
+		});
+
+		const participationCount = user?.records.length ?? 0;
+
+		if (params.span === GraphSpan.Daily) {
+			return histories.map((h) => {
+				const { rankNumber, isNoRank } = calculateRankFromPoints(h.pt, participationCount);
+				const rankValue = rankNumberToRankTypeValue(rankNumber, isNoRank);
+
+				return {
+					value: h.pt,
+					label: formatDateLabel(h.matchDate.date, GraphSpan.Daily),
+					rank: rankValue,
+				};
+			});
+		}
+
+		const buckets = createDateBuckets(startDate, new Date(), params.span);
+
+		return buckets.map((bucket) => {
+			const bucketHistories = histories.filter((h) => {
+				const historyDate = h.matchDate.date;
+				return historyDate >= bucket.start && historyDate < bucket.end;
+			});
+
+			if (bucketHistories.length === 0) {
+				return {
+					value: 0,
+					label: bucket.label,
+					rank: RankType.NoRank,
+				};
+			}
+
+			const avgPt = bucketHistories.reduce((sum, h) => sum + h.pt, 0) / bucketHistories.length;
+
+			const { rankNumber, isNoRank } = calculateRankFromPoints(avgPt, participationCount);
+			const rankValue = rankNumberToRankTypeValue(rankNumber, isNoRank);
+
+			return {
+				value: Math.round(avgPt),
+				label: bucket.label,
+				rank: rankValue,
+			};
+		});
+	});
+}
+
+/**
+ * スパンに応じた最大日数を取得する。
+ * @param span グラフスパン
+ * @returns 最大日数
+ */
+function getMaxDaysForSpan(span: number): number {
+	switch (span) {
+		case GraphSpan.Daily:
+			return DAILY_MAX_DAYS;
+		case GraphSpan.Weakly:
+			return WEEKLY_MAX_WEEKS * 7;
+		case GraphSpan.Monthly:
+			return MONTHLY_MAX_MONTHS * 30;
+		default:
+			return DAILY_MAX_DAYS;
+	}
+}
+
+/**
+ * 日付ラベルをフォーマットする。
+ * @param date 日付
+ * @param span グラフスパン
+ * @returns フォーマットされたラベル
+ */
+function formatDateLabel(date: Date, span: number): string {
+	const year = date.getUTCFullYear();
+	const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+	const day = String(date.getUTCDate()).padStart(2, '0');
+
+	switch (span) {
+		case GraphSpan.Daily:
+			return `${year}-${month}-${day}`;
+		case GraphSpan.Weakly:
+			return `${year}-${month}-${day}`;
+		case GraphSpan.Monthly:
+			return `${year}-${month}`;
+		default:
+			return `${year}-${month}-${day}`;
+	}
+}
+
+/**
+ * 日付バケットを作成する。
+ * @param startDate 開始日
+ * @param endDate 終了日
+ * @param span グラフスパン
+ * @returns バケット配列
+ */
+function createDateBuckets(startDate: Date, endDate: Date, span: number): Array<{ start: Date; end: Date; label: string }> {
+	const buckets: Array<{ start: Date; end: Date; label: string }> = [];
+
+	if (span === GraphSpan.Weakly) {
+		const current = new Date(startDate);
+		current.setUTCHours(0, 0, 0, 0);
+		const dayOfWeek = current.getUTCDay();
+		current.setUTCDate(current.getUTCDate() - dayOfWeek);
+
+		while (current < endDate) {
+			const weekStart = new Date(current);
+			const weekEnd = new Date(current);
+			weekEnd.setUTCDate(weekEnd.getUTCDate() + 7);
+
+			buckets.push({
+				start: weekStart,
+				end: weekEnd,
+				label: formatDateLabel(weekStart, GraphSpan.Weakly),
+			});
+
+			current.setUTCDate(current.getUTCDate() + 7);
+		}
+	} else if (span === GraphSpan.Monthly) {
+		const current = new Date(startDate);
+		current.setUTCDate(1);
+		current.setUTCHours(0, 0, 0, 0);
+
+		while (current < endDate) {
+			const monthStart = new Date(current);
+			const monthEnd = new Date(current);
+			monthEnd.setUTCMonth(monthEnd.getUTCMonth() + 1);
+
+			buckets.push({
+				start: monthStart,
+				end: monthEnd,
+				label: formatDateLabel(monthStart, GraphSpan.Monthly),
+			});
+
+			current.setUTCMonth(current.getUTCMonth() + 1);
+		}
+	}
+
+	return buckets;
+}
+
+/**
+ * チャートデータを集約する（earnedPtChart用）。
+ * @param data 生データ
+ * @param span グラフスパン
+ * @param maxDays 最大日数
+ * @returns 集約されたチャートデータ
+ */
+function aggregateChartData(
+	data: Array<{ date: Date; value: number; totalPt: number }>,
+	span: number,
+	maxDays: number,
+): EarnedPtResponseT {
+	if (span === GraphSpan.Daily) {
+		return data.map((d) => ({
+			value: d.value,
+			label: formatDateLabel(d.date, GraphSpan.Daily),
+			totalPt: d.totalPt,
+		}));
+	}
+
+	const startDate = new Date();
+	startDate.setUTCDate(startDate.getUTCDate() - maxDays);
+	const buckets = createDateBuckets(startDate, new Date(), span);
+
+	return buckets.map((bucket) => {
+		const bucketData = data.filter((d) => {
+			return d.date >= bucket.start && d.date < bucket.end;
+		});
+
+		if (bucketData.length === 0) {
+			return {
+				value: 0,
+				label: bucket.label,
+				totalPt: 0,
+			};
+		}
+
+		const avgValue = bucketData.reduce((sum, d) => sum + d.value, 0) / bucketData.length;
+		const avgTotalPt = bucketData.reduce((sum, d) => sum + d.totalPt, 0) / bucketData.length;
+
+		return {
+			value: Math.round(avgValue),
+			label: bucket.label,
+			totalPt: Math.round(avgTotalPt),
+		};
+	});
 }

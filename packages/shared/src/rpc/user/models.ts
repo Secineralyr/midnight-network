@@ -129,7 +129,7 @@ export const PostTimeResponse = LineBarChartData.clone()
 
 export type PostTimeResponseT = z.infer<typeof PostTimeResponse>;
 
-export const RadarParams = z.void();
+export const RadarParams = z.string();
 
 export type RadarParamsT = z.infer<typeof RadarParams>;
 
@@ -143,7 +143,7 @@ export const RadarResponse = z.object({
 
 export type RadarResponseT = z.infer<typeof RadarResponse>;
 
-export const HeatmapParams = z.void();
+export const HeatmapParams = z.string();
 
 export type HeatmapParamsT = z.infer<typeof HeatmapParams>;
 

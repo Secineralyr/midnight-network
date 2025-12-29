@@ -3,8 +3,8 @@ import { implement, ORPCError } from '@orpc/server';
 import type { RequestHeadersPluginContext } from '@orpc/server/plugins';
 import { auth } from './auth';
 import { rankTop, searchUser, todayTop } from './rpc/handler';
-import { getSettings, lastResult, setSettings } from './rpc/me/handler';
 import { averageTime, matchTime, rank, rankHistogram, wr } from './rpc/leaderboard/handler';
+import { getSettings, lastResult, setSettings } from './rpc/me/handler';
 import { earnedPtChart, heatmapChart, postTimeChart, profile, radarChart, totalPtChart } from './rpc/user/handler';
 
 export type RpcContext = RequestHeadersPluginContext & {
