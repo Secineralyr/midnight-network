@@ -318,6 +318,7 @@ async function upsertRankResultData(
 }
 
 export async function processCronMain() {
+	console.info('start remind');
 	const targetTime = getTargetTime();
 
 	const notes = await getNotes();
@@ -359,18 +360,8 @@ export async function processCronMain() {
 }
 
 export async function processCronRemind() {
-	const targetTimeDate = new Date();
-	targetTimeDate.setUTCHours(env.TARGET_MATCH_HOUR);
-	targetTimeDate.setUTCMinutes(env.TARGET_MATCH_MINUTES);
-	targetTimeDate.setUTCSeconds(0);
-	if (targetTimeDate < new Date()) {
-		targetTimeDate.setDate(targetTimeDate.getDate() + 1);
-	}
-
-	const targetTime = targetTimeDate.getTime();
-
-	const sinceTime = targetTime - 60 * 1000;
-	const untilTime = targetTime + 60 * 1000;
+	console.info('start remind');
+	const [sinceTime, untilTime] = getTargetTimeRange();
 
 	const sinceDate = new Date(sinceTime).toLocaleDateString('ja-JP');
 	const untilDate = new Date(untilTime).toLocaleDateString('ja-JP');
@@ -382,4 +373,5 @@ export async function processCronRemind() {
 
 	const mkApi = createRetryMisskeyApiClientFetcher();
 	await mkApi('notes/create', { text: `${env.POST_MATCH_REMIND_TEXT}${crossOverDaysText}` });
+	console.info('remind posted');
 }
