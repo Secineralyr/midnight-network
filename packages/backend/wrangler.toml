@@ -36,6 +36,7 @@ database_id = "REPLACE_ME"
 migrations_dir = "./prisma/migrations"
 
 [vars]
+ENVIRONMENT = "production"
 GAME_JOIN_POST_TEXT_REGEX = ""
 TARGET_MATCH_HOUR = 15
 TARGET_MATCH_MINUTES = 0

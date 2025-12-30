@@ -25,7 +25,7 @@ const app = new Elysia({
 })
 	.use(
 		cors({
-			origin: createHostToOrigin(env.WEB_HOST),
+			origin: env.ENVIRONMENT === 'production' ? createHostToOrigin(env.WEB_HOST) : true,
 			methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 			credentials: true,
 			allowedHeaders: ['Content-Type', 'Authorization'],

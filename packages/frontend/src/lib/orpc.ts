@@ -3,13 +3,7 @@ import { createORPCClient } from '@orpc/client';
 import { RPCLink } from '@orpc/client/fetch';
 
 const link = new RPCLink({
-	url: () => {
-		const configured = import.meta.env.VITE_BACKEND_RPC_URL;
-		if (configured) {
-			return configured;
-		}
-		return 'http://localhost:8787/api';
-	},
+	url: () => import.meta.env.VITE_API_ROOT,
 });
 
 export const orpc: AppClient = createORPCClient(link);
