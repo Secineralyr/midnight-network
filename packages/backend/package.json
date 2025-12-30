@@ -28,7 +28,7 @@
     "auth:gen": "better-auth generate --output ./prisma/auth.prisma",
     "prisma:generate": "prisma generate",
     "prisma:format": "prisma format",
-    "prisma:mig": "prisma migrate diff --from-empty --to-schema prisma/ --script"
+    "prisma:mig": "prisma migrate diff --from-config-datasource --to-schema prisma/ --script"
   },
   "devDependencies": {
     "@better-auth/cli": "catalog:",
