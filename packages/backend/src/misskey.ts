@@ -1,4 +1,5 @@
 import { env } from 'cloudflare:workers';
+import { createHostToOrigin } from '@midnight-network/shared/url';
 import type { Endpoints } from 'misskey-js';
 import { APIClient as MkAPIClient, type SwitchCaseResponseType } from 'misskey-js/api.js';
 import { createRetryTask } from './util';
@@ -13,7 +14,7 @@ interface APIClient {
 
 export function createRetryMisskeyApiClientFetcher() {
 	const client: APIClient = new MkAPIClient({
-		origin: `https://${env.MK_HOST}`,
+		origin: createHostToOrigin(env.MK_HOST),
 		credential: env.API_TOKEN,
 	});
 

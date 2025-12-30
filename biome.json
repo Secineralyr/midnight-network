@@ -141,7 +141,11 @@
         "rules": {
           "correctness": {
             "noUnusedImports": "off",
-            "noUnusedVariables": "off"
+            "noUnusedVariables": "off",
+            "noUndeclaredVariables": "off"
+          },
+          "style": {
+            "useConst": "off"
           }
         }
       }

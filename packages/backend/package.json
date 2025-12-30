@@ -4,11 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "dependencies": {
-    "@midnight-network/entity": "workspace:*",
+    "@elysiajs/cors": "catalog:",
     "@midnight-network/rank-calc": "workspace:*",
     "@midnight-network/shared": "workspace:*",
     "@opentelemetry/api": "catalog:",
     "@orpc/server": "catalog:",
+    "@prisma/client": "catalog:",
     "@prisma/adapter-d1": "catalog:",
     "better-auth": "catalog:",
     "elysia": "catalog:",
@@ -16,17 +17,21 @@
     "p-retry": "catalog:"
   },
   "scripts": {
-    "build": "pnpm type:sync && tsc -p tsconfig.json",
+    "build": "pnpm prisma:generate && pnpm type:sync && tsc -p tsconfig.json",
     "dev": "wrangler dev",
     "migrate:local": "wrangler d1 migrations apply midnight-network --local",
     "migrate:remote": "wrangler d1 migrations apply midnight-network --remote",
     "deploy": "wrangler deploy",
-    "typecheck": "pnpm type:sync && tsc -p tsconfig.json",
+    "typecheck": "pnpm build",
     "test": "pnpm type:sync && vitest run --passWithNoTests",
     "type:sync": "wrangler types",
-    "auth:gen": "better-auth generate --output ../entity/prisma/auth.prisma"
+    "auth:gen": "better-auth generate --output ./prisma/auth.prisma",
+    "prisma:generate": "prisma generate",
+    "prisma:format": "prisma format",
+    "prisma:mig": "prisma migrate diff --from-empty --to-schema prisma/ --script"
   },
   "devDependencies": {
+    "prisma": "catalog:",
     "@better-auth/cli": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",

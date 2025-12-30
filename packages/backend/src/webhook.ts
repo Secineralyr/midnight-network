@@ -58,12 +58,12 @@ async function routeBotCommand(note: Note) {
 
 			await mkApi('notes/create', {
 				text: `@${note.user.username}\n参加回数：${count}\nランクイン回数：${WithinTopCount}\n最高ランク:${maxRankString}\n1位獲得回数：${firstCount}`,
-				replyId: note.id
+				replyId: note.id,
 			});
 		} else {
 			await mkApi('notes/create', {
 				text: `@${note.user.username}\n記録なし`,
-				replyId: note.id
+				replyId: note.id,
 			});
 		}
 	}
@@ -72,10 +72,10 @@ async function routeBotCommand(note: Note) {
 const formatOptions: Intl.DateTimeFormatOptions = {
 	timeZone: 'Asia/Tokyo',
 	hour: 'numeric',
-	minute: "numeric",
-	second: "numeric",
-	fractionalSecondDigits: 3
-}
+	minute: 'numeric',
+	second: 'numeric',
+	fractionalSecondDigits: 3,
+};
 
 async function postOriginalReplyAction(note: Note) {
 	const mkApi = createRetryMisskeyApiClientFetcher();
@@ -99,7 +99,7 @@ async function postOriginalReplyAction(note: Note) {
 
 		await mkApi('notes/create', {
 			text: resultText,
-			replyId: note.id
+			replyId: note.id,
 		});
 	}
 }

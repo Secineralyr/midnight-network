@@ -14,12 +14,10 @@ import type { Note } from 'misskey-js/entities.js';
 import { calculateRankStatusFromTotalPoints } from '../../rank-calc/src/rank-number';
 import { placeEmojis } from './consts';
 import { prisma } from './db';
+import type { EventMatch, MatchDate } from './generated/prisma/client';
 import { createRetryMisskeyApiClientFetcher } from './misskey';
 
-export async function processCronMain() {
-	// STLからノート取得
-	const mkApi = createRetryMisskeyApiClientFetcher();
-
+function getTargetTime() {
 	const targetTimeDate = new Date();
 	targetTimeDate.setUTCHours(env.TARGET_MATCH_HOUR);
 	targetTimeDate.setUTCMinutes(env.TARGET_MATCH_MINUTES);
@@ -27,18 +25,33 @@ export async function processCronMain() {
 	if (targetTimeDate > new Date()) {
 		targetTimeDate.setDate(targetTimeDate.getDate() - 1);
 	}
-	const targetTime = targetTimeDate.getTime();
+	return targetTimeDate.getTime();
+}
 
+function getTargetTimeRange(): [number, number] {
+	const targetTime = getTargetTime();
 	const untilTime = targetTime + 60 * 1000;
 	const sinceTime = targetTime - 60 * 1000;
 
+	return [sinceTime, untilTime];
+}
+
+function getMatchRegex() {
+	const untilTime = getTargetTimeRange()[1];
 	const timeJst = new Date(untilTime + 9 * 3600 * 1000);
 	const monthJst = timeJst.getUTCMonth();
 	const dayJst = timeJst.getDay();
 
-	let notes: Note[] = [];
-	const targetPattern = new RegExp(`${monthJst}/${dayJst}|${monthJst}月${dayJst}日|${env.GAME_JOIN_POST_TEXT_REGEX}`);
+	return new RegExp(`${monthJst}/${dayJst}|${monthJst}月${dayJst}日|${env.GAME_JOIN_POST_TEXT_REGEX}`);
+}
 
+async function getNotes() {
+	const [sinceTime, untilTime] = getTargetTimeRange();
+
+	let notes: Note[] = [];
+	const targetPattern = getMatchRegex();
+
+	const mkApi = createRetryMisskeyApiClientFetcher();
 	let untilId: string | null = null;
 	while (true) {
 		let paramUntil: Record<string, string | number>;
@@ -61,69 +74,72 @@ export async function processCronMain() {
 			break;
 		}
 		untilId = res.at(-1)?.id ?? null;
-		const addend = res.filter((note) => note.text && targetPattern.test(note.text) && !(note.user.isBot ?? false));
+		const addend = res.filter((note) => note.text && targetPattern.test(note.text) && !note.user.isBot);
 		notes = notes.concat(addend);
 	}
 
-	// データ整理
-	const users: Record<string, string> = {};
-	let records: Record<string, { uid: string; nid: string; postedAt: Date; dt: number; place: number }> = {};
-	for (const n of notes) {
-		const uid = n.userId;
-		const dt = Date.parse(n.createdAt) - targetTime;
-		if (!records[uid] || records[uid].dt > dt) {
-			records[uid] = {
-				uid: uid,
-				nid: n.id,
-				postedAt: new Date(n.createdAt),
-				dt: dt,
-				place: -1,
-			};
-		}
-		users[uid] = n.user.username;
-	}
+	return notes;
+}
 
-	const validRecords = [...Object.values(records)].filter((n) => n.dt >= 0);
-	const flyingRecords = [...Object.values(records)].filter((n) => n.dt < 0);
+type MatchRecordData = {
+	uid: string;
+	nid: string;
+	postedAt: Date;
+	dt: number;
+	place: number;
+};
+
+async function postRankingNote(validRecords: MatchRecordData[], users: Record<string, string>, flyingCount: number) {
+	if (env.DISABLE_POST_MATCH_RESULT) {
+		return;
+	}
 
 	const validCount = validRecords.length;
-	const flyingCount = [...Object.values(records)].length - validCount;
 
-	// 結果をノートする
-	if (!env.DISABLE_POST_MATCH_RESULT) {
-		const host = env.WEB_HOST;
-		const noteTitle = env.POST_MATCH_RESULT_TITLE;
-		const noteUrl = env.POST_MATCH_RESULT_URL.replace('{host}', host);
+	const host = env.WEB_HOST;
+	const noteTitle = env.POST_MATCH_RESULT_TITLE;
+	const noteUrl = env.POST_MATCH_RESULT_URL.replace('{host}', host);
 
-		const ranking: string[] = [];
-		const dts = [...new Set<number>(validRecords.map((r) => r.dt))];
-		dts.sort((a, b) => a - b);
-		for (let i = 0; i < dts.length; i++) {
-			validRecords
-				.filter((r) => r.dt === dts[i])
-				.forEach((r) => {
-					r.place = i + 1;
-					if (i < 10) {
-						let mention = '';
-						if (users[r.uid]) {
-							mention = `@${users[r.uid]}`;
-						}
-						ranking.push(`${placeEmojis[i + 1]} ${mention} +${(r.dt / 1000).toFixed(3)}s`);
+	const ranking: string[] = [];
+	const dts = [...new Set<number>(validRecords.map((r) => r.dt))];
+	dts.sort((a, b) => a - b);
+	for (let i = 0; i < dts.length; i++) {
+		validRecords
+			.filter((r) => r.dt === dts[i])
+			.forEach((r) => {
+				r.place = i + 1;
+				if (i < 10) {
+					let mention = '';
+					if (users[r.uid]) {
+						mention = `@${users[r.uid]}`;
 					}
-				});
-		}
-		const rankText = ranking.join('\n');
-
-		const resultText = env.POST_MATCH_RESULT_TEMPLATE.replace('{title}', noteTitle)
-			.replace('{ranks}', rankText)
-			.replace('{valid}', validCount.toFixed(0))
-			.replace('{flying}', flyingCount.toFixed(0))
-			.replace('{url}', noteUrl);
-
-		await mkApi('notes/create', { text: resultText });
+					ranking.push(`${placeEmojis[i + 1]} ${mention} +${(r.dt / 1000).toFixed(3)}s`);
+				}
+			});
 	}
+	const rankText = ranking.join('\n');
 
-	// DBデータ全般更新
+	const resultText = env.POST_MATCH_RESULT_TEMPLATE.replace('{title}', noteTitle)
+		.replace('{ranks}', rankText)
+		.replace('{valid}', validCount.toFixed(0))
+		.replace('{flying}', flyingCount.toFixed(0))
+		.replace('{url}', noteUrl);
+
+	const mkApi = createRetryMisskeyApiClientFetcher();
+	await mkApi('notes/create', { text: resultText });
+}
+
+async function upsertMatchResultData(
+	validRecords: MatchRecordData[],
+	flyingRecords: MatchRecordData[],
+	users: Record<string, string>,
+): Promise<{
+	records: Record<string, MatchRecordData>;
+	eventMatch: EventMatch | null;
+	matchDate: MatchDate;
+}> {
+	const targetTimeDate = new Date(getTargetTime());
+
 	const eventMatch = await prisma.eventMatch.findFirst({
 		where: {
 			AND: {
@@ -136,7 +152,7 @@ export async function processCronMain() {
 			},
 		},
 	});
-	let eventData: Record<string, number> = {};
+	let eventData: { eventId?: number } = {};
 	if (eventMatch !== null) {
 		eventData = { eventId: eventMatch.id };
 	}
@@ -192,9 +208,22 @@ export async function processCronMain() {
 			},
 		});
 	}
-	records = Object.fromEntries([...validRecords, ...flyingRecords].map((rec) => [rec.uid, rec]));
 
-	// ランク計算
+	return {
+		records: Object.fromEntries([...validRecords, ...flyingRecords].map((rec) => [rec.uid, rec])),
+		eventMatch,
+		matchDate,
+	};
+}
+
+async function upsertRankResultData(
+	records: Record<string, MatchRecordData>,
+	validRecords: MatchRecordData[],
+	eventMatch: EventMatch | null,
+	matchDate: MatchDate,
+) {
+	const validCount = validRecords.length;
+
 	const allUsers = await prisma.user.findMany();
 	const withinTopUids = validRecords.filter((rec) => rec.place <= 10);
 	const withinTopUserRankStatuses = await prisma.userRankStatus.findMany({
@@ -298,6 +327,47 @@ export async function processCronMain() {
 	}
 }
 
+export async function processCronMain() {
+	const targetTime = getTargetTime();
+
+	const notes = await getNotes();
+
+	// データ整理
+	const users: Record<string, string> = {};
+	let records: Record<string, MatchRecordData> = {};
+	for (const n of notes) {
+		const uid = n.userId;
+		const dt = Date.parse(n.createdAt) - targetTime;
+		if (!records[uid] || records[uid].dt > dt) {
+			records[uid] = {
+				uid: uid,
+				nid: n.id,
+				postedAt: new Date(n.createdAt),
+				dt: dt,
+				place: -1,
+			};
+		}
+		users[uid] = n.user.username;
+	}
+
+	const validRecords = [...Object.values(records)].filter((n) => n.dt >= 0);
+	const flyingRecords = [...Object.values(records)].filter((n) => n.dt < 0);
+
+	const validCount = validRecords.length;
+	const flyingCount = [...Object.values(records)].length - validCount;
+
+	// 結果をノートする
+	await postRankingNote(validRecords, users, flyingCount);
+
+	// DBデータ全般更新
+	const processedData = await upsertMatchResultData(validRecords, flyingRecords, users);
+	records = processedData.records;
+	const { eventMatch, matchDate } = processedData;
+
+	// ランク計算
+	await upsertRankResultData(records, validRecords, eventMatch, matchDate);
+}
+
 export async function processCronRemind() {
 	const targetTimeDate = new Date();
 	targetTimeDate.setUTCHours(env.TARGET_MATCH_HOUR);
@@ -316,7 +386,7 @@ export async function processCronRemind() {
 	const untilDate = new Date(untilTime).toLocaleDateString('ja-JP');
 
 	let crossOverDaysText = '';
-	if (sinceDate != untilDate) {
+	if (sinceDate !== untilDate) {
 		crossOverDaysText = `(${sinceDate} -> ${untilDate})`;
 	}
 

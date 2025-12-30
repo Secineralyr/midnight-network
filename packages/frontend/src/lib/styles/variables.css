@@ -1,0 +1,106 @@
+/**
+ * グローバルCSS変数定義
+ * デザインシステムの色、フォント、サイズなどを定義
+ */
+
+:root {
+	/* カラーパレット - ダークテーマ */
+	--color-bg-primary: #0d0f1a;
+	--color-bg-secondary: #1a1d2e;
+	--color-bg-card: #252a3d;
+	--color-bg-card-hover: #2d3347;
+	--color-bg-header: rgba(13, 15, 26, 0.8);
+	--color-bg-input: #2d3347;
+	--color-bg-overlay: rgba(0, 0, 0, 0.5);
+
+	/* テキストカラー */
+	--color-text-primary: #ffffff;
+	--color-text-secondary: #a0a3b1;
+	--color-text-muted: #6b6f7e;
+	--color-text-placeholder: #6b6f7e;
+
+	/* アクセントカラー */
+	--color-accent-primary: #c5c9e6;
+	--color-accent-secondary: #8b8fad;
+	--color-accent-success: #4ade80;
+	--color-accent-warning: #fbbf24;
+	--color-accent-error: #ef4444;
+
+	/* ボーダーカラー */
+	--color-border-primary: #3d4157;
+	--color-border-secondary: #2d3347;
+	--color-border-focus: #c5c9e6;
+
+	/* ランクカラー */
+	--color-rank-tachyon: linear-gradient(135deg, #00d4ff, #ff00ff, #00d4ff);
+	--color-rank-luminal: linear-gradient(135deg, #ff6b9d, #c44569);
+	--color-rank-gold: #ffd700;
+	--color-rank-silver: #c0c0c0;
+	--color-rank-bronze: #cd7f32;
+	--color-rank-normal: #808080;
+	--color-rank-beginner: #f5f5f5;
+	--color-rank-norank: #4a4a4a;
+
+	/* フォントファミリー */
+	--font-japanese: 'M PLUS 2', sans-serif;
+	--font-alphanumeric: 'Lexend', sans-serif;
+	--font-special: 'Michroma', sans-serif;
+
+	/* フォントサイズ */
+	--font-size-xs: 0.75rem;
+	--font-size-sm: 0.875rem;
+	--font-size-base: 1rem;
+	--font-size-lg: 1.125rem;
+	--font-size-xl: 1.25rem;
+	--font-size-2xl: 1.5rem;
+	--font-size-3xl: 1.875rem;
+	--font-size-4xl: 2.25rem;
+	--font-size-5xl: 3rem;
+
+	/* フォントウェイト */
+	--font-weight-normal: 400;
+	--font-weight-medium: 500;
+	--font-weight-semibold: 600;
+	--font-weight-bold: 700;
+
+	/* スペーシング */
+	--spacing-xs: 0.25rem;
+	--spacing-sm: 0.5rem;
+	--spacing-md: 1rem;
+	--spacing-lg: 1.5rem;
+	--spacing-xl: 2rem;
+	--spacing-2xl: 3rem;
+	--spacing-3xl: 4rem;
+
+	/* ボーダー半径 */
+	--radius-sm: 0.25rem;
+	--radius-md: 0.5rem;
+	--radius-lg: 0.75rem;
+	--radius-xl: 1rem;
+	--radius-2xl: 1.5rem;
+	--radius-full: 9999px;
+
+	/* シャドウ */
+	--shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+	--shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+	--shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3);
+	--shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.4);
+
+	/* トランジション */
+	--transition-fast: 150ms ease;
+	--transition-normal: 250ms ease;
+	--transition-slow: 350ms ease;
+
+	/* z-index */
+	--z-base: 0;
+	--z-dropdown: 100;
+	--z-sticky: 200;
+	--z-modal-backdrop: 300;
+	--z-modal: 400;
+	--z-tooltip: 500;
+
+	/* レイアウト */
+	--header-height: 60px;
+	--content-max-width: 1200px;
+	--sidebar-width: 280px;
+}

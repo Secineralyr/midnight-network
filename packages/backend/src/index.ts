@@ -1,22 +1,18 @@
 import { env } from 'cloudflare:workers';
+import cors from '@elysiajs/cors';
+import { createHostToOrigin } from '@midnight-network/shared/url';
 import { onError } from '@orpc/server';
 import { RPCHandler } from '@orpc/server/fetch';
-import { CORSPlugin, RequestHeadersPlugin } from '@orpc/server/plugins';
+import { RequestHeadersPlugin } from '@orpc/server/plugins';
 import { Elysia, t } from 'elysia';
 import { CloudflareAdapter } from 'elysia/adapter/cloudflare-worker';
+import { auth } from './auth';
 import { processCronMain, processCronRemind } from './cron';
 import { router } from './rpc';
 import { mkWebhookTypes, processWebhook } from './webhook';
 
 const rpc = new RPCHandler(router, {
-	plugins: [
-		new RequestHeadersPlugin(),
-		new CORSPlugin({
-			origin: (origin) => origin,
-			allowMethods: ['GET', 'HEAD', 'PUT', 'POST', 'DELETE', 'PATCH'],
-			credentials: true,
-		}),
-	],
+	plugins: [new RequestHeadersPlugin()],
 	interceptors: [
 		onError((error) => {
 			console.error(error);
@@ -27,6 +23,14 @@ const rpc = new RPCHandler(router, {
 const app = new Elysia({
 	adapter: CloudflareAdapter,
 })
+	.use(
+		cors({
+			origin: createHostToOrigin(env.WEB_HOST),
+			methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+			credentials: true,
+			allowedHeaders: ['Content-Type', 'Authorization'],
+		}),
+	)
 	.post(
 		'/webhook',
 		async ({ body }) => {
@@ -52,6 +56,7 @@ const app = new Elysia({
 			}),
 		},
 	)
+	.mount(auth.handler)
 	.all(
 		'/api*',
 		async ({ request }) => {

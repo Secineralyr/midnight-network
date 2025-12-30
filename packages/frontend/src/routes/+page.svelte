@@ -1,78 +1,158 @@
 <script lang="ts">
-import { IconMoonStars } from '@tabler/icons-svelte';
-import { animate } from 'motion';
-import { onMount } from 'svelte';
-import { fade } from 'svelte/transition';
-
+import type { ApiSimpleUserInfoT } from '@midnight-network/shared/rpc/models';
+import { createQuery } from '@tanstack/svelte-query';
+import { goto } from '$app/navigation';
+import Countdown from '$lib/components/countdown/Countdown.svelte';
+import Top3Leaderboard from '$lib/components/leaderboard/Top3Leaderboard.svelte';
+import LastResult from '$lib/components/result/LastResult.svelte';
+import UserSearch from '$lib/components/search/UserSearch.svelte';
 import { orpc } from '$lib/orpc';
 
-let ping = '...';
+/**
+ * トップページ
+ * @description ヒーローセクション、検索、カウントダウン、リザルト、Top3リーダーボード
+ */
 
-onMount(async () => {
-	animate('h1', { opacity: [0, 1], y: [8, 0] }, { duration: 0.35 });
+/** 今日の試合上位データ */
+const todayTopQuery = createQuery(() => ({
+	queryKey: ['todayTop'],
+	queryFn: () => orpc.todayTop(),
+}));
 
-	try {
-		ping = await orpc.ping();
-	} catch (error) {
-		ping = String(error);
-	}
+/** ランクpt上位データ */
+const rankTopQuery = createQuery(() => ({
+	queryKey: ['rankTop'],
+	queryFn: () => orpc.rankTop(),
+}));
 
-	await import('particles.js');
-	type ParticlesJS = (tagId: string, params: unknown) => void;
-	const particlesJS = (window as unknown as { particlesJS?: ParticlesJS }).particlesJS;
-	particlesJS?.('particles', {
-		particles: {
-			number: { value: 48 },
-			size: { value: 2 },
-			move: { enable: true, speed: 0.6 },
-			line_linked: { enable: true, opacity: 0.2 },
-		},
-	});
+/** 前回のリザルト（ログインユーザーのみ） */
+const lastResultQuery = createQuery(() => ({
+	queryKey: ['lastResult'],
+	queryFn: () => orpc.me.lastResult(),
+	enabled: false,
+}));
+
+/** 次の集計時刻（00:00 JST） */
+const nextAggregationTime = $derived(() => {
+	const now = new Date();
+	const jstOffset = 9 * 60 * 60 * 1000;
+	const nowJst = new Date(now.getTime() + jstOffset);
+	const tomorrow = new Date(nowJst);
+	tomorrow.setDate(tomorrow.getDate() + 1);
+	tomorrow.setHours(0, 0, 0, 0);
+	return tomorrow.getTime() - jstOffset;
 });
+
+/**
+ * ユーザー選択時のハンドラ
+ * @param user - 選択されたユーザー
+ */
+function handleUserSelect(user: ApiSimpleUserInfoT): void {
+	goto(`/user/${user.username}`);
+}
+
+/**
+ * ユーザーカードクリック時のハンドラ
+ * @param username - ユーザー名
+ */
+function handleUserCardClick(username: string): void {
+	goto(`/user/${username}`);
+}
 </script>
 
-<div id="particles" class="particles"></div>
+<div class="top-page">
+	<section class="hero">
+		<div>
+			<div class="title-content">
+				<div class="logo">
+					<img src="/logo.png" alt="MidNight Network" class="logo-image" />
+				</div>
+				<h1 class="title">MidNight Network</h1>
+			</div>
+			<div class="search">
+				<UserSearch onSelect={handleUserSelect} />
+			</div>
+		</div>
+	</section>
 
-<main class="container" in:fade={{ duration: 300, delay: 150 }} out:fade={{ duration: 150 }}>
-  <h1 class="title">
-    <IconMoonStars size={28} />
-    midnight-network
-  </h1>
+	<section class="countdown">
+		<Countdown targetTime={nextAggregationTime()} />
+	</section>
 
-  <p class="subtitle">oRPC ping: {ping}</p>
-</main>
+	{#if lastResultQuery.data}
+		<section class="result-section container">
+			<LastResult result={lastResultQuery.data} isLoading={lastResultQuery.isLoading} />
+		</section>
+	{/if}
+
+	<section class="leaderboards-section container">
+		<div class="leaderboards">
+			<div class="leaderboards__item card">
+				<Top3Leaderboard
+					title="今日の試合上位"
+					type="today"
+					todayData={todayTopQuery.data}
+					isLoading={todayTopQuery.isLoading}
+					onUserSelect={handleUserCardClick}
+				/>
+			</div>
+			<div class="leaderboards__item card">
+				<Top3Leaderboard
+					title="ランクpt上位"
+					type="rankPt"
+					rankPtData={rankTopQuery.data}
+					isLoading={rankTopQuery.isLoading}
+					onUserSelect={handleUserCardClick}
+				/>
+			</div>
+		</div>
+	</section>
+</div>
 
 <style>
-  .particles {
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    background: radial-gradient(1200px 600px at 20% 0%, #1b2b44, transparent),
-      radial-gradient(1200px 600px at 80% 0%, #2a1d3f, transparent),
-      #0b1020;
-  }
+	.top-page {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-2xl);
+		padding-bottom: var(--spacing-3xl);
+	}
 
-  .container {
-    padding: 56px 20px;
-    max-width: 960px;
-    margin: 0 auto;
-    color: #e8eefc;
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell,
-      Noto Sans, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji';
-  }
+	.hero {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+		margin-top: 100px;
+	}
 
-  .title {
-    display: inline-flex;
-    gap: 10px;
-    align-items: center;
-    font-size: 28px;
-    font-weight: 700;
-    letter-spacing: 0.2px;
-    margin: 0 0 10px;
-  }
+	.logo {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
 
-  .subtitle {
-    margin: 0;
-    opacity: 0.9;
-  }
+	.logo-image {
+		width: 64px;
+		height: 64px;
+	}
+
+	.title-content {
+		display: flex;
+		gap: 10px;
+		align-items: center;
+	}
+
+	.title {
+		font-size: 2.3rem;
+		font-weight: 600;
+		color: #fff;
+	}
+
+	.search {
+		margin-top: 80px;
+	}
+
+	.countdown {
+		margin-top: 80px;
+	}
 </style>

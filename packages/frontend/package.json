@@ -7,9 +7,16 @@
     "@midnight-network/shared": "workspace:*",
     "@opentelemetry/api": "catalog:",
     "@orpc/client": "catalog:",
+    "@orpc/tanstack-query": "catalog:",
     "@tabler/icons-svelte": "catalog:",
-    "motion": "catalog:",
-    "particles.js": "catalog:"
+    "@tanstack/svelte-query": "catalog:",
+    "@tanstack/svelte-table": "catalog:",
+    "@tsparticles/engine": "catalog:",
+    "@tsparticles/slim": "catalog:",
+    "@tsparticles/svelte": "catalog:",
+    "better-auth": "catalog:",
+    "echarts": "catalog:",
+    "motion": "catalog:"
   },
   "scripts": {
     "prepare": "svelte-kit sync",
