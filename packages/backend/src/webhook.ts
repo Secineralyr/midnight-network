@@ -3,6 +3,7 @@ import type { Note } from 'misskey-js/entities.js';
 import { prisma } from './db';
 import { createRetryMisskeyApiClientFetcher } from './misskey';
 import { getTargetTime, numberBetween } from './util';
+import { processCronMain } from './cron';
 
 // 今はmentionしかないけど、一応機能追加用にこうしてる
 export const mkWebhookTypes = ['mention'] as const;
@@ -27,6 +28,7 @@ const commands = {
 	follow: /\/follow/,
 	unfollow: /\/unfollow/,
 	ping: /\/ping/,
+	adminRerun: /\/admin:rerun/,
 } as const;
 
 async function routeBotCommand(note: Note) {
@@ -38,7 +40,11 @@ async function routeBotCommand(note: Note) {
 	if (!note.text) {
 		return;
 	}
-	if (commands.follow.test(note.text)) {
+
+	if (note.user.username === env.ADMIN_USER_NAME && commands.adminRerun.test(note.text)) {
+		await processCronMain();
+		await mkApi('notes/reactions/create', { noteId: note.id, reaction: '✅' });
+	} else if (commands.follow.test(note.text)) {
 		console.info('execute follow command');
 		await mkApi('following/create', { userId: note.userId });
 		await mkApi('notes/reactions/create', { noteId: note.id, reaction: '✅' });
