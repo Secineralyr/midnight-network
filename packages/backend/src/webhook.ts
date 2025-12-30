@@ -30,6 +30,8 @@ const commands = {
 } as const;
 
 async function routeBotCommand(note: Note) {
+	console.info('command action');
+
 	const mkApi = createRetryMisskeyApiClientFetcher();
 	await mkApi('notes/reactions/create', { noteId: note.id, reaction: '👍' });
 
@@ -37,14 +39,18 @@ async function routeBotCommand(note: Note) {
 		return;
 	}
 	if (commands.follow.test(note.text)) {
+		console.info('execute follow command');
 		await mkApi('following/create', { userId: note.userId });
 		await mkApi('notes/reactions/create', { noteId: note.id, reaction: '✅' });
 	} else if (commands.unfollow.test(note.text)) {
+		console.info('execute unfollow command');
 		await mkApi('following/delete', { userId: note.userId });
 		await mkApi('notes/reactions/create', { noteId: note.id, reaction: '👋' });
 	} else if (commands.ping.test(note.text)) {
+		console.info('execute ping command');
 		await mkApi('notes/reactions/create', { noteId: note.id, reaction: '✅' });
 	} else {
+		console.info('execute stats');
 		const user = await prisma.user.findUnique({ where: { id: note.userId } });
 		if (user) {
 			const count = await prisma.record.count({ where: { userId: user.id } });
@@ -78,6 +84,7 @@ const formatOptions: Intl.DateTimeFormatOptions = {
 };
 
 async function postOriginalReplyAction(note: Note) {
+	console.info('posted reply note action');
 	const mkApi = createRetryMisskeyApiClientFetcher();
 	await mkApi('notes/reactions/create', { noteId: note.id, reaction: '👍' });
 
@@ -115,10 +122,12 @@ function isDisableWebhook() {
 
 export async function processWebhook(ctx: MkWebhookRequestBody) {
 	if (isDisableWebhook()) {
+		console.info('disabled webhook');
 		return;
 	}
 
 	if (ctx.type !== 'mention') {
+		console.info('is not mention.');
 		return;
 	}
 	const note = ctx.body.note;
