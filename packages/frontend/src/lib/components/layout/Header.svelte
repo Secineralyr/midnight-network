@@ -42,172 +42,102 @@ function closePanel(): void {
 }
 </script>
 
-<header class="header">
-	<div class="header__inner">
-		<div class="header__left">
-			<a href="/" class="header__logo">
-				<img src="/images/logo.svg" alt="MidNight Network" class="header__logo-image" />
+<header>
+	<div>
+		<div class="left-side">
+			<a href="/">
+				<img src="/logo.png" alt="MidNight Network"/>
 			</a>
-			<nav class="header__nav">
-				<a href="/leaderboard" class="header__nav-link">リーダーボード</a>
+			<div class="line"></div>
+			<nav>
+				<a href="/leaderboard">リーダーボード</a>
 				<!-- 以下は現状無視 -->
-				<!-- <a href="/about" class="header__nav-link">MidNightについて</a> -->
-				<!-- <a href="/ranks" class="header__nav-link">ランク</a> -->
+				<!-- <a href="/about">MidNightについて</a> -->
+				<!-- <a href="/ranks">ランク</a> -->
 			</nav>
 		</div>
-		<div class="header__right">
+		<div class="right-side">
 			{#if showSearchButton}
-				<button type="button" class="header__search-button" onclick={onSearchClick}>
+				<button type="button" onclick={onSearchClick}>
 					<IconSearch size={20} />
 				</button>
 			{/if}
 			{#if user}
-				<button type="button" class="header__user" onclick={handleUserClick}>
+				<button type="button" onclick={handleUserClick}>
 					<img
 						src={user.avatarUrl || '/images/default-avatar.png'}
 						alt={user.username}
-						class="header__user-avatar"
 					/>
 				</button>
 				{#if isPanelOpen}
 					<LoggedInPanel {user} onClose={closePanel} />
 				{/if}
 			{:else}
-				<a href="/login" class="header__login-link">ログイン</a>
+				<a href="/login">ログイン</a>
 			{/if}
 		</div>
 	</div>
 </header>
 
 <style>
-	.header {
+	a {
+		font-size: 1rem;
+	}
+
+	header {
 		position: fixed;
 		top: 0;
 		left: 0;
 		right: 0;
-		height: var(--header-height);
+		margin: 0 auto;
+		padding: 0 150px;
+		width: 1140px;
+		height: 56px;
 		background: linear-gradient(
 			to right,
-			var(--color-bg-header) 0%,
-			var(--color-bg-header) 70%,
+			transparent 0%,
+			#110C1A 10%,
+			#110C1A 90%,
 			transparent 100%
 		);
 		backdrop-filter: blur(10px);
 		-webkit-backdrop-filter: blur(10px);
-		z-index: var(--z-sticky);
-		border-bottom: 1px solid var(--color-border-secondary);
+		z-index: 1;
 	}
 
-	.header__inner {
+	header > div {
 		display: flex;
-		align-items: center;
 		justify-content: space-between;
+		padding: 10px 20px;
 		height: 100%;
-		max-width: var(--content-max-width);
-		margin: 0 auto;
-		padding: 0 var(--spacing-lg);
 	}
 
-	.header__left {
+	header > div > div {
 		display: flex;
-		align-items: center;
-		gap: var(--spacing-xl);
-	}
-
-	.header__logo {
-		display: flex;
+		height: 100%;
+		gap: 20px;
+		vertical-align: middle;
 		align-items: center;
 	}
 
-	.header__logo-image {
-		height: 32px;
-		width: auto;
+	header > div > .left-side {
+
 	}
 
-	.header__nav {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-lg);
+	header > div > .left-side > .line {
+		width: 1px;
+		height: 100%;
+		background-color: #4E4B71;
 	}
 
-	.header__nav-link {
-		font-family: var(--font-japanese);
-		font-size: var(--font-size-base);
-		color: var(--color-text-secondary);
-		transition: color var(--transition-fast);
+	header > div > .left-side > a {
+		height: 100%;
+	}
+	header > div > .left-side > a > img {
+		height: 100%;
 	}
 
-	.header__nav-link:hover {
-		color: var(--color-text-primary);
-	}
+	header > div > .right-side {
 
-	.header__right {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-md);
-		position: relative;
-	}
-
-	.header__search-button {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 40px;
-		height: 40px;
-		border-radius: var(--radius-full);
-		background-color: var(--color-bg-card);
-		color: var(--color-text-secondary);
-		transition:
-			background-color var(--transition-fast),
-			color var(--transition-fast);
-	}
-
-	.header__search-button:hover {
-		background-color: var(--color-bg-card-hover);
-		color: var(--color-text-primary);
-	}
-
-	.header__user {
-		display: flex;
-		align-items: center;
-		border-radius: var(--radius-full);
-		overflow: hidden;
-		cursor: pointer;
-	}
-
-	.header__user-avatar {
-		width: 40px;
-		height: 40px;
-		object-fit: cover;
-		border-radius: var(--radius-full);
-		border: 2px solid var(--color-border-secondary);
-		transition: border-color var(--transition-fast);
-	}
-
-	.header__user:hover .header__user-avatar {
-		border-color: var(--color-border-focus);
-	}
-
-	.header__login-link {
-		font-family: var(--font-japanese);
-		font-size: var(--font-size-base);
-		color: var(--color-text-secondary);
-		padding: var(--spacing-sm) var(--spacing-md);
-		border: 1px solid var(--color-border-secondary);
-		border-radius: var(--radius-lg);
-		transition:
-			border-color var(--transition-fast),
-			color var(--transition-fast);
-	}
-
-	.header__login-link:hover {
-		border-color: var(--color-border-focus);
-		color: var(--color-text-primary);
-	}
-
-	@media (max-width: 768px) {
-		.header__nav {
-			display: none;
-		}
 	}
 </style>

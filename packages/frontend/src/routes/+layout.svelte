@@ -27,6 +27,10 @@ const currentUser = $state<{
 } | null>(null);
 </script>
 
+<svelte:head>
+	<title>MidNight Network</title>
+</svelte:head>
+
 <QueryClientProvider client={queryClient}>
 	<div class="app">
 		<HeroBg />

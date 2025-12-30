@@ -7,30 +7,30 @@ import { IconBrandGithub, IconBrandX } from '@tabler/icons-svelte';
  */
 </script>
 
-<footer class="footer">
-	<div class="footer__inner">
-		<div class="footer__left">
-			<span class="footer__logo"></span>
+<footer>
+	<div class="inner">
+		<div class="left">
+			<span class="logo"><img src="/secineralyr_text_logo.png" alt="Secineralyr"></span>
+			<nav class="nav">
+				<!-- 以下は現状無視 -->
+				<a href="/contact" class="link">お問い合わせ</a>
+				<a href="/terms" class="link">利用規約</a>
+				<a href="/privacy" class="link">プライバシーポリシー</a>
+			</nav>
 		</div>
-		<nav class="footer__nav">
-			<!-- 以下は現状無視 -->
-			<!-- <a href="/contact" class="footer__link">お問い合わせ</a> -->
-			<!-- <a href="/terms" class="footer__link">利用規約</a> -->
-			<!-- <a href="/privacy" class="footer__link">プライバシーポリシー</a> -->
-		</nav>
-		<div class="footer__right">
+		<div class="right">
 			<a
 				href="https://github.com"
 				target="_blank"
 				rel="noopener noreferrer"
-				class="footer__social"
+				class="social"
 			>
 			</a>
 			<a
 				href="https://github.com"
 				target="_blank"
 				rel="noopener noreferrer"
-				class="footer__social"
+				class="social"
 			>
 				<IconBrandGithub size={20} />
 			</a>
@@ -39,45 +39,47 @@ import { IconBrandGithub, IconBrandX } from '@tabler/icons-svelte';
 </footer>
 
 <style>
-	.footer {
-		padding: var(--spacing-lg) 0;
-		border-top: 1px solid var(--color-border-secondary);
-		background-color: var(--color-bg-primary);
+	footer {
+		padding: 20px 40px;
+		width: 840px;
+		height: 80px;
+		margin: 0 auto;
 	}
 
-	.footer__inner {
+	.inner {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		max-width: var(--content-max-width);
-		margin: 0 auto;
-		padding: 0 var(--spacing-lg);
+		height: 100%;
 	}
 
-	.footer__left {
+	.left {
+		height: 100%;
 		display: flex;
 		align-items: center;
+		gap: 40px;
 	}
 
-	.footer__logo {
-		font-family: var(--font-special);
-		font-size: var(--font-size-lg);
-		color: var(--color-text-secondary);
+	.logo {
+		height: 100%;
+	}
+	.logo > img {
+		height: 100%;
 	}
 
-	.footer__nav {
+	.nav {
 		display: flex;
 		align-items: center;
-		gap: var(--spacing-lg);
+		gap: 20px;
 	}
 
-	.footer__right {
+	.right {
 		display: flex;
 		align-items: center;
 		gap: var(--spacing-md);
 	}
 
-	.footer__social {
+	.social {
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -85,19 +87,11 @@ import { IconBrandGithub, IconBrandX } from '@tabler/icons-svelte';
 		transition: color var(--transition-fast);
 	}
 
-	.footer__social:hover {
+	.social:hover {
 		color: var(--color-text-secondary);
 	}
 
-	@media (max-width: 768px) {
-		.footer__inner {
-			flex-direction: column;
-			gap: var(--spacing-md);
-		}
-
-		.footer__nav {
-			flex-wrap: wrap;
-			justify-content: center;
-		}
+	.link {
+		font-size: 0.75rem;
 	}
 </style>

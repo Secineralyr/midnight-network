@@ -32,7 +32,7 @@ onMount(() => {
 	}
 
 	updateCountdown();
-	const interval = setInterval(updateCountdown, 100);
+	const interval = setInterval(updateCountdown, 1);
 
 	return () => {
 		clearInterval(interval);
@@ -43,56 +43,50 @@ onMount(() => {
 const formattedTime = $derived(formatTime(remainingSeconds));
 </script>
 
-<div class="countdown" bind:this={containerElement}>
-	<h2 class="countdown__title">次の集計</h2>
-	<span class="countdown__subtitle">残り時間</span>
-	<div class="countdown__time font-alphanumeric">{formattedTime}</div>
-	<p class="countdown__note">
+<div class="root" bind:this={containerElement}>
+	<h2>次の集計</h2>
+	<p>残り時間</p>
+	<div>{formattedTime}</div>
+	<small>
 		※上記タイムはシステム時間です。必ずしも正確ではありません。
-	</p>
+	</small>
 </div>
 
 <style>
-	.countdown {
+	div > * + * {
+		margin-top: 5px;
+	}
+
+	div > h2, p, small {
+		font-family: var(--font-japanese);
+	}
+
+	div > div {
+		font-family: var(--font-special);
+	}
+
+	.root {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		text-align: center;
-		padding: var(--spacing-xl) 0;
 	}
 
-	.countdown__title {
-		font-family: var(--font-japanese);
-		font-size: var(--font-size-2xl);
-		font-weight: var(--font-weight-semibold);
-		color: var(--color-text-primary);
-		margin-bottom: var(--spacing-xs);
+	h2 {
+		font-weight: 600;
+		font-size: 2.3rem;
 	}
 
-	.countdown__subtitle {
-		font-family: var(--font-japanese);
-		font-size: var(--font-size-sm);
-		color: var(--color-text-secondary);
-		margin-bottom: var(--spacing-md);
+	p {
+		font-size: 0.85rem;
 	}
 
-	.countdown__time {
-		font-size: var(--font-size-5xl);
-		font-weight: var(--font-weight-bold);
-		color: var(--color-text-primary);
-		letter-spacing: 0.05em;
-		margin-bottom: var(--spacing-md);
+	div > div {
+		font-size: 2.3rem;
 	}
 
-	.countdown__note {
-		font-family: var(--font-japanese);
-		font-size: var(--font-size-xs);
-		color: var(--color-text-muted);
-	}
-
-	@media (max-width: 768px) {
-		.countdown__time {
-			font-size: var(--font-size-3xl);
-		}
+	small {
+		font-size: 0.6rem;
+		color: #ADADAD;
 	}
 </style>

@@ -60,24 +60,22 @@ function handleUserCardClick(username: string): void {
 }
 </script>
 
-<svelte:head>
-	<title>MidNight Network</title>
-</svelte:head>
-
 <div class="top-page">
 	<section class="hero">
-		<div class="hero__content">
-			<div class="hero__logo">
-				<img src="/images/logo.svg" alt="MidNight Network" class="hero__logo-image" />
+		<div>
+			<div class="title-content">
+				<div class="logo">
+					<img src="/logo.png" alt="MidNight Network" class="logo-image" />
+				</div>
+				<h1 class="title">MidNight Network</h1>
 			</div>
-			<h1 class="hero__title font-alphanumeric">MidNight Network</h1>
-			<div class="hero__search">
+			<div class="search">
 				<UserSearch onSelect={handleUserSelect} />
 			</div>
 		</div>
 	</section>
 
-	<section class="countdown-section">
+	<section class="countdown">
 		<Countdown targetTime={nextAggregationTime()} />
 	</section>
 
@@ -123,70 +121,38 @@ function handleUserCardClick(username: string): void {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		min-height: 50vh;
 		text-align: center;
-		padding: var(--spacing-3xl) var(--spacing-lg);
+		margin-top: 100px;
 	}
 
-	.hero__content {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: var(--spacing-xl);
-		max-width: 600px;
-	}
-
-	.hero__logo {
+	.logo {
 		display: flex;
 		align-items: center;
 		justify-content: center;
 	}
 
-	.hero__logo-image {
-		width: 80px;
-		height: 80px;
+	.logo-image {
+		width: 64px;
+		height: 64px;
 	}
 
-	.hero__title {
-		font-size: var(--font-size-4xl);
-		font-weight: var(--font-weight-bold);
-		color: var(--color-text-primary);
-	}
-
-	.hero__search {
-		width: 100%;
-	}
-
-	.countdown-section {
+	.title-content {
 		display: flex;
-		justify-content: center;
+		gap: 10px;
+		align-items: center;
 	}
 
-	.result-section {
-		max-width: 600px;
+	.title {
+		font-size: 2.3rem;
+		font-weight: 600;
+		color: #fff;
 	}
 
-	.leaderboards-section {
-		max-width: var(--content-max-width);
+	.search {
+		margin-top: 80px;
 	}
 
-	.leaderboards {
-		display: grid;
-		grid-template-columns: repeat(2, 1fr);
-		gap: var(--spacing-lg);
-	}
-
-	.leaderboards__item {
-		min-width: 0;
-	}
-
-	@media (max-width: 768px) {
-		.hero__title {
-			font-size: var(--font-size-2xl);
-		}
-
-		.leaderboards {
-			grid-template-columns: 1fr;
-		}
+	.countdown {
+		margin-top: 80px;
 	}
 </style>
