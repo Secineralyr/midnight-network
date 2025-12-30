@@ -26,6 +26,7 @@ export function getTargetTime() {
 	targetTimeDate.setUTCHours(env.TARGET_MATCH_HOUR);
 	targetTimeDate.setUTCMinutes(env.TARGET_MATCH_MINUTES);
 	targetTimeDate.setUTCSeconds(0);
+	targetTimeDate.setUTCMilliseconds(0);
 	if (targetTimeDate > new Date()) {
 		targetTimeDate.setDate(targetTimeDate.getDate() - 1);
 	}
