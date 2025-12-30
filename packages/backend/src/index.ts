@@ -41,9 +41,9 @@ const app = new Elysia({
 		},
 		{
 			headers: t.Object({
-				'User-Agent': t.Literal('Misskey-Hooks'),
-				'X-Misskey-Host': t.Literal(env.MK_HOST),
-				'Content-Type': t.Literal('application/json'),
+				'user-agent': t.Literal('Misskey-Hooks'),
+				'x-misskey-host': t.Literal(env.MK_HOST),
+				'content-type': t.Literal('application/json'),
 			}),
 			body: t.Object({
 				eventId: t.String(),
