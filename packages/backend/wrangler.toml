@@ -7,7 +7,7 @@ compatibility_flags = ["nodejs_compat"]
 enabled = true
 
 [triggers]
-crons = ["0 * * * *"]
+crons = ["1 15 * * *", "59 14 * * *"]
 
 [[kv_namespaces]]
 binding = "SESSION_KV"
@@ -27,9 +27,16 @@ WEB_HOST = "test.midnight.network.local"
 BOT_USER_NAME = "username"
 DISABLE_USER_NAME = ["username"]
 GAME_JOIN_POST_TEXT_REGEX = ""
-TARGET_MATCH_HOUR = 0
+TARGET_MATCH_HOUR = 15
 TARGET_MATCH_MINUTES = 0
 POST_MATCH_RESULT_TITLE = ""
+POST_MATCH_RESULT_URL = "https://{host}/"
+POST_MATCH_RESULT_TEMPLATE = "{title}\n\n{ranks}\n\n有効記録数：{valid}\nフライング記録数：{flying}\n\n{url}"
+DISABLE_POST_MATCH_RESULT = false
 POST_MATCH_REMIND_TEXT = ""
 DISABLE_WEBHOOK_BEFORE_TARGET_MATCH = 60000
 DISABLE_WEBHOOK_AFTER_TARGET_MATCH = 60000
+
+[vars.crons]
+CRON_DAILY = "1 15 * * *"
+CRON_DAILY_REMIND = "59 14 * * *"
