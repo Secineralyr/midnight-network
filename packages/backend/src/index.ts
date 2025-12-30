@@ -56,7 +56,7 @@ const app = new Elysia({
 			}),
 		},
 	)
-	.mount(auth.handler)
+	.all('/api/auth/*', ({ request }) => auth.handler(request))
 	.all(
 		'/api*',
 		async ({ request }) => {
