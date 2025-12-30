@@ -2,7 +2,7 @@ import { env } from 'cloudflare:workers';
 import type { Note } from 'misskey-js/entities.js';
 import { prisma } from './db';
 import { createRetryMisskeyApiClientFetcher } from './misskey';
-import { numberBetween } from './util';
+import { getTargetTime, numberBetween } from './util';
 
 // 今はmentionしかないけど、一応機能追加用にこうしてる
 export const mkWebhookTypes = ['mention'] as const;
@@ -113,10 +113,11 @@ async function postOriginalReplyAction(note: Note) {
 
 function isDisableWebhook() {
 	const nowTime = Date.now();
+	const targetTime = getTargetTime();
 	return numberBetween(
 		nowTime,
-		nowTime - env.DISABLE_WEBHOOK_BEFORE_TARGET_MATCH,
-		nowTime + env.DISABLE_WEBHOOK_AFTER_TARGET_MATCH,
+		targetTime - env.DISABLE_WEBHOOK_BEFORE_TARGET_MATCH,
+		targetTime + env.DISABLE_WEBHOOK_AFTER_TARGET_MATCH,
 	);
 }
 

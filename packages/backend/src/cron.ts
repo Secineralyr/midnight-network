@@ -16,17 +16,7 @@ import { placeEmojis } from './consts';
 import { prisma } from './db';
 import type { EventMatch, MatchDate } from './generated/prisma/client';
 import { createRetryMisskeyApiClientFetcher } from './misskey';
-
-function getTargetTime() {
-	const targetTimeDate = new Date();
-	targetTimeDate.setUTCHours(env.TARGET_MATCH_HOUR);
-	targetTimeDate.setUTCMinutes(env.TARGET_MATCH_MINUTES);
-	targetTimeDate.setUTCSeconds(0);
-	if (targetTimeDate > new Date()) {
-		targetTimeDate.setDate(targetTimeDate.getDate() - 1);
-	}
-	return targetTimeDate.getTime();
-}
+import { getTargetTime } from './util';
 
 function getTargetTimeRange(): [number, number] {
 	const targetTime = getTargetTime();
