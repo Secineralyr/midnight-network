@@ -23,7 +23,7 @@ catalog:
   '@tsparticles/engine': ^3.9.1
   '@tsparticles/slim': ^3.9.1
   '@tsparticles/svelte': ^3.1.1
-  '@types/node': ^25.0.2
+  '@types/node': 25.0.2
   '@typescript-eslint/types': ^8.50.0
   better-auth: ^1.4.7
   echarts: ^6.0.0

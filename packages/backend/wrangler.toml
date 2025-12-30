@@ -1,36 +1,41 @@
 name = "midnight-network-backend"
 main = "src/index.ts"
-compatibility_date = "2025-12-16"
+compatibility_date = "2025-11-17"
 compatibility_flags = ["nodejs_compat"]
 
 [observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
 enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = false
+persist = true
+head_sampling_rate = 1
 
 [triggers]
 crons = ["1 15 * * *", "59 14 * * *"]
 
 [[kv_namespaces]]
-binding = "SESSION_KV"
+binding = "SESSION"
 id = "REPLACE_ME"
-preview_id = "REPLACE_ME"
 
 [[kv_namespaces]]
 binding = "CACHE"
 id = "REPLACE_ME"
-preview_id = "REPLACE_ME"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "midnight-network"
 database_id = "REPLACE_ME"
-migrations_dir = "../entity/prisma/migrations"
+migrations_dir = "./prisma/migrations"
 
 [vars]
-MK_HOST = "<host>"
-API_TOKEN = "<token?>"
-WEB_HOST = "test.midnight.network.local"
-BOT_USER_NAME = "username"
-DISABLE_USER_NAME = ["username"]
 GAME_JOIN_POST_TEXT_REGEX = ""
 TARGET_MATCH_HOUR = 15
 TARGET_MATCH_MINUTES = 0

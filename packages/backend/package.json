@@ -9,8 +9,8 @@
     "@midnight-network/shared": "workspace:*",
     "@opentelemetry/api": "catalog:",
     "@orpc/server": "catalog:",
-    "@prisma/client": "catalog:",
     "@prisma/adapter-d1": "catalog:",
+    "@prisma/client": "catalog:",
     "better-auth": "catalog:",
     "elysia": "catalog:",
     "misskey-js": "catalog:",
@@ -31,8 +31,9 @@
     "prisma:mig": "prisma migrate diff --from-empty --to-schema prisma/ --script"
   },
   "devDependencies": {
-    "prisma": "catalog:",
     "@better-auth/cli": "catalog:",
+    "@types/node": "catalog:",
+    "prisma": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",
     "wrangler": "catalog:"
