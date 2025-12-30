@@ -3,7 +3,7 @@ import { createORPCClient } from '@orpc/client';
 import { RPCLink } from '@orpc/client/fetch';
 
 const link = new RPCLink({
-	url: () => import.meta.env.VITE_API_ROOT,
+	url: () => `${import.meta.env.VITE_API_ROOT}/api`,
 });
 
 export const orpc: AppClient = createORPCClient(link);

@@ -126,7 +126,7 @@ function handleSaveSettings(settings: Partial<SettingTypeT>): void {
 	<div class="user-page__header">
 		<div class="user-page__profile">
 			<img
-				src="/images/default-avatar.png"
+				src="https://placehold.co/400"
 				alt={username}
 				class="user-page__avatar"
 			/>

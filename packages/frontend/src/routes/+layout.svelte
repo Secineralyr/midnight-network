@@ -1,5 +1,7 @@
 <script lang="ts">
 import { QueryClientProvider } from '@tanstack/svelte-query';
+import { onMount } from 'svelte';
+import { getMockUser, type MockUser } from '$lib/auth/mock-auth';
 import HeroBg from '$lib/components/background/HeroBg.svelte';
 import Footer from '$lib/components/layout/Footer.svelte';
 import Header from '$lib/components/layout/Header.svelte';
@@ -20,11 +22,11 @@ const { children }: Props = $props();
 const queryClient = createQueryClient();
 
 /** 現在のユーザー情報（TODO: 認証連携） */
-const currentUser = $state<{
-	userId: string;
-	username: string;
-	avatarUrl?: string;
-} | null>(null);
+let currentUser = $state<MockUser | null>(null);
+
+onMount(() => {
+	currentUser = getMockUser();
+});
 </script>
 
 <svelte:head>
