@@ -24,7 +24,7 @@ import {
 	calculateRemainingParticipationCount,
 	rankNumberToRankTypeValue,
 } from '../helpers/rank';
-import { calculateStatisticsFromRecords, getCachedGlobalAverages } from '../helpers/statistics';
+import { calculateGlobalAverages, calculateUserStatistics } from '../helpers/statistics';
 
 /** Daily期間の最大日数 */
 const DAILY_MAX_DAYS = 30;
@@ -88,7 +88,7 @@ export async function profile(userId: UserParamsT): Promise<UserResponseT> {
 		const { rankNumber, isNoRank } = calculateRankFromPoints(totalPt, participationCount);
 		const rankValue = rankNumberToRankTypeValue(rankNumber, isNoRank);
 
-		const stats = user.records.length > 0 ? calculateStatisticsFromRecords(user.records) : null;
+		const stats = await calculateUserStatistics(userId);
 		console.info('rpc.user.profile.stats', { userId, hasStats: Boolean(stats) });
 
 		const currentRank = isNoRank
@@ -427,8 +427,8 @@ export async function radarChart(userId: RadarParamsT): Promise<RadarResponseT> 
 			};
 		}
 
-		const userStats = calculateStatisticsFromRecords(user.records);
-		const globalAvg = await getCachedGlobalAverages();
+		const userStats = await calculateUserStatistics(userId);
+		const globalAvg = await calculateGlobalAverages();
 		const totalPt = user.userRankStatuses?.pt ?? 0;
 		console.info('rpc.user.radarChart.stats', { userId, hasStats: Boolean(userStats) });
 
