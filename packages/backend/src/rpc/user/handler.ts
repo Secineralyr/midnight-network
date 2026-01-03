@@ -142,7 +142,11 @@ export async function profile(userId: UserParamsT): Promise<UserResponseT> {
 export async function earnedPtChart(params: EarnedPtParamsT): Promise<EarnedPtResponseT> {
 	console.info('rpc.user.earnedPtChart', { userId: params.userId, span: params.span });
 	return await withCache('earnedPtChart', params, async () => {
+		console.info('earnedPtChart.fetchFn.start');
+
+		console.info('earnedPtChart.canViewProfileStats.before');
 		const canView = await canViewProfileStats(params.userId);
+		console.info('earnedPtChart.canViewProfileStats.after', { canView });
 		if (!canView) {
 			console.info('rpc.user.earnedPtChart.noPermission', params.userId);
 			return [];
@@ -152,6 +156,7 @@ export async function earnedPtChart(params: EarnedPtParamsT): Promise<EarnedPtRe
 		const startDate = new Date();
 		startDate.setUTCDate(startDate.getUTCDate() - maxDays);
 
+		console.info('earnedPtChart.prisma.before');
 		const histories = await prisma.userRankHistory.findMany({
 			where: {
 				userId: params.userId,
@@ -170,8 +175,9 @@ export async function earnedPtChart(params: EarnedPtParamsT): Promise<EarnedPtRe
 				matchDate: { date: 'asc' },
 			},
 		});
-		console.info('rpc.user.earnedPtChart.histories', histories.length);
+		console.info('earnedPtChart.prisma.after', { count: histories.length });
 
+		console.info('earnedPtChart.aggregateChartData.before');
 		const result = aggregateChartData(
 			histories.map((h) => ({
 				date: h.matchDate.date,
@@ -181,7 +187,7 @@ export async function earnedPtChart(params: EarnedPtParamsT): Promise<EarnedPtRe
 			params.span,
 			maxDays,
 		);
-		console.info('rpc.user.earnedPtChart.result', result.length);
+		console.info('earnedPtChart.aggregateChartData.after', { count: result.length });
 		return result;
 	});
 }
@@ -273,7 +279,11 @@ export async function heatmapChart(userId: HeatmapParamsT): Promise<HeatmapRespo
 export async function postTimeChart(params: PostTimeParamsT): Promise<PostTimeResponseT> {
 	console.info('rpc.user.postTimeChart', { userId: params.userId, span: params.span });
 	return await withCache('postTimeChart', params, async () => {
+		console.info('postTimeChart.fetchFn.start');
+
+		console.info('postTimeChart.canViewProfileStats.before');
 		const canView = await canViewProfileStats(params.userId);
+		console.info('postTimeChart.canViewProfileStats.after', { canView });
 		if (!canView) {
 			console.info('rpc.user.postTimeChart.noPermission', params.userId);
 			return [];
@@ -283,6 +293,7 @@ export async function postTimeChart(params: PostTimeParamsT): Promise<PostTimeRe
 		const startDate = new Date();
 		startDate.setUTCDate(startDate.getUTCDate() - maxDays);
 
+		console.info('postTimeChart.prisma.before');
 		const records = await prisma.record.findMany({
 			where: {
 				userId: params.userId,
@@ -301,9 +312,10 @@ export async function postTimeChart(params: PostTimeParamsT): Promise<PostTimeRe
 				matchDate: { date: 'asc' },
 			},
 		});
-		console.info('rpc.user.postTimeChart.records', records.length);
+		console.info('postTimeChart.prisma.after', { count: records.length });
 
 		if (params.span === GraphSpan.Daily) {
+			console.info('postTimeChart.daily.map.before');
 			const result = records.map((r) => {
 				const timeDiff = calculateTimeDifferenceSeconds(r.postedAt, r.matchDate.date);
 				const flying = isFlying(timeDiff);
@@ -325,15 +337,17 @@ export async function postTimeChart(params: PostTimeParamsT): Promise<PostTimeRe
 					place: r.place,
 				};
 			});
-			console.info('rpc.user.postTimeChart.result', result.length);
+			console.info('postTimeChart.daily.map.after', { count: result.length });
 			return result;
 		}
 
+		console.info('postTimeChart.createDateBuckets.before');
 		const buckets = createDateBuckets(startDate, new Date(), params.span);
-		console.info('rpc.user.postTimeChart.buckets', buckets.length);
+		console.info('postTimeChart.createDateBuckets.after', { count: buckets.length });
 
+		console.info('postTimeChart.buildPostTimeBuckets.before');
 		const result = buildPostTimeBuckets(records, buckets);
-		console.info('rpc.user.postTimeChart.result', result.length);
+		console.info('postTimeChart.buildPostTimeBuckets.after', { count: result.length });
 		return result;
 	});
 }
