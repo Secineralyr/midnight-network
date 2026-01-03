@@ -1,5 +1,23 @@
 import { env } from 'cloudflare:workers';
 
+const CACHE_TIMEOUT_MS = 1500;
+
+function withTimeout<T>(promise: Promise<T>, fallback: T): Promise<T> {
+	let timeoutId: ReturnType<typeof setTimeout> | undefined;
+	const timeoutPromise = new Promise<T>((resolve) => {
+		timeoutId = setTimeout(() => resolve(fallback), CACHE_TIMEOUT_MS);
+	});
+
+	return Promise.race([
+		promise.finally(() => {
+			if (timeoutId !== undefined) {
+				clearTimeout(timeoutId);
+			}
+		}),
+		timeoutPromise,
+	]);
+}
+
 /**
  * 次回のターゲットマッチ時刻（UTC）を取得する。
  * キャッシュの有効期限として使用する。
@@ -58,7 +76,7 @@ export function buildCacheKey<P extends CacheParams>(prefix: string, params: P):
  * @returns キャッシュされた値、または存在しない場合はnull
  */
 export function getFromCache<T>(key: string): Promise<T | null> {
-	return env.CACHE.get<T>(key, 'json');
+	return withTimeout(env.CACHE.get<T>(key, 'json'), null).catch(() => null);
 }
 
 /**
@@ -94,6 +112,8 @@ export async function withCache<T, P extends CacheParams>(prefix: string, params
 
 	const data = await fetchFn();
 	const ttl = getCacheTtlSeconds();
-	await setToCache(key, data, ttl);
+	setToCache(key, data, ttl).catch((error) => {
+		console.warn('cache.put.failed', { key, error });
+	});
 	return data;
 }
