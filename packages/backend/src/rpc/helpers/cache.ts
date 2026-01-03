@@ -93,7 +93,7 @@ export async function setToCache<T>(key: string, value: T, ttlSeconds: number): 
 	if (serialized === undefined) {
 		return;
 	}
-	await withTimeout(env.CACHE.put(key, serialized, { expirationTtl: ttlSeconds }), undefined);
+	await env.CACHE.put(key, serialized, { expirationTtl: ttlSeconds });
 }
 
 /**

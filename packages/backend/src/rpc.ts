@@ -58,11 +58,11 @@ export const router = base.router({
 		wr: maybeAuthorized.leaderboard.wr.handler(async (opt) => await wr(opt.input)),
 	},
 	user: {
-		profile: maybeAuthorized.user.profile.handler(async (opt) => await profile(opt.input)),
-		earnedPtChart: maybeAuthorized.user.earnedPtChart.handler(async (opt) => await earnedPtChart(opt.input)),
-		heatmapChart: maybeAuthorized.user.heatmapChart.handler(async (opt) => await heatmapChart(opt.input)),
-		postTimeChart: maybeAuthorized.user.postTimeChart.handler(async (opt) => await postTimeChart(opt.input)),
-		radarChart: maybeAuthorized.user.radarChart.handler(async (opt) => await radarChart(opt.input)),
-		totalPtChart: maybeAuthorized.user.totalPtChart.handler(async (opt) => await totalPtChart(opt.input)),
+		profile: base.user.profile.handler(async (opt) => await profile(opt.input)),
+		earnedPtChart: base.user.earnedPtChart.handler(async (opt) => await earnedPtChart(opt.input)),
+		heatmapChart: base.user.heatmapChart.handler(async (opt) => await heatmapChart(opt.input)),
+		postTimeChart: base.user.postTimeChart.handler(async (opt) => await postTimeChart(opt.input)),
+		radarChart: base.user.radarChart.handler(async (opt) => await radarChart(opt.input)),
+		totalPtChart: base.user.totalPtChart.handler(async (opt) => await totalPtChart(opt.input)),
 	},
 });
