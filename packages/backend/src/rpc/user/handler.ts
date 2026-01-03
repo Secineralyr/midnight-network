@@ -346,78 +346,56 @@ export async function postTimeChart(params: PostTimeParamsT): Promise<PostTimeRe
 		console.info('postTimeChart.createDateBuckets.after', { count: buckets.length });
 
 		console.info('postTimeChart.buildPostTimeBuckets.before');
-		const result = buildPostTimeBuckets(records, buckets);
+		const result = buckets.map((bucket) => {
+			const bucketRecords = records.filter((r) => {
+				const recordDate = r.matchDate.date;
+				return recordDate >= bucket.start && recordDate < bucket.end;
+			});
+
+			const nonFlyingRecords = bucketRecords.filter((r) => {
+				const timeDiff = calculateTimeDifferenceSeconds(r.postedAt, r.matchDate.date);
+				return !isFlying(timeDiff);
+			});
+
+			if (nonFlyingRecords.length === 0) {
+				return {
+					value: 0,
+					label: bucket.label,
+					postedAt: bucket.start,
+					isFlying: false as const,
+					place: 0,
+				};
+			}
+
+			const firstRecord = nonFlyingRecords[0];
+			if (!firstRecord) {
+				return {
+					value: 0,
+					label: bucket.label,
+					postedAt: bucket.start,
+					isFlying: false as const,
+					place: 0,
+				};
+			}
+
+			const avgTime =
+				nonFlyingRecords.reduce((sum, r) => {
+					return sum + calculateTimeDifferenceSeconds(r.postedAt, r.matchDate.date);
+				}, 0) / nonFlyingRecords.length;
+
+			const avgPlace = nonFlyingRecords.reduce((sum, r) => sum + r.place, 0) / nonFlyingRecords.length;
+
+			return {
+				value: avgTime,
+				label: bucket.label,
+				postedAt: firstRecord.postedAt,
+				isFlying: false as const,
+				place: Math.round(avgPlace),
+			};
+		});
 		console.info('postTimeChart.buildPostTimeBuckets.after', { count: result.length });
 		return result;
 	});
-}
-
-function buildPostTimeBuckets(
-	records: Array<{ place: number; postedAt: Date; matchDate: { date: Date } }>,
-	buckets: Array<{ start: Date; end: Date; label: string }>,
-): PostTimeResponseT {
-	if (buckets.length === 0) {
-		return [];
-	}
-
-	const bucketStats = buckets.map(() => ({
-		sumTime: 0,
-		sumPlace: 0,
-		count: 0,
-		firstPostedAt: undefined as Date | undefined,
-	}));
-
-	let bucketIndex = 0;
-	for (const record of records) {
-		bucketIndex = advanceBucketIndex(record.matchDate.date, buckets, bucketIndex);
-		if (bucketIndex < 0 || bucketIndex >= buckets.length) {
-			break;
-		}
-		const bucket = buckets[bucketIndex];
-		const stats = bucketStats[bucketIndex];
-		if (!bucket || !stats) {
-			break;
-		}
-		if (record.matchDate.date < bucket.start) {
-			continue;
-		}
-
-		const timeDiff = calculateTimeDifferenceSeconds(record.postedAt, record.matchDate.date);
-		if (isFlying(timeDiff)) {
-			continue;
-		}
-
-		stats.sumTime += timeDiff;
-		stats.sumPlace += record.place;
-		stats.count += 1;
-		if (!stats.firstPostedAt) {
-			stats.firstPostedAt = record.postedAt;
-		}
-	}
-
-	const results: PostTimeResponseT = [];
-	for (const [index, bucket] of buckets.entries()) {
-		const stats = bucketStats[index];
-		if (!stats || stats.count === 0) {
-			results.push({
-				value: 0,
-				label: bucket.label,
-				postedAt: bucket.start,
-				isFlying: false as const,
-				place: 0,
-			});
-			continue;
-		}
-
-		results.push({
-			value: stats.sumTime / stats.count,
-			label: bucket.label,
-			postedAt: stats.firstPostedAt ?? bucket.start,
-			isFlying: false as const,
-			place: Math.round(stats.sumPlace / stats.count),
-		});
-	}
-	return results;
 }
 
 /**

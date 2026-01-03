@@ -134,85 +134,28 @@ export async function calculateGlobalAverages(): Promise<{
 	averageTime: number;
 	totalParticipationCount: number;
 }> {
-	const [rankStatuses, records] = await Promise.all([
-		prisma.userRankStatus.findMany({
-			where: {
-				user: {
-					banned: false,
+	const allUsers = await prisma.user.findMany({
+		where: {
+			banned: false,
+		},
+		select: {
+			id: true,
+			userRankStatuses: {
+				select: {
+					pt: true,
 				},
 			},
-			select: {
-				id: true,
-				pt: true,
-			},
-		}),
-		prisma.record.findMany({
-			where: {
-				user: {
-					banned: false,
+			records: {
+				select: {
+					place: true,
+					postedAt: true,
+					matchDate: {
+						select: { date: true },
+					},
 				},
 			},
-			select: {
-				userId: true,
-				place: true,
-				postedAt: true,
-				matchDate: {
-					select: { date: true },
-				},
-			},
-		}),
-	]);
-
-	if (records.length === 0) {
-		return {
-			totalPt: 0,
-			wr: 0,
-			averagePlace: 0,
-			averageTime: 0,
-			totalParticipationCount: 0,
-		};
-	}
-
-	const totalPtMap = new Map<string, number>();
-	for (const status of rankStatuses) {
-		totalPtMap.set(status.id, status.pt);
-	}
-
-	type GlobalStatsAcc = {
-		totalParticipationCount: number;
-		winCount: number;
-		flyingCount: number;
-		sumPlace: number;
-		sumTime: number;
-	};
-
-	const statsByUser = new Map<string, GlobalStatsAcc>();
-	for (const record of records) {
-		let stats = statsByUser.get(record.userId);
-		if (!stats) {
-			stats = {
-				totalParticipationCount: 0,
-				winCount: 0,
-				flyingCount: 0,
-				sumPlace: 0,
-				sumTime: 0,
-			};
-			statsByUser.set(record.userId, stats);
-		}
-
-		stats.totalParticipationCount += 1;
-		const timeDiff = calculateTimeDifferenceSeconds(record.postedAt, record.matchDate.date);
-		if (isFlying(timeDiff)) {
-			stats.flyingCount += 1;
-			continue;
-		}
-
-		stats.sumPlace += record.place;
-		stats.sumTime += timeDiff;
-		if (record.place === 1) {
-			stats.winCount += 1;
-		}
-	}
+		},
+	});
 
 	let totalPtSum = 0;
 	let totalWrSum = 0;
@@ -223,27 +166,25 @@ export async function calculateGlobalAverages(): Promise<{
 	let placeCount = 0;
 	let timeCount = 0;
 
-	for (const [userId, stats] of statsByUser) {
-		const totalPt = totalPtMap.get(userId) ?? 0;
-		totalPtSum += totalPt;
+	for (const user of allUsers) {
+		if (user.records.length === 0) {
+			continue;
+		}
 
-		const nonFlyingCount = stats.totalParticipationCount - stats.flyingCount;
-		const averagePlace = nonFlyingCount > 0 ? stats.sumPlace / nonFlyingCount : undefined;
-		const averageTime = nonFlyingCount > 0 ? stats.sumTime / nonFlyingCount : undefined;
-		const wr = stats.totalParticipationCount > 0 ? stats.winCount / stats.totalParticipationCount : 0;
-
-		totalWrSum += wr;
+		const stats = calculateStatisticsFromRecords(user.records);
+		totalPtSum += user.userRankStatuses?.pt ?? 0;
+		totalWrSum += stats.wr;
 		totalParticipationSum += stats.totalParticipationCount;
 
-		if (averagePlace !== undefined) {
-			totalPlaceSum += averagePlace;
-			placeCount += 1;
+		if (stats.averagePlace !== undefined) {
+			totalPlaceSum += stats.averagePlace;
+			placeCount++;
 		}
-		if (averageTime !== undefined) {
-			totalTimeSum += averageTime;
-			timeCount += 1;
+		if (stats.averageTime !== undefined) {
+			totalTimeSum += stats.averageTime;
+			timeCount++;
 		}
-		userCount += 1;
+		userCount++;
 	}
 
 	if (userCount === 0) {
