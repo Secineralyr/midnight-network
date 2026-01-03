@@ -110,7 +110,7 @@ export type PostTimeParamsT = z.infer<typeof PostTimeParams>;
 export const PostTimeResponse = LineBarChartData.clone()
 	.and(
 		z.object({
-			postedAt: z.date(),
+			postedAt: z.coerce.date(),
 		}),
 	)
 	.and(
