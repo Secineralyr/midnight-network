@@ -1,4 +1,5 @@
 import { prisma } from '../../db';
+import { withCache } from './cache';
 import { calculateTimeDifferenceSeconds, isFlying } from './match';
 
 /** 圏内順位の閾値 */
@@ -203,4 +204,14 @@ export async function calculateGlobalAverages(): Promise<{
 		averageTime: timeCount > 0 ? totalTimeSum / timeCount : 0,
 		totalParticipationCount: totalParticipationSum / userCount,
 	};
+}
+
+export function getCachedGlobalAverages(): Promise<{
+	totalPt: number;
+	wr: number;
+	averagePlace: number;
+	averageTime: number;
+	totalParticipationCount: number;
+}> {
+	return withCache('globalAverages', null, calculateGlobalAverages);
 }

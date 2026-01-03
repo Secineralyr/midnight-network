@@ -28,7 +28,11 @@ export function getCacheTtlSeconds(): number {
 	const nextTargetTime = getNextTargetMatchTime();
 	const now = Date.now();
 	const ttlMs = nextTargetTime - now;
-	return Math.max(1, Math.floor(ttlMs / 1000));
+	const ttlSeconds = Math.floor(ttlMs / 1000);
+	if (!Number.isFinite(ttlSeconds) || ttlSeconds <= 0) {
+		return 60;
+	}
+	return ttlSeconds;
 }
 
 /** キャッシュパラメータとして使用可能な型 */
@@ -64,7 +68,14 @@ export function getFromCache<T>(key: string): Promise<T | null> {
  * @param ttlSeconds TTL（秒）
  */
 export async function setToCache<T>(key: string, value: T, ttlSeconds: number): Promise<void> {
-	await env.CACHE.put(key, JSON.stringify(value), { expirationTtl: ttlSeconds });
+	if (value === undefined) {
+		return;
+	}
+	const serialized = JSON.stringify(value);
+	if (serialized === undefined) {
+		return;
+	}
+	await env.CACHE.put(key, serialized, { expirationTtl: ttlSeconds });
 }
 
 /**
