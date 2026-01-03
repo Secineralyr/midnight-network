@@ -42,6 +42,7 @@ const HEATMAP_MAX_DAYS = 30;
  * @returns ユーザープロフィール情報
  */
 export async function profile(userId: UserParamsT): Promise<UserResponseT> {
+	console.info('rpc.user.profile', userId);
 	return await withCache('profile', userId, async () => {
 		const user = await prisma.user.findUnique({
 			where: { id: userId, banned: false },
@@ -73,10 +74,12 @@ export async function profile(userId: UserParamsT): Promise<UserResponseT> {
 		});
 
 		if (!user) {
+			console.info('rpc.user.profile.notFound', userId);
 			return undefined;
 		}
 
 		if (user.userSettings?.showProfileStats === false) {
+			console.info('rpc.user.profile.hiddenBySettings', userId);
 			return undefined;
 		}
 
@@ -86,6 +89,7 @@ export async function profile(userId: UserParamsT): Promise<UserResponseT> {
 		const rankValue = rankNumberToRankTypeValue(rankNumber, isNoRank);
 
 		const stats = await calculateUserStatistics(userId);
+		console.info('rpc.user.profile.stats', { userId, hasStats: Boolean(stats) });
 
 		const currentRank = isNoRank
 			? {
@@ -136,9 +140,11 @@ export async function profile(userId: UserParamsT): Promise<UserResponseT> {
  * @returns 獲得ptチャートデータ
  */
 export async function earnedPtChart(params: EarnedPtParamsT): Promise<EarnedPtResponseT> {
+	console.info('rpc.user.earnedPtChart', { userId: params.userId, span: params.span });
 	return await withCache('earnedPtChart', params, async () => {
 		const canView = await canViewProfileStats(params.userId);
 		if (!canView) {
+			console.info('rpc.user.earnedPtChart.noPermission', params.userId);
 			return [];
 		}
 
@@ -164,8 +170,9 @@ export async function earnedPtChart(params: EarnedPtParamsT): Promise<EarnedPtRe
 				matchDate: { date: 'asc' },
 			},
 		});
+		console.info('rpc.user.earnedPtChart.histories', histories.length);
 
-		return aggregateChartData(
+		const result = aggregateChartData(
 			histories.map((h) => ({
 				date: h.matchDate.date,
 				value: h.earnedPt,
@@ -174,6 +181,8 @@ export async function earnedPtChart(params: EarnedPtParamsT): Promise<EarnedPtRe
 			params.span,
 			maxDays,
 		);
+		console.info('rpc.user.earnedPtChart.result', result.length);
+		return result;
 	});
 }
 
@@ -183,9 +192,11 @@ export async function earnedPtChart(params: EarnedPtParamsT): Promise<EarnedPtRe
  * @returns ヒートマップデータ
  */
 export async function heatmapChart(userId: HeatmapParamsT): Promise<HeatmapResponseT> {
+	console.info('rpc.user.heatmapChart', userId);
 	return await withCache('heatmapChart', userId, async () => {
 		const canView = await canViewProfileStats(userId);
 		if (!canView) {
+			console.info('rpc.user.heatmapChart.noPermission', userId);
 			return [];
 		}
 
@@ -209,8 +220,9 @@ export async function heatmapChart(userId: HeatmapParamsT): Promise<HeatmapRespo
 			},
 			orderBy: { date: 'asc' },
 		});
+		console.info('rpc.user.heatmapChart.matchDates', matchDates.length);
 
-		return matchDates.map((matchDate) => {
+		const result = matchDates.map((matchDate) => {
 			const record = matchDate.records[0];
 			if (!record) {
 				return { type: HeatmapType.NoParticipation };
@@ -226,6 +238,8 @@ export async function heatmapChart(userId: HeatmapParamsT): Promise<HeatmapRespo
 				place: record.place,
 			};
 		});
+		console.info('rpc.user.heatmapChart.result', result.length);
+		return result;
 	});
 }
 
@@ -236,9 +250,11 @@ export async function heatmapChart(userId: HeatmapParamsT): Promise<HeatmapRespo
  * @returns 投稿時間チャートデータ
  */
 export async function postTimeChart(params: PostTimeParamsT): Promise<PostTimeResponseT> {
+	console.info('rpc.user.postTimeChart', { userId: params.userId, span: params.span });
 	return await withCache('postTimeChart', params, async () => {
 		const canView = await canViewProfileStats(params.userId);
 		if (!canView) {
+			console.info('rpc.user.postTimeChart.noPermission', params.userId);
 			return [];
 		}
 
@@ -264,9 +280,10 @@ export async function postTimeChart(params: PostTimeParamsT): Promise<PostTimeRe
 				matchDate: { date: 'asc' },
 			},
 		});
+		console.info('rpc.user.postTimeChart.records', records.length);
 
 		if (params.span === GraphSpan.Daily) {
-			return records.map((r) => {
+			const result = records.map((r) => {
 				const timeDiff = calculateTimeDifferenceSeconds(r.postedAt, r.matchDate.date);
 				const flying = isFlying(timeDiff);
 
@@ -287,11 +304,14 @@ export async function postTimeChart(params: PostTimeParamsT): Promise<PostTimeRe
 					place: r.place,
 				};
 			});
+			console.info('rpc.user.postTimeChart.result', result.length);
+			return result;
 		}
 
 		const buckets = createDateBuckets(startDate, new Date(), params.span);
+		console.info('rpc.user.postTimeChart.buckets', buckets.length);
 
-		return buckets.map((bucket) => {
+		const result = buckets.map((bucket) => {
 			const bucketRecords = records.filter((r) => {
 				const recordDate = r.matchDate.date;
 				return recordDate >= bucket.start && recordDate < bucket.end;
@@ -338,6 +358,8 @@ export async function postTimeChart(params: PostTimeParamsT): Promise<PostTimeRe
 				place: Math.round(avgPlace),
 			};
 		});
+		console.info('rpc.user.postTimeChart.result', result.length);
+		return result;
 	});
 }
 
@@ -348,9 +370,11 @@ export async function postTimeChart(params: PostTimeParamsT): Promise<PostTimeRe
  * @returns レーダーチャートデータ
  */
 export async function radarChart(userId: RadarParamsT): Promise<RadarResponseT> {
+	console.info('rpc.user.radarChart', userId);
 	return await withCache('radarChart', userId, async () => {
 		const canView = await canViewProfileStats(userId);
 		if (!canView) {
+			console.info('rpc.user.radarChart.noPermission', userId);
 			return {
 				totalPt: 0,
 				wr: 0,
@@ -379,6 +403,7 @@ export async function radarChart(userId: RadarParamsT): Promise<RadarResponseT> 
 		});
 
 		if (!user || user.records.length === 0) {
+			console.info('rpc.user.radarChart.noRecords', userId);
 			return {
 				totalPt: 0,
 				wr: 0,
@@ -391,6 +416,7 @@ export async function radarChart(userId: RadarParamsT): Promise<RadarResponseT> 
 		const userStats = await calculateUserStatistics(userId);
 		const globalAvg = await calculateGlobalAverages();
 		const totalPt = user.userRankStatuses?.pt ?? 0;
+		console.info('rpc.user.radarChart.stats', { userId, hasStats: Boolean(userStats) });
 
 		const calculateRatio = (userValue: number, globalValue: number, inverse: boolean): number => {
 			if (globalValue === 0) {
@@ -423,9 +449,11 @@ export async function radarChart(userId: RadarParamsT): Promise<RadarResponseT> 
  * @returns 累計ptチャートデータ
  */
 export async function totalPtChart(params: TotalPtParamsT): Promise<TotalPtResponseT> {
+	console.info('rpc.user.totalPtChart', { userId: params.userId, span: params.span });
 	return await withCache('totalPtChart', params, async () => {
 		const canView = await canViewProfileStats(params.userId);
 		if (!canView) {
+			console.info('rpc.user.totalPtChart.noPermission', params.userId);
 			return [];
 		}
 
@@ -450,6 +478,7 @@ export async function totalPtChart(params: TotalPtParamsT): Promise<TotalPtRespo
 				matchDate: { date: 'asc' },
 			},
 		});
+		console.info('rpc.user.totalPtChart.histories', histories.length);
 
 		const user = await prisma.user.findUnique({
 			where: { id: params.userId },
@@ -459,11 +488,12 @@ export async function totalPtChart(params: TotalPtParamsT): Promise<TotalPtRespo
 				},
 			},
 		});
+		console.info('rpc.user.totalPtChart.userFound', Boolean(user));
 
 		const participationCount = user?.records.length ?? 0;
 
 		if (params.span === GraphSpan.Daily) {
-			return histories.map((h) => {
+			const result = histories.map((h) => {
 				const { rankNumber, isNoRank } = calculateRankFromPoints(h.pt, participationCount);
 				const rankValue = rankNumberToRankTypeValue(rankNumber, isNoRank);
 
@@ -473,11 +503,13 @@ export async function totalPtChart(params: TotalPtParamsT): Promise<TotalPtRespo
 					rank: rankValue,
 				};
 			});
+			console.info('rpc.user.totalPtChart.result', result.length);
+			return result;
 		}
 
 		const buckets = createDateBuckets(startDate, new Date(), params.span);
 
-		return buckets.map((bucket) => {
+		const result = buckets.map((bucket) => {
 			const bucketHistories = histories.filter((h) => {
 				const historyDate = h.matchDate.date;
 				return historyDate >= bucket.start && historyDate < bucket.end;
@@ -502,6 +534,8 @@ export async function totalPtChart(params: TotalPtParamsT): Promise<TotalPtRespo
 				rank: rankValue,
 			};
 		});
+		console.info('rpc.user.totalPtChart.result', result.length);
+		return result;
 	});
 }
 

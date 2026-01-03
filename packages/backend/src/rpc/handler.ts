@@ -19,6 +19,7 @@ import { calculateRankFromPoints, rankNumberToRankTypeValue } from './helpers/ra
  * @returns マッチしたユーザー一覧
  */
 export async function searchUser(query: SearchUserParamsT): Promise<SearchUserResponseT> {
+	console.info('rpc.searchUser', query);
 	return await withCache('searchUser', query, async () => {
 		const users = await prisma.user.findMany({
 			where: {
@@ -36,6 +37,7 @@ export async function searchUser(query: SearchUserParamsT): Promise<SearchUserRe
 			},
 			take: 20,
 		});
+		console.info('rpc.searchUser.users', users.length);
 
 		return users.map((user) => ({
 			userId: user.id,
@@ -52,9 +54,11 @@ export async function searchUser(query: SearchUserParamsT): Promise<SearchUserRe
  * @returns 本日のトップ3
  */
 export async function todayTop(_input: TodayTopParamsT): Promise<TodayTopResponseT> {
+	console.info('rpc.todayTop');
 	return await withCache('todayTop', null, async () => {
 		const latestMatch = await getLatestMatchDate();
 		if (!latestMatch) {
+			console.info('rpc.todayTop.noLatestMatch');
 			return [];
 		}
 
@@ -93,13 +97,16 @@ export async function todayTop(_input: TodayTopParamsT): Promise<TodayTopRespons
 				place: 'asc',
 			},
 		});
+		console.info('rpc.todayTop.records', records.length);
 
 		const validRecords = records.filter((record) => {
 			const timeDiff = calculateTimeDifferenceSeconds(record.postedAt, record.matchDate.date);
 			return !isFlying(timeDiff);
 		});
+		console.info('rpc.todayTop.validRecords', validRecords.length);
 
 		const top3 = validRecords.slice(0, 3);
+		console.info('rpc.todayTop.top3', top3.length);
 
 		return top3.map((record) => {
 			const timeDiff = calculateTimeDifferenceSeconds(record.postedAt, record.matchDate.date);
@@ -128,6 +135,7 @@ export async function todayTop(_input: TodayTopParamsT): Promise<TodayTopRespons
  * @returns ランクトップ3
  */
 export async function rankTop(_input: RankTopParamsT): Promise<RankTopResponseT> {
+	console.info('rpc.rankTop');
 	return await withCache('rankTop', null, async () => {
 		const users = await prisma.user.findMany({
 			where: {
@@ -156,6 +164,7 @@ export async function rankTop(_input: RankTopParamsT): Promise<RankTopResponseT>
 			},
 			take: 3,
 		});
+		console.info('rpc.rankTop.users', users.length);
 
 		return users.map((user, index) => {
 			const totalPt = user.userRankStatuses?.pt ?? 0;

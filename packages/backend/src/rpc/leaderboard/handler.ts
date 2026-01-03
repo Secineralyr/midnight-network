@@ -26,8 +26,10 @@ import { calculateStatisticsFromRecords } from '../helpers/statistics';
  * @returns 平均タイムランキング
  */
 export async function averageTime(offset: AvgTimeParamsT): Promise<AvgTimeResponseT> {
+	console.info('rpc.leaderboard.averageTime', offset);
 	return await withCache('averageTime', offset, async () => {
 		const latestMatch = await getLatestMatchDate();
+		console.info('rpc.leaderboard.averageTime.latestMatch', Boolean(latestMatch));
 
 		const users = await prisma.user.findMany({
 			where: {
@@ -53,6 +55,7 @@ export async function averageTime(offset: AvgTimeParamsT): Promise<AvgTimeRespon
 				},
 			},
 		});
+		console.info('rpc.leaderboard.averageTime.users', users.length);
 
 		const userStats = users
 			.map((user) => {
@@ -72,11 +75,14 @@ export async function averageTime(offset: AvgTimeParamsT): Promise<AvgTimeRespon
 			})
 			.filter((u) => u.averageTime !== undefined)
 			.sort((a, b) => (a.averageTime as number) - (b.averageTime as number));
+		console.info('rpc.leaderboard.averageTime.userStats', userStats.length);
 
 		const { currentOffset, maxOffset, skip, take } = calculatePagination(userStats.length, offset);
+		console.info('rpc.leaderboard.averageTime.pagination', { currentOffset, maxOffset, skip, take });
 		const pageData = userStats.slice(skip, skip + take);
 
 		const previousPlaceMap = latestMatch ? await getPreviousPlaceMap(latestMatch.id) : new Map<string, number>();
+		console.info('rpc.leaderboard.averageTime.previousPlaceMap', previousPlaceMap.size);
 
 		const data = pageData.map((user, index) => {
 			const rankValue = rankNumberToRankTypeValue(user.rankNumber, user.isNoRank);
@@ -111,9 +117,11 @@ export async function averageTime(offset: AvgTimeParamsT): Promise<AvgTimeRespon
  * @returns 試合タイムランキング
  */
 export async function matchTime(offset: MatchTimeParamsT): Promise<MatchTimeResponseT> {
+	console.info('rpc.leaderboard.matchTime', offset);
 	return await withCache('matchTime', offset, async () => {
 		const latestMatch = await getLatestMatchDate();
 		if (!latestMatch) {
+			console.info('rpc.leaderboard.matchTime.noLatestMatch');
 			return {
 				currentOffset: 1,
 				maxOffset: 0,
@@ -158,6 +166,7 @@ export async function matchTime(offset: MatchTimeParamsT): Promise<MatchTimeResp
 				},
 			},
 		});
+		console.info('rpc.leaderboard.matchTime.records', records.length);
 
 		const validRecords = records
 			.filter((record) => {
@@ -169,8 +178,10 @@ export async function matchTime(offset: MatchTimeParamsT): Promise<MatchTimeResp
 				const timeB = calculateTimeDifferenceSeconds(b.postedAt, b.matchDate.date);
 				return timeA - timeB;
 			});
+		console.info('rpc.leaderboard.matchTime.validRecords', validRecords.length);
 
 		const { currentOffset, maxOffset, skip, take } = calculatePagination(validRecords.length, offset);
+		console.info('rpc.leaderboard.matchTime.pagination', { currentOffset, maxOffset, skip, take });
 		const pageData = validRecords.slice(skip, skip + take);
 
 		const data = pageData.map((record, index) => {
@@ -208,8 +219,10 @@ export async function matchTime(offset: MatchTimeParamsT): Promise<MatchTimeResp
  * @returns ランクptランキング
  */
 export async function rank(offset: RankParamsT): Promise<RankResponseT> {
+	console.info('rpc.leaderboard.rank', offset);
 	return await withCache('rank', offset, async () => {
 		const latestMatch = await getLatestMatchDate();
+		console.info('rpc.leaderboard.rank.latestMatch', Boolean(latestMatch));
 
 		const users = await prisma.user.findMany({
 			where: {
@@ -240,13 +253,17 @@ export async function rank(offset: RankParamsT): Promise<RankResponseT> {
 				},
 			},
 		});
+		console.info('rpc.leaderboard.rank.users', users.length);
 
 		const sortedUsers = users.filter((u) => u.userRankStatuses !== null);
+		console.info('rpc.leaderboard.rank.sortedUsers', sortedUsers.length);
 
 		const { currentOffset, maxOffset, skip, take } = calculatePagination(sortedUsers.length, offset);
+		console.info('rpc.leaderboard.rank.pagination', { currentOffset, maxOffset, skip, take });
 		const pageData = sortedUsers.slice(skip, skip + take);
 
 		const previousPlaceMap = latestMatch ? await getPreviousPlaceMap(latestMatch.id) : new Map<string, number>();
+		console.info('rpc.leaderboard.rank.previousPlaceMap', previousPlaceMap.size);
 
 		const data = pageData.map((user, index) => {
 			const totalPt = user.userRankStatuses?.pt ?? 0;
@@ -284,6 +301,7 @@ export async function rank(offset: RankParamsT): Promise<RankResponseT> {
  * @returns ランク分布
  */
 export async function rankHistogram(_input: RankHistParamsT): Promise<RankHistResponseT> {
+	console.info('rpc.leaderboard.rankHistogram');
 	return await withCache('rankHistogram', null, async () => {
 		const users = await prisma.user.findMany({
 			where: {
@@ -298,6 +316,7 @@ export async function rankHistogram(_input: RankHistParamsT): Promise<RankHistRe
 				},
 			},
 		});
+		console.info('rpc.leaderboard.rankHistogram.users', users.length);
 
 		const rankCounts: Record<number, number> = {};
 		let totalRankedUsers = 0;
@@ -317,8 +336,10 @@ export async function rankHistogram(_input: RankHistParamsT): Promise<RankHistRe
 		}
 
 		if (totalRankedUsers === 0) {
+			console.info('rpc.leaderboard.rankHistogram.noRankedUsers');
 			return [];
 		}
+		console.info('rpc.leaderboard.rankHistogram.totalRankedUsers', totalRankedUsers);
 
 		const result: RankHistResponseT = [];
 		const rankValues = Object.values(RankType).filter((v) => v !== RankType.NoRank);
@@ -346,8 +367,10 @@ export async function rankHistogram(_input: RankHistParamsT): Promise<RankHistRe
  * @returns WRランキング
  */
 export async function wr(offset: WrParamsT): Promise<WrResponseT> {
+	console.info('rpc.leaderboard.wr', offset);
 	return await withCache('wr', offset, async () => {
 		const latestMatch = await getLatestMatchDate();
+		console.info('rpc.leaderboard.wr.latestMatch', Boolean(latestMatch));
 
 		const users = await prisma.user.findMany({
 			where: {
@@ -373,6 +396,7 @@ export async function wr(offset: WrParamsT): Promise<WrResponseT> {
 				},
 			},
 		});
+		console.info('rpc.leaderboard.wr.users', users.length);
 
 		const userStats = users
 			.map((user) => {
@@ -393,11 +417,14 @@ export async function wr(offset: WrParamsT): Promise<WrResponseT> {
 			})
 			.filter((u) => u.totalParticipationCount > 0)
 			.sort((a, b) => b.wr - a.wr);
+		console.info('rpc.leaderboard.wr.userStats', userStats.length);
 
 		const { currentOffset, maxOffset, skip, take } = calculatePagination(userStats.length, offset);
+		console.info('rpc.leaderboard.wr.pagination', { currentOffset, maxOffset, skip, take });
 		const pageData = userStats.slice(skip, skip + take);
 
 		const previousPlaceMap = latestMatch ? await getPreviousPlaceMap(latestMatch.id) : new Map<string, number>();
+		console.info('rpc.leaderboard.wr.previousPlaceMap', previousPlaceMap.size);
 
 		const data = pageData.map((user, index) => {
 			const rankValue = rankNumberToRankTypeValue(user.rankNumber, user.isNoRank);

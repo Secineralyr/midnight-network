@@ -21,6 +21,7 @@ import { calculateRankFromPoints, rankNumberToRankTypeValue } from '../helpers/r
  */
 export async function lastResult(ctx: AuthContext, _input: LastResultParamsT): Promise<LastResultResponseT> {
 	const userId = ctx.user?.id;
+	console.info('rpc.me.lastResult', userId);
 	if (!userId) {
 		return undefined;
 	}
@@ -28,6 +29,7 @@ export async function lastResult(ctx: AuthContext, _input: LastResultParamsT): P
 	return await withCache(`lastResult:${userId}`, null, async () => {
 		const latestMatch = await getLatestMatchDate();
 		if (!latestMatch) {
+			console.info('rpc.me.lastResult.noLatestMatch', userId);
 			return undefined;
 		}
 
@@ -46,6 +48,7 @@ export async function lastResult(ctx: AuthContext, _input: LastResultParamsT): P
 		});
 
 		if (!record) {
+			console.info('rpc.me.lastResult.noRecord', userId);
 			return undefined;
 		}
 
@@ -73,6 +76,7 @@ export async function lastResult(ctx: AuthContext, _input: LastResultParamsT): P
 				},
 			},
 		});
+		console.info('rpc.me.lastResult.userFound', Boolean(user));
 
 		const timeDiff = calculateTimeDifferenceSeconds(record.postedAt, record.matchDate.date);
 		const totalPt = userRankStatus?.pt ?? 0;
@@ -94,6 +98,7 @@ export async function lastResult(ctx: AuthContext, _input: LastResultParamsT): P
 				pt: true,
 			},
 		});
+		console.info('rpc.me.lastResult.previousRankHistory', Boolean(previousRankHistory));
 
 		let rankShift: (typeof RankShiftType)[keyof typeof RankShiftType] = RankShiftType.None;
 		if (previousRankHistory) {
@@ -130,6 +135,7 @@ export async function lastResult(ctx: AuthContext, _input: LastResultParamsT): P
  */
 export async function getSettings(ctx: AuthContext, _input: GetSettingsParamsT): Promise<GetSettingsResponseT> {
 	const userId = ctx.user?.id;
+	console.info('rpc.me.getSettings', userId);
 	if (!userId) {
 		return {
 			showLeaderboardRank: true,
@@ -166,6 +172,7 @@ export async function getSettings(ctx: AuthContext, _input: GetSettingsParamsT):
  */
 export async function setSettings(ctx: AuthContext, input: SetSettingsParamsT): Promise<SetSettingsResponseT> {
 	const userId = ctx.user?.id;
+	console.info('rpc.me.setSettings', userId);
 	if (!userId) {
 		return;
 	}
