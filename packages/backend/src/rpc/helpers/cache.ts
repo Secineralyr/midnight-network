@@ -75,22 +75,13 @@ export async function setToCache<T>(key: string, value: T, ttlSeconds: number): 
  * @returns 取得したデータ
  */
 export async function withCache<T, P extends CacheParams>(prefix: string, params: P, fetchFn: () => Promise<T>): Promise<T> {
-	console.info('withCache.start', { prefix });
 	const key = buildCacheKey(prefix, params);
-	console.info('withCache.key', { key });
-
-	console.info('withCache.getFromCache.before');
 	const cached = await getFromCache<T>(key);
-	console.info('withCache.getFromCache.after', { hit: cached !== null });
-
 	if (cached !== null) {
 		return cached;
 	}
 
-	console.info('withCache.fetchFn.before');
 	const data = await fetchFn();
-	console.info('withCache.fetchFn.after');
-
 	const ttl = getCacheTtlSeconds();
 	await setToCache(key, data, ttl);
 	return data;
