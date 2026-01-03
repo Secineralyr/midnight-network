@@ -209,48 +209,27 @@ export async function heatmapChart(userId: HeatmapParamsT): Promise<HeatmapRespo
 		const startDate = new Date();
 		startDate.setUTCDate(startDate.getUTCDate() - HEATMAP_MAX_DAYS);
 
-		const [matchDates, records] = await Promise.all([
-			prisma.matchDate.findMany({
-				where: {
-					date: { gte: startDate },
-				},
-				select: {
-					id: true,
-					date: true,
-				},
-				orderBy: { date: 'asc' },
-			}),
-			prisma.record.findMany({
-				where: {
-					userId,
-					matchDate: {
-						date: { gte: startDate },
+		const matchDates = await prisma.matchDate.findMany({
+			where: {
+				date: { gte: startDate },
+			},
+			select: {
+				id: true,
+				date: true,
+				records: {
+					where: { userId },
+					select: {
+						place: true,
+						postedAt: true,
 					},
 				},
-				select: {
-					matchDateId: true,
-					place: true,
-					postedAt: true,
-				},
-				orderBy: {
-					postedAt: 'asc',
-				},
-			}),
-		]);
+			},
+			orderBy: { date: 'asc' },
+		});
 		console.info('rpc.user.heatmapChart.matchDates', matchDates.length);
 
-		const recordByMatchDateId = new Map<number, { place: number; postedAt: Date }>();
-		for (const record of records) {
-			if (!recordByMatchDateId.has(record.matchDateId)) {
-				recordByMatchDateId.set(record.matchDateId, {
-					place: record.place,
-					postedAt: record.postedAt,
-				});
-			}
-		}
-
 		const result = matchDates.map((matchDate) => {
-			const record = recordByMatchDateId.get(matchDate.id);
+			const record = matchDate.records[0];
 			if (!record) {
 				return { type: HeatmapType.NoParticipation };
 			}
@@ -687,94 +666,30 @@ function aggregateChartData(
 		}));
 	}
 
-	const buckets = buildBuckets(maxDays, span);
-	if (buckets.length === 0) {
-		return [];
-	}
-
-	const bucketStats = initBucketStats(buckets.length);
-	fillBucketStats(data, buckets, bucketStats);
-	return buildBucketResults(buckets, bucketStats);
-}
-
-function buildBuckets(maxDays: number, span: number): Array<{ start: Date; end: Date; label: string }> {
 	const startDate = new Date();
 	startDate.setUTCDate(startDate.getUTCDate() - maxDays);
-	return createDateBuckets(startDate, new Date(), span);
-}
+	const buckets = createDateBuckets(startDate, new Date(), span);
 
-function initBucketStats(length: number): Array<{ sumValue: number; sumTotalPt: number; count: number }> {
-	return Array.from({ length }, () => ({
-		sumValue: 0,
-		sumTotalPt: 0,
-		count: 0,
-	}));
-}
+	return buckets.map((bucket) => {
+		const bucketData = data.filter((d) => {
+			return d.date >= bucket.start && d.date < bucket.end;
+		});
 
-function fillBucketStats(
-	data: Array<{ date: Date; value: number; totalPt: number }>,
-	buckets: Array<{ start: Date; end: Date; label: string }>,
-	bucketStats: Array<{ sumValue: number; sumTotalPt: number; count: number }>,
-): void {
-	let bucketIndex = 0;
-	for (const entry of data) {
-		bucketIndex = advanceBucketIndex(entry.date, buckets, bucketIndex);
-		if (bucketIndex < 0 || bucketIndex >= buckets.length) {
-			break;
-		}
-		const bucket = buckets[bucketIndex];
-		const stats = bucketStats[bucketIndex];
-		if (!bucket || !stats) {
-			break;
-		}
-		if (entry.date >= bucket.start) {
-			stats.sumValue += entry.value;
-			stats.sumTotalPt += entry.totalPt;
-			stats.count += 1;
-		}
-	}
-}
-
-function advanceBucketIndex(
-	date: Date,
-	buckets: Array<{ start: Date; end: Date; label: string }>,
-	startIndex: number,
-): number {
-	let index = startIndex;
-	while (index < buckets.length) {
-		const bucket = buckets[index];
-		if (!bucket) {
-			return -1;
-		}
-		if (date < bucket.end) {
-			return index;
-		}
-		index += 1;
-	}
-	return -1;
-}
-
-function buildBucketResults(
-	buckets: Array<{ start: Date; end: Date; label: string }>,
-	bucketStats: Array<{ sumValue: number; sumTotalPt: number; count: number }>,
-): EarnedPtResponseT {
-	const results: EarnedPtResponseT = [];
-	for (const [index, bucket] of buckets.entries()) {
-		const stats = bucketStats[index];
-		if (!stats || stats.count === 0) {
-			results.push({
+		if (bucketData.length === 0) {
+			return {
 				value: 0,
 				label: bucket.label,
 				totalPt: 0,
-			});
-			continue;
+			};
 		}
 
-		results.push({
-			value: Math.round(stats.sumValue / stats.count),
+		const avgValue = bucketData.reduce((sum, d) => sum + d.value, 0) / bucketData.length;
+		const avgTotalPt = bucketData.reduce((sum, d) => sum + d.totalPt, 0) / bucketData.length;
+
+		return {
+			value: Math.round(avgValue),
 			label: bucket.label,
-			totalPt: Math.round(stats.sumTotalPt / stats.count),
-		});
-	}
-	return results;
+			totalPt: Math.round(avgTotalPt),
+		};
+	});
 }
