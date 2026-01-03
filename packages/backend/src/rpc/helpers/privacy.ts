@@ -1,34 +1,70 @@
 import { prisma } from '../../db';
 
+const QUERY_TIMEOUT_MS = 5000;
+
+type UserSettings = {
+	showLeaderboardRank: boolean;
+	showLeaderboardRanking: boolean;
+	showProfileStats: boolean;
+	showProfileSearch: boolean;
+};
+
+const DEFAULT_SETTINGS: UserSettings = {
+	showLeaderboardRank: true,
+	showLeaderboardRanking: true,
+	showProfileStats: true,
+	showProfileSearch: true,
+};
+
+function withQueryTimeout<T>(promise: Promise<T>, fallback: T): Promise<T> {
+	let timeoutId: ReturnType<typeof setTimeout> | undefined;
+	const timeoutPromise = new Promise<T>((resolve) => {
+		timeoutId = setTimeout(() => {
+			console.warn('getUserSettings.timeout');
+			resolve(fallback);
+		}, QUERY_TIMEOUT_MS);
+	});
+
+	return Promise.race([
+		promise.finally(() => {
+			if (timeoutId !== undefined) {
+				clearTimeout(timeoutId);
+			}
+		}),
+		timeoutPromise,
+	]);
+}
+
 /**
  * ユーザーの設定を取得する。
  * @param userId ユーザーID
  * @returns ユーザー設定、存在しない場合はデフォルト値
  */
-export async function getUserSettings(userId: string): Promise<{
-	showLeaderboardRank: boolean;
-	showLeaderboardRanking: boolean;
-	showProfileStats: boolean;
-	showProfileSearch: boolean;
-}> {
-	const settings = await prisma.userSettings.findUnique({
-		where: { id: userId },
-		select: {
-			showLeaderboardRank: true,
-			showLeaderboardRanking: true,
-			showProfileStats: true,
-			showProfileSearch: true,
-		},
-	});
-
-	return (
-		settings ?? {
-			showLeaderboardRank: true,
-			showLeaderboardRanking: true,
-			showProfileStats: true,
-			showProfileSearch: true,
-		}
+export async function getUserSettings(userId: string): Promise<UserSettings> {
+	console.info('getUserSettings.start', { userId });
+	const result = await withQueryTimeout(
+		prisma.userSettings
+			.findUnique({
+				where: { id: userId },
+				select: {
+					showLeaderboardRank: true,
+					showLeaderboardRanking: true,
+					showProfileStats: true,
+					showProfileSearch: true,
+				},
+			})
+			.then((settings) => {
+				console.info('getUserSettings.query.done', { found: !!settings });
+				return settings ?? DEFAULT_SETTINGS;
+			})
+			.catch((error) => {
+				console.error('getUserSettings.query.error', { error: String(error) });
+				return DEFAULT_SETTINGS;
+			}),
+		DEFAULT_SETTINGS,
 	);
+	console.info('getUserSettings.end');
+	return result;
 }
 
 /**
