@@ -444,9 +444,10 @@ export async function radarChart(userId: RadarParamsT): Promise<RadarResponseT> 
  * @returns 累計ptチャートデータ
  */
 export async function totalPtChart(params: TotalPtParamsT): Promise<TotalPtResponseT> {
-	console.info('rpc.user.totalPtChart', params.userId);
+	console.info(`rpc.user.totalPtChart userId=${params.userId} span=${params.span}`);
 	return await withCache('totalPtChart', params, async () => {
 		const canView = await canViewProfileStats(params.userId);
+		console.info(`totalPtChart.canView=${canView}`);
 		if (!canView) {
 			return [];
 		}
@@ -454,13 +455,16 @@ export async function totalPtChart(params: TotalPtParamsT): Promise<TotalPtRespo
 		const maxDays = getMaxDaysForSpan(params.span);
 		const startDate = new Date();
 		startDate.setUTCDate(startDate.getUTCDate() - maxDays);
+		console.info(`totalPtChart.startDate=${startDate.toISOString()} maxDays=${maxDays}`);
 
 		// matchIdで直接フィルタ（リレーション経由フィルタはD1+Prismaで動作しない）
 		const validMatchDates = await prisma.matchDate.findMany({
 			where: { date: { gte: startDate } },
 			select: { id: true },
 		});
+		console.info(`totalPtChart.validMatchDates.length=${validMatchDates.length}`);
 		const validMatchIds = validMatchDates.map((m) => m.id);
+		console.info(`totalPtChart.validMatchIds.first5=${JSON.stringify(validMatchIds.slice(0, 5))}`);
 
 		const histories = await prisma.userRankHistory.findMany({
 			where: {
@@ -477,6 +481,7 @@ export async function totalPtChart(params: TotalPtParamsT): Promise<TotalPtRespo
 				matchDate: { date: 'asc' },
 			},
 		});
+		console.info(`totalPtChart.histories.length=${histories.length}`);
 
 		const user = await prisma.user.findUnique({
 			where: { id: params.userId },
