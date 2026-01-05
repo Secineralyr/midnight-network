@@ -459,7 +459,7 @@ export async function totalPtChart(params: TotalPtParamsT): Promise<TotalPtRespo
 
 		// matchIdで直接フィルタ（リレーション経由フィルタはD1+Prismaで動作しない）
 		const validMatchDates = await prisma.matchDate.findMany({
-			where: { date: { gte: startDate.getTime().toString() } },
+			where: { date: { gte: startDate } },
 			select: { id: true },
 		});
 		console.info(`totalPtChart.validMatchDates.length=${validMatchDates.length}`);
@@ -480,7 +480,6 @@ export async function totalPtChart(params: TotalPtParamsT): Promise<TotalPtRespo
 			orderBy: {
 				matchDate: { date: 'asc' },
 			},
-
 		});
 		console.info(`totalPtChart.histories.length=${histories.length}`);
 
