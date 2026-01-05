@@ -21,7 +21,7 @@ model Record {
   matchDateId Int
   matchDate   MatchDate @relation(fields: [matchDateId], references: [id])
   // meta
-  createdAt   DateTime  @default(dbgenerated("(floor(unixepoch('subsec') * 1000))"))
+  createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
 
@@ -32,7 +32,7 @@ model EventMatch {
   endDate    DateTime
   matchDates MatchDate[]
   // meta
-  createdAt  DateTime    @default(dbgenerated("(floor(unixepoch('subsec') * 1000))"))
+  createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
 }
 
@@ -55,7 +55,7 @@ model UserRankStatus {
   streakFlyingAt        Int      @default(0)
   protectCoolTime       Int      @default(0)
   // meta
-  createdAt             DateTime @default(dbgenerated("(floor(unixepoch('subsec') * 1000))"))
+  createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 }
 
@@ -68,7 +68,7 @@ model UserRankHistory {
   matchId   Int
   matchDate MatchDate @relation(fields: [matchId], references: [id])
   // meta
-  createdAt DateTime  @default(dbgenerated("(floor(unixepoch('subsec') * 1000))"))
+  createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
 
@@ -81,7 +81,7 @@ model User {
   records           Record[]
   userSettings      UserSettings?
   // meta
-  createdAt         DateTime          @default(dbgenerated("(floor(unixepoch('subsec') * 1000))"))
+  createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
 }
 
@@ -93,6 +93,6 @@ model UserSettings {
   showProfileStats       Boolean  @default(true)
   showProfileSearch      Boolean  @default(true)
   // meta
-  createdAt              DateTime @default(dbgenerated("(floor(unixepoch('subsec') * 1000))"))
+  createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 }
