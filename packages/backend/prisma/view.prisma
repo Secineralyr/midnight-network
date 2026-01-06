@@ -1,0 +1,89 @@
+view UserParticipantsCount {
+    userId            String @unique
+    user              User   @relation(fields: [userId], references: [id])
+    participantsCount Int
+}
+
+view WinCount {
+    userId   String @unique
+    user     User   @relation(fields: [userId], references: [id])
+    winCount Int
+}
+
+view WinRate {
+    userId String @unique
+    user   User   @relation(fields: [userId], references: [id])
+    wr     Float
+}
+
+view ParticipantsPerMatch {
+    matchDateId       Int       @unique
+    matchDate         MatchDate @relation(fields: [matchDateId], references: [id])
+    participantsCount Int
+}
+
+view PlacePerParticipantsPerMatchRate {
+    recordId  Int    @unique
+    record    Record @relation(fields: [recordId], references: [id])
+    placeRate Float
+}
+
+view PlacePerParticipantsPerMatchRateAvg {
+    userId       String @unique
+    user         User   @relation(fields: [userId], references: [id])
+    placeRateAvg Float
+}
+
+view DeltaTimeMs {
+    recordId Int    @unique
+    record   Record @relation(fields: [recordId], references: [id])
+    dt       Int
+}
+
+view DeltaTimeMsAvg {
+    userId String @unique
+    user   User   @relation(fields: [userId], references: [id])
+    dtAvg  Float
+}
+
+view EarlyLateTime {
+    userId    String @unique
+    user      User   @relation(fields: [userId], references: [id])
+    lateTime  Int
+    earlyTime Int
+}
+
+view UserFlyingCount {
+    userId      String @unique
+    user        User   @relation(fields: [userId], references: [id])
+    flyingCount Int
+}
+
+view UserWithinCount {
+    userId      String @unique
+    user        User   @relation(fields: [userId], references: [id])
+    withinCount Int
+}
+
+view MatchUserMedian {
+    med Int
+}
+
+view UserAveragePlace {
+    userId       String @unique
+    user         User   @relation(fields: [userId], references: [id])
+    averagePlace Float
+}
+
+view UserMaxPlace {
+    userId   String @unique
+    user     User   @relation(fields: [userId], references: [id])
+    maxPlace Int
+}
+
+view RadarStatsAvg {
+    totalPt                 Float
+    totalParticipationCount Float
+    averageTime             Float
+    averagePlace            Float
+}

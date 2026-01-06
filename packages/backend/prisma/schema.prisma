@@ -1,10 +1,8 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
-  runtime  = "cloudflare"
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
+  runtime         = "cloudflare"
+  previewFeatures = ["views"]
 }
 
 datasource db {
@@ -12,17 +10,20 @@ datasource db {
 }
 
 model Record {
-  id          Int       @id @default(autoincrement())
-  noteId      String    @unique
-  postedAt    DateTime
-  userId      String
-  user        User      @relation(fields: [userId], references: [id])
-  place       Int
-  matchDateId Int
-  matchDate   MatchDate @relation(fields: [matchDateId], references: [id])
+  id                                Int                               @id @default(autoincrement())
+  noteId                            String                            @unique
+  postedAt                          DateTime
+  userId                            String
+  user                              User                              @relation(fields: [userId], references: [id])
+  place                             Int
+  matchDateId                       Int
+  matchDate                         MatchDate                         @relation(fields: [matchDateId], references: [id])
   // meta
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt                         DateTime                          @default(now())
+  updatedAt                         DateTime                          @updatedAt
+  // view
+  placePerParticipantsPerMatchRates PlacePerParticipantsPerMatchRate?
+  deltaTimeMs                       DeltaTimeMs?
 }
 
 model EventMatch {
@@ -37,12 +38,14 @@ model EventMatch {
 }
 
 model MatchDate {
-  id                Int               @id @default(autoincrement())
-  date              DateTime          @unique
-  eventId           Int?
-  event             EventMatch?       @relation(fields: [eventId], references: [id])
-  records           Record[]
-  userRankHistories UserRankHistory[]
+  id                     Int                   @id @default(autoincrement())
+  date                   DateTime              @unique
+  eventId                Int?
+  event                  EventMatch?           @relation(fields: [eventId], references: [id])
+  records                Record[]
+  userRankHistories      UserRankHistory[]
+  // view
+  participantsPerMatches ParticipantsPerMatch?
 }
 
 model UserRankStatus {
@@ -73,16 +76,27 @@ model UserRankHistory {
 }
 
 model User {
-  id                String            @id
-  userName          String
-  banned            Boolean           @default(false)
-  userRankStatuses  UserRankStatus?
-  userRankHistories UserRankHistory[]
-  records           Record[]
-  userSettings      UserSettings?
+  id                                   String                               @id
+  userName                             String
+  banned                               Boolean                              @default(false)
+  userRankStatuses                     UserRankStatus?
+  userRankHistories                    UserRankHistory[]
+  records                              Record[]
+  userSettings                         UserSettings?
   // meta
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  createdAt                            DateTime                             @default(now())
+  updatedAt                            DateTime                             @updatedAt
+  // view
+  userParticipantsCounts               UserParticipantsCount?
+  winCounts                            WinCount?
+  winRates                             WinRate?
+  placePerParticipantsPerMatchRateAvgs PlacePerParticipantsPerMatchRateAvg?
+  deltaTimeMsAvgs                      DeltaTimeMsAvg?
+  earlyLateTimes                       EarlyLateTime?
+  userFlyingCounts                     UserFlyingCount?
+  userWithinCounts                     UserWithinCount?
+  userAveragePlaces                    UserAveragePlace?
+  userMaxPlaces                        UserMaxPlace?
 }
 
 model UserSettings {
