@@ -24,7 +24,9 @@ import {
 	calculateRemainingParticipationCount,
 	rankNumberToRankTypeValue,
 } from '../helpers/rank';
-import { calculateGlobalAverages, calculateUserStatistics } from '../helpers/statistics';
+import { calculateUserStatistics } from '../helpers/statistics';
+import type { RadarStatsAvg } from '../../generated/prisma/client';
+import { normalCDF, zScore } from '../../util';
 
 /** Daily期間の最大日数 */
 const DAILY_MAX_DAYS = 30;
@@ -358,6 +360,28 @@ export async function postTimeChart(params: PostTimeParamsT): Promise<PostTimeRe
 	});
 }
 
+async function getRadarChartAverage() {
+	return await withCache('radarChartAverage', '', async () => {
+		const res = await prisma.radarStatsAvg.findFirst();
+		if (!res) {
+			return {
+				totalPtMean: 0,
+				totalParticipationCountMean: 0,
+				averageTimeMean: 0,
+				averagePlaceMean: 0,
+				wrMean: 0,
+				totalPtStd: 0,
+				totalParticipationCountStd: 0,
+				averageTimeStd: 0,
+				averagePlaceStd: 0,
+				wrStd: 0,
+			} satisfies RadarStatsAvg;
+		}
+
+		return res;
+	});
+}
+
 /**
  * レーダーチャートデータを取得する。
  * 全体平均を50%として比較値を返す。
@@ -379,25 +403,31 @@ export async function radarChart(userId: RadarParamsT): Promise<RadarResponseT> 
 			};
 		}
 
-		const user = await prisma.user.findUnique({
+		const userStats = await prisma.user.findUnique({
 			where: { id: userId },
 			select: {
 				userRankStatuses: {
 					select: { pt: true },
 				},
-				records: {
-					select: {
-						place: true,
-						postedAt: true,
-						matchDate: {
-							select: { date: true },
-						},
-					},
+				userAveragePlace: {
+					select: { averagePlace: true },
+				},
+				deltaTimeMsAvg: {
+					select: { dtAvg: true },
+				},
+				userFlyingCount: {
+					select: { flyingCount: true },
+				},
+				userParticipantsCount: {
+					select: { participantsCount: true },
+				},
+				winRate: {
+					select: { wr: true },
 				},
 			},
 		});
 
-		if (!user || user.records.length === 0) {
+		if (!userStats) {
 			console.info('rpc.user.radarChart.noRecords', userId);
 			return {
 				totalPt: 0,
@@ -408,30 +438,31 @@ export async function radarChart(userId: RadarParamsT): Promise<RadarResponseT> 
 			};
 		}
 
-		const userStats = await calculateUserStatistics(userId);
-		const globalAvg = await calculateGlobalAverages();
-		const totalPt = user.userRankStatuses?.pt ?? 0;
+		const radarStatsAvg = await getRadarChartAverage();
+
 		console.info('rpc.user.radarChart.stats', { userId, hasStats: Boolean(userStats) });
 
-		const calculateRatio = (userValue: number, globalValue: number, inverse: boolean): number => {
-			if (globalValue === 0) {
-				return 50;
-			}
-			if (inverse) {
-				return (globalValue / userValue) * 50;
-			}
-			return (userValue / globalValue) * 50;
-		};
-
 		return {
-			totalPt: calculateRatio(totalPt, globalAvg.totalPt, false),
-			wr: calculateRatio(userStats?.wr ?? 0, globalAvg.wr, false),
-			averagePlace: calculateRatio(userStats?.averagePlace ?? 0, globalAvg.averagePlace, true),
-			averageTime: calculateRatio(userStats?.averageTime ?? 0, globalAvg.averageTime, true),
-			totalParticipationCount: calculateRatio(
-				userStats?.totalParticipationCount ?? 0,
-				globalAvg.totalParticipationCount,
-				false,
+			totalPt: normalCDF(
+				zScore(userStats.userRankStatuses?.pt ?? 0, radarStatsAvg.totalPtMean, radarStatsAvg.totalPtStd),
+			),
+			wr: normalCDF(zScore(userStats.winRate?.wr ?? 0, radarStatsAvg.wrMean, radarStatsAvg.wrStd)),
+			averagePlace: 1 - normalCDF(
+				zScore(
+					userStats.userAveragePlace?.averagePlace ?? 0,
+					radarStatsAvg.averagePlaceMean,
+					radarStatsAvg.averagePlaceStd,
+				),
+			),
+			averageTime: 1 - normalCDF(
+				zScore(userStats.deltaTimeMsAvg?.dtAvg ?? 0, radarStatsAvg.averageTimeMean, radarStatsAvg.averageTimeStd),
+			),
+			totalParticipationCount: normalCDF(
+				zScore(
+					userStats.userParticipantsCount?.participantsCount ?? 0,
+					radarStatsAvg.totalParticipationCountMean,
+					radarStatsAvg.totalParticipationCountStd,
+				),
 			),
 		};
 	});
