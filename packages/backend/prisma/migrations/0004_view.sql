@@ -103,9 +103,14 @@ create view RadarStatsAvg as
     WinRate as uwr
     on urs.id = uwr.userId
 )
-  select avg(totalPt) as totalPt,
-    avg(totalParticipationCount) as totalParticipationCount,
-    avg(averageTime) as averageTime,
-    avg(averagePlace) as averagePlace,
-    avg(wr) as wr
+  select avg(totalPt) as totalPtMean,
+    avg(totalParticipationCount) as totalParticipationCountMean,
+    avg(averageTime) as averageTimeMean,
+    avg(averagePlace) as averagePlaceMean,
+    avg(wr) as wrMean,
+	sqrt(avg(totalPt * totalPt) - avg(totalPt) * avg(totalPt)) as totalPtStd,
+	sqrt(avg(totalParticipationCount * totalParticipationCount) - avg(totalParticipationCount) * avg(totalParticipationCount)) as totalParticipationCountStd,
+    sqrt(avg(averageTime * averageTime) - avg(averageTime) * avg(averageTime)) as averageTimeStd,
+    sqrt(avg(averagePlace * averagePlace) - avg(averagePlace) * avg(averagePlace)) as averagePlaceStd,
+    sqrt(avg(wr * wr) - avg(wr) * avg(wr)) as wrStd
     from RadarStats;

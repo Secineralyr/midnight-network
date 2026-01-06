@@ -82,8 +82,14 @@ view UserMaxPlace {
 }
 
 view RadarStatsAvg {
-    totalPt                 Float
-    totalParticipationCount Float
-    averageTime             Float
-    averagePlace            Float
+    totalPtMean                 Float
+    totalParticipationCountMean Float
+    averageTimeMean             Float
+    averagePlaceMean            Float
+    wrMean                      Float
+    totalPtStd                  Float
+    totalParticipationCountStd  Float
+    averageTimeStd              Float
+    averagePlaceStd             Float
+    wrStd                       Float
 }
