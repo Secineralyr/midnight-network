@@ -15,18 +15,13 @@ import type {
 } from '@midnight-network/shared/rpc/user/models';
 import { GraphSpan, HeatmapType } from '@midnight-network/shared/rpc/user/models';
 import { prisma } from '../../db';
+import type { RadarStatsAvg } from '../../generated/prisma/client';
+import { normalCDF, zScore } from '../../util';
 import { withCache } from '../helpers/cache';
 import { calculateTimeDifferenceSeconds, isFlying } from '../helpers/match';
 import { canViewProfileStats } from '../helpers/privacy';
-import {
-	calculatePointsToNextRank,
-	calculateRankFromPoints,
-	calculateRemainingParticipationCount,
-	rankNumberToRankTypeValue,
-} from '../helpers/rank';
-import { calculateUserStatistics } from '../helpers/statistics';
-import type { RadarStatsAvg } from '../../generated/prisma/client';
-import { normalCDF, zScore } from '../../util';
+import { calculateRankFromPoints, rankNumberToRankTypeValue } from '../helpers/rank';
+import { getUserWithStatistics, makeCurrentRank, makeRankStatus, makeStatistics } from '../helpers/stats';
 
 /** Daily期間の最大日数 */
 const DAILY_MAX_DAYS = 30;
@@ -46,34 +41,7 @@ const HEATMAP_MAX_DAYS = 30;
 export async function profile(userId: UserParamsT): Promise<UserResponseT> {
 	console.info('rpc.user.profile', userId);
 	return await withCache('profile', userId, async () => {
-		const user = await prisma.user.findUnique({
-			where: { id: userId, banned: false },
-			select: {
-				id: true,
-				userRankStatuses: {
-					select: {
-						pt: true,
-						streakParticipationAt: true,
-						streakAbsenceAt: true,
-						streakWithinTopAt: true,
-						streakFlyingAt: true,
-						protectCoolTime: true,
-					},
-				},
-				userSettings: {
-					select: { showProfileStats: true },
-				},
-				records: {
-					select: {
-						place: true,
-						postedAt: true,
-						matchDate: {
-							select: { date: true },
-						},
-					},
-				},
-			},
-		});
+		const user = await getUserWithStatistics(userId);
 
 		if (!user) {
 			console.info('rpc.user.profile.notFound', userId);
@@ -85,47 +53,9 @@ export async function profile(userId: UserParamsT): Promise<UserResponseT> {
 			return undefined;
 		}
 
-		const totalPt = user.userRankStatuses?.pt ?? 0;
-		const participationCount = user.records.length;
-		const { rankNumber, isNoRank } = calculateRankFromPoints(totalPt, participationCount);
-		const rankValue = rankNumberToRankTypeValue(rankNumber, isNoRank);
-
-		const stats = await calculateUserStatistics(userId);
-		console.info('rpc.user.profile.stats', { userId, hasStats: Boolean(stats) });
-
-		const currentRank = isNoRank
-			? {
-					rank: RankType.NoRank,
-					remainingParticipationCount: calculateRemainingParticipationCount(participationCount),
-				}
-			: {
-					rank: rankValue as Exclude<typeof rankValue, typeof RankType.NoRank>,
-					nextRankPt: calculatePointsToNextRank(totalPt, rankNumber),
-				};
-
-		const rankStatus = {
-			totalPt,
-			streakParticipationAt: user.userRankStatuses?.streakParticipationAt ?? 0,
-			streakAbsenceAt: user.userRankStatuses?.streakAbsenceAt ?? 0,
-			streakWithinTopAt: user.userRankStatuses?.streakWithinTopAt ?? 0,
-			streakFlyingAt: user.userRankStatuses?.streakFlyingAt ?? 0,
-			protectCoolTime: user.userRankStatuses?.protectCoolTime ?? 0,
-		};
-
-		const statistics = stats
-			? {
-					totalParticipationCount: stats.totalParticipationCount,
-					averagePlace: stats.averagePlace ?? 0,
-					maxPlace: stats.maxPlace ?? 0,
-					winCount: stats.winCount,
-					withinCount: stats.withinCount,
-					averageTime: stats.averageTime ?? 0,
-					wr: stats.wr,
-					lateTime: stats.lateTime ?? 0,
-					earlyTime: stats.earlyTime ?? 0,
-					flyingCount: stats.flyingCount,
-				}
-			: undefined;
+		const rankStatus = makeRankStatus(user.userRankStatuses);
+		const statistics = makeStatistics(user);
+		const currentRank = makeCurrentRank(rankStatus.totalPt, statistics?.totalParticipationCount ?? 0);
 
 		return {
 			currentRank,
@@ -447,16 +377,20 @@ export async function radarChart(userId: RadarParamsT): Promise<RadarResponseT> 
 				zScore(userStats.userRankStatuses?.pt ?? 0, radarStatsAvg.totalPtMean, radarStatsAvg.totalPtStd),
 			),
 			wr: normalCDF(zScore(userStats.winRate?.wr ?? 0, radarStatsAvg.wrMean, radarStatsAvg.wrStd)),
-			averagePlace: 1 - normalCDF(
-				zScore(
-					userStats.userAveragePlace?.averagePlace ?? 0,
-					radarStatsAvg.averagePlaceMean,
-					radarStatsAvg.averagePlaceStd,
+			averagePlace:
+				1 -
+				normalCDF(
+					zScore(
+						userStats.userAveragePlace?.averagePlace ?? 0,
+						radarStatsAvg.averagePlaceMean,
+						radarStatsAvg.averagePlaceStd,
+					),
 				),
-			),
-			averageTime: 1 - normalCDF(
-				zScore(userStats.deltaTimeMsAvg?.dtAvg ?? 0, radarStatsAvg.averageTimeMean, radarStatsAvg.averageTimeStd),
-			),
+			averageTime:
+				1 -
+				normalCDF(
+					zScore(userStats.deltaTimeMsAvg?.dtAvg ?? 0, radarStatsAvg.averageTimeMean, radarStatsAvg.averageTimeStd),
+				),
 			totalParticipationCount: normalCDF(
 				zScore(
 					userStats.userParticipantsCount?.participantsCount ?? 0,
