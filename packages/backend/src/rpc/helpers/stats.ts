@@ -47,7 +47,7 @@ export function makeStatistics(
 	stats: NonNullable<GetReturnPromiseT<typeof getUserWithStatistics>>,
 ): NonNullable<UserResponseT>['statistics'] {
 	const isNonStats =
-		stats.userParticipantsCount?.participantsCount !== undefined && stats.userParticipantsCount.participantsCount > 0;
+		stats.userParticipantsCount?.participantsCount === undefined || stats.userParticipantsCount.participantsCount === 0;
 	if (isNonStats) {
 		return undefined;
 	}
