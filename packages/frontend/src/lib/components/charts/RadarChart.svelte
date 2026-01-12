@@ -15,36 +15,69 @@ interface Props {
 	data: RadarResponseT | null;
 	/** ローディング状態 */
 	isLoading?: boolean;
-	/** 高さ */
-	height?: string;
 }
 
-const { title, data, isLoading = false, height = '300px' }: Props = $props();
+const { title, data, isLoading = false }: Props = $props();
+const indicatorLabels = ['累計pt', 'WR', '順位', 'タイム', '参加回数'];
+
+function formatTopPercent(rawValue: number): string {
+	const clamped = Math.max(0, Math.min(100, rawValue));
+	const topPercent = Math.round(clamped) - 50;
+	return `全体平均から${topPercent}%`;
+}
+
+function formatItemTooltip(rawValues: number[], index: number): string {
+	const rawValue = (rawValues[index] ?? 0) * 100;
+	const label = indicatorLabels[index] ?? '';
+	return `${label}: ${rawValue.toFixed(0)}%<br/>(${formatTopPercent(rawValue)})`;
+}
 
 /** 正規化されたデータ（0-100スケール） */
-const normalizedData = $derived(() => {
+const rawValues = $derived(() => {
 	if (!data) {
 		return [0, 0, 0, 0, 0];
 	}
 	return [
-		Math.min(100, (data.totalPt / 10000) * 100),
-		Math.min(100, data.wr * 100),
-		Math.min(100, (1 / Math.max(1, data.averagePlace)) * 100),
-		Math.min(100, Math.max(0, 100 - data.averageTime * 10)),
-		Math.min(100, (data.totalParticipationCount / 100) * 100),
+		data.totalPt,
+		data.wr,
+		data.averagePlace,
+		data.averageTime,
+		data.totalParticipationCount,
 	];
 });
 
-/** チャートオプション */
-const chartOptions: EChartsOption = $derived({
-	radar: {
-		indicator: [
-			{ name: '累計pt', max: 100 },
-			{ name: 'WR', max: 100 },
-			{ name: '順位', max: 100 },
-			{ name: 'タイム', max: 100 },
-			{ name: '参加回数', max: 100 },
+const normalizedData = $derived(() =>
+	rawValues().map((value) => Math.min(100, value * 100)),
+);
+
+const axisTooltipSeries = $derived(() =>
+	indicatorLabels.map((label, index): EChartsOption => ({
+		type: 'radar',
+		name: `${label}-tooltip`,
+		data: [
+			{
+				value: normalizedData().map((value, valueIndex) =>
+					valueIndex === index ? value : 0,
+				),
+			},
 		],
+		symbol: 'circle',
+		symbolSize: 16,
+		showSymbol: true,
+		lineStyle: { opacity: 0 },
+		areaStyle: { opacity: 0 },
+		itemStyle: { opacity: 0 },
+		tooltip: {
+			trigger: 'item',
+			formatter: () => formatItemTooltip(rawValues(), index),
+		},
+	})),
+);
+
+/** チャートオプション */
+const chartOptions = $derived({
+	radar: {
+		indicator: indicatorLabels.map((name) => ({ name, max: 100 })),
 		shape: 'polygon',
 		splitNumber: 4,
 		axisName: {
@@ -66,10 +99,22 @@ const chartOptions: EChartsOption = $derived({
 				color: '#3d4157',
 			},
 		},
+		axisPointer: {
+			show: true,
+		},
+	},
+	tooltip: {
+		trigger: 'item',
+		confine: true,
+		appendToBody: true,
 	},
 	series: [
 		{
 			type: 'radar',
+			symbol: 'circle',
+			symbolSize: 6,
+			showSymbol: true,
+			tooltip: { show: false },
 			data: [
 				{
 					value: normalizedData(),
@@ -87,25 +132,38 @@ const chartOptions: EChartsOption = $derived({
 				},
 			],
 		},
+		...axisTooltipSeries(),
 	],
 });
 </script>
 
-<div class="radar-chart card">
-	<h4 class="radar-chart__title">{title}</h4>
-	<BaseChart options={chartOptions} {height} {isLoading} />
+
+<div class="chart-card">
+	<h4 class="chart-title">{title}</h4>
+	<div class="chart-body">
+		<BaseChart options={chartOptions} height="100%" {isLoading} />
+	</div>
 </div>
 
 <style>
-	.radar-chart {
-		padding: var(--spacing-lg);
+	.chart-card {
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+		padding: 20px;
+		background: #201E3A;
+		border-radius: 5px;
+		color: #ffffff;
 	}
 
-	.radar-chart__title {
-		font-family: var(--font-japanese);
-		font-size: var(--font-size-lg);
-		font-weight: var(--font-weight-semibold);
-		color: var(--color-text-primary);
-		margin-bottom: var(--spacing-md);
+	.chart-title {
+		font-size: 1rem;
+		font-weight: 600;
+		margin: 0;
+	}
+
+	.chart-body {
+		width: 100%;
+		aspect-ratio: 1 / 1;
 	}
 </style>

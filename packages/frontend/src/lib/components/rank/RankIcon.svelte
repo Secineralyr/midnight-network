@@ -1,4 +1,5 @@
 <script lang="ts">
+import { RankType } from '@midnight-network/shared/rank';
 import { getRankGrade, type RankTypeValue } from '$lib/utils/rank';
 
 /**
@@ -6,38 +7,23 @@ import { getRankGrade, type RankTypeValue } from '$lib/utils/rank';
  * @description ランクに応じた砂時計アイコンを表示
  */
 
-/** アイコンサイズ */
-type IconSize = 'sm' | 'md' | 'lg' | 'xl';
-
 interface Props {
-	/** ランク値 */
 	rank: RankTypeValue;
-	/** アイコンサイズ */
-	size?: IconSize;
+	class?: string;
+	style?: string;
 }
 
-const { rank, size = 'md' }: Props = $props();
+const { rank, class: className = '', style = '' }: Props = $props();
 
 const grade = $derived(getRankGrade(rank));
-
-const sizeMap: Record<IconSize, number> = {
-	sm: 32,
-	md: 48,
-	lg: 80,
-	xl: 120,
-};
-
-const pixelSize = $derived(sizeMap[size]);
 </script>
 
-<div class="rank-icon rank-icon--{size} rank-icon--{grade}">
-	<img
-		src="/images/ranks/{grade}.png"
-		alt="Rank {grade}"
-		width={pixelSize}
-		height={pixelSize}
-		class="rank-icon__image"
-	/>
+<div class={`rank-icon rank-icon--${grade} ${className}`.trim()} {style}>
+	{#if rank !== RankType.NoRank}
+		<img src="/rank/time/{rank}.png" alt="Rank {grade}" class="rank-icon-image" />
+	{:else}
+		<img src="/rank/time/nr.png" alt="No Rank" class="rank-icon-image" />
+	{/if}
 </div>
 
 <style>
@@ -45,52 +31,36 @@ const pixelSize = $derived(sizeMap[size]);
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
+		height: 100%;
 	}
 
-	.rank-icon__image {
+	.rank-icon-image {
+		height: 100%;
+		width: auto;
+		max-width: 100%;
+		max-height: 100%;
+		display: block;
 		object-fit: contain;
 	}
 
-	/* サイズ別スタイル */
-	.rank-icon--sm {
-		width: 32px;
-		height: 32px;
+	.rank-icon--tachyon:hover .rank-icon-image {
+		filter: drop-shadow(0 0 10px #00CDE860)
+			drop-shadow(0 0 20px #B160EB60);
 	}
 
-	.rank-icon--md {
-		width: 48px;
-		height: 48px;
+	.rank-icon--luminal:hover .rank-icon-image {
+		filter: drop-shadow(0 0 10px #fff6);
 	}
 
-	.rank-icon--lg {
-		width: 80px;
-		height: 80px;
+	.rank-icon--gold:hover .rank-icon-image {
+		filter: drop-shadow(0 0 10px #FFD50060);
 	}
 
-	.rank-icon--xl {
-		width: 120px;
-		height: 120px;
+	.rank-icon--silver:hover .rank-icon-image {
+		filter: drop-shadow(0 0 10px #CCCCCC60);
 	}
 
-	/* グレード別エフェクト */
-	.rank-icon--tachyon .rank-icon__image {
-		filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.6))
-			drop-shadow(0 0 20px rgba(255, 0, 255, 0.4));
-	}
-
-	.rank-icon--luminal .rank-icon__image {
-		filter: drop-shadow(0 0 8px rgba(255, 107, 157, 0.5));
-	}
-
-	.rank-icon--gold .rank-icon__image {
-		filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.4));
-	}
-
-	.rank-icon--silver .rank-icon__image {
-		filter: drop-shadow(0 0 4px rgba(192, 192, 192, 0.3));
-	}
-
-	.rank-icon--bronze .rank-icon__image {
-		filter: drop-shadow(0 0 4px rgba(205, 127, 50, 0.3));
+	.rank-icon--bronze:hover .rank-icon-image {
+		filter: drop-shadow(0 0 10px #E6964560);
 	}
 </style>

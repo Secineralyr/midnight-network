@@ -43,23 +43,6 @@ $effect(() => {
 	}
 });
 
-/**
- * ホバー開始時のアニメーション
- */
-function handleMouseEnter(): void {
-	if (cardElement && !isLoading) {
-		animate(cardElement, { scale: 1.02 }, { duration: 0.15 });
-	}
-}
-
-/**
- * ホバー終了時のアニメーション
- */
-function handleMouseLeave(): void {
-	if (cardElement && !isLoading) {
-		animate(cardElement, { scale: 1 }, { duration: 0.15 });
-	}
-}
 
 /**
  * クリック時のアニメーション
@@ -78,129 +61,91 @@ const valueText = $derived(type === 'time' && time !== undefined ? formatTimeDif
 <button
 	bind:this={cardElement}
 	type="button"
-	class="top3-card"
-	class:top3-card--loading={isLoading}
+	class="top-card"
+	class:loading={isLoading}
 	onclick={handleClick}
-	onmouseenter={handleMouseEnter}
-	onmouseleave={handleMouseLeave}
 	disabled={isLoading}
 >
 	{#if isLoading}
-		<div class="top3-card__skeleton">
-			<div class="skeleton top3-card__skeleton-place"></div>
-			<div class="skeleton top3-card__skeleton-avatar"></div>
-			<div class="skeleton top3-card__skeleton-info"></div>
-			<div class="skeleton top3-card__skeleton-rank"></div>
+		<div class="top-card-skeleton">
+			<div class="skeleton-place"></div>
+			<div class="skeleton-avatar"></div>
+			<div class="skeleton-info"></div>
+			<div class="skeleton-rank"></div>
 		</div>
 	{:else}
-		<span class="top3-card__place font-alphanumeric">{formatPlace(place)}</span>
+		<span class="place">{formatPlace(place)}</span>
 		<img
-			src={avatarUrl || '/images/default-avatar.png'}
+			src={avatarUrl || 'https://placehold.co/400'}
 			alt={username}
-			class="top3-card__avatar"
+			class="avatar"
 		/>
-		<div class="top3-card__info">
-			<span class="top3-card__username font-alphanumeric">@{username}</span>
-			<span class="top3-card__value font-alphanumeric">{valueText}</span>
+		<div class="info">
+			<span class="name">@{username}</span>
+			<span class="value">{valueText}</span>
 		</div>
-		<div class="top3-card__rank">
-			<RankIcon {rank} size="md" />
+		<div class="rank">
+			<RankIcon {rank} />
 		</div>
 	{/if}
 </button>
 
 <style>
-	.top3-card {
-		display: flex;
+	.top-card {
+		display: grid;
+		grid-template-columns: auto auto 1fr auto;
 		align-items: center;
-		gap: var(--spacing-md);
-		padding: var(--spacing-md) var(--spacing-lg);
-		background-color: var(--color-bg-card);
-		border: 1px solid var(--color-border-secondary);
-		border-radius: var(--radius-xl);
-		cursor: pointer;
-		transition:
-			background-color var(--transition-fast),
-			border-color var(--transition-fast);
-		width: 100%;
+		background: #2F2D53;
+		border-radius: 5px;
 		text-align: left;
+		transition: background 0.1s ease;
+		padding: 10px;
+		gap: 10px;
 	}
 
-	.top3-card:hover:not(.top3-card--loading) {
-		background-color: var(--color-bg-card-hover);
-		border-color: var(--color-border-focus);
+	.top-card:hover:not(.loading) {
+		background: #4E4B71;
 	}
 
-	.top3-card--loading {
+	.top-card:disabled {
 		cursor: default;
+		opacity: 0.7;
 	}
 
-	.top3-card__place {
-		font-size: var(--font-size-xl);
-		font-weight: var(--font-weight-bold);
-		color: var(--color-text-secondary);
-		min-width: 40px;
+	.place {
+		font-weight: 700;
+		color: #fff;
+		text-align: center;
 	}
 
-	.top3-card__avatar {
-		width: 48px;
-		height: 48px;
-		border-radius: var(--radius-full);
+	.avatar {
+		width: 55px;
+		height: 55px;
+		border-radius: 9999px;
 		object-fit: cover;
-		border: 2px solid var(--color-border-secondary);
 	}
 
-	.top3-card__info {
-		flex: 1;
+	.info {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-xs);
+		min-width: 0;
+		gap: 5px;
 	}
 
-	.top3-card__username {
-		font-size: var(--font-size-base);
-		font-weight: var(--font-weight-semibold);
-		color: var(--color-text-primary);
+	.name {
+		font-weight: 600;
+		color: #fff;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
-	.top3-card__value {
-		font-size: var(--font-size-sm);
-		color: var(--color-text-secondary);
+	.value {
+		color: #fff;
+		font-size: 0.85em;
 	}
 
-	.top3-card__rank {
-		flex-shrink: 0;
-	}
-
-	/* スケルトン */
-	.top3-card__skeleton {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-md);
-		width: 100%;
-	}
-
-	.top3-card__skeleton-place {
-		width: 40px;
-		height: 24px;
-		border-radius: var(--radius-sm);
-	}
-
-	.top3-card__skeleton-avatar {
-		width: 48px;
-		height: 48px;
-		border-radius: var(--radius-full);
-	}
-
-	.top3-card__skeleton-info {
-		flex: 1;
-		height: 40px;
-		border-radius: var(--radius-md);
-	}
-
-	.top3-card__skeleton-rank {
-		width: 48px;
-		height: 48px;
-		border-radius: var(--radius-md);
+	.rank {
+		height: 55px;
 	}
 </style>

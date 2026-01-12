@@ -17,6 +17,7 @@ import { orpc } from '$lib/orpc';
 const todayTopQuery = createQuery(() => ({
 	queryKey: ['todayTop'],
 	queryFn: () => orpc.todayTop(),
+
 }));
 
 /** ランクpt上位データ */
@@ -32,16 +33,18 @@ const lastResultQuery = createQuery(() => ({
 	enabled: false,
 }));
 
-/** 次の集計時刻（00:00 JST） */
-const nextAggregationTime = $derived(() => {
+function getTargetTime() {
 	const now = new Date();
-	const jstOffset = 9 * 60 * 60 * 1000;
-	const nowJst = new Date(now.getTime() + jstOffset);
-	const tomorrow = new Date(nowJst);
-	tomorrow.setDate(tomorrow.getDate() + 1);
-	tomorrow.setHours(0, 0, 0, 0);
-	return tomorrow.getTime() - jstOffset;
-});
+	const target = new Date(now.getTime());
+	target.setUTCHours(Number(import.meta.env.VITE_TARGET_HOUR), Number(import.meta.env.VITE_TARGET_MINUTES), 0, 0);
+	if (target.getTime() < now.getTime()) {
+		target.setUTCDate(target.getUTCDate() + 1);
+	}
+	return target.getTime();
+}
+
+/** 次の集計時刻（00:00 JST） */
+const nextAggregationTime = $derived(getTargetTime());
 
 /**
  * ユーザー選択時のハンドラ
@@ -76,35 +79,33 @@ function handleUserCardClick(username: string): void {
 	</section>
 
 	<section class="countdown">
-		<Countdown targetTime={nextAggregationTime()} />
+		<Countdown targetTime={nextAggregationTime} />
 	</section>
 
 	{#if lastResultQuery.data}
-		<section class="result-section container">
+		<section class="result-section">
 			<LastResult result={lastResultQuery.data} isLoading={lastResultQuery.isLoading} />
 		</section>
 	{/if}
 
-	<section class="leaderboards-section container">
-		<div class="leaderboards">
-			<div class="leaderboards__item card">
-				<Top3Leaderboard
-					title="今日の試合上位"
-					type="today"
-					todayData={todayTopQuery.data}
-					isLoading={todayTopQuery.isLoading}
-					onUserSelect={handleUserCardClick}
-				/>
-			</div>
-			<div class="leaderboards__item card">
-				<Top3Leaderboard
-					title="ランクpt上位"
-					type="rankPt"
-					rankPtData={rankTopQuery.data}
-					isLoading={rankTopQuery.isLoading}
-					onUserSelect={handleUserCardClick}
-				/>
-			</div>
+	<section class="leaderboards">
+		<div class="leaderboards__panel">
+			<Top3Leaderboard
+				title="今日の試合上位"
+				type="today"
+				todayData={todayTopQuery.data}
+				isLoading={todayTopQuery.isLoading}
+				onUserSelect={handleUserCardClick}
+			/>
+		</div>
+		<div class="leaderboards__panel">
+			<Top3Leaderboard
+				title="ランクpt上位"
+				type="rankPt"
+				rankPtData={rankTopQuery.data}
+				isLoading={rankTopQuery.isLoading}
+				onUserSelect={handleUserCardClick}
+			/>
 		</div>
 	</section>
 </div>
@@ -113,8 +114,6 @@ function handleUserCardClick(username: string): void {
 	.top-page {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-2xl);
-		padding-bottom: var(--spacing-3xl);
 	}
 
 	.hero {
@@ -154,5 +153,23 @@ function handleUserCardClick(username: string): void {
 
 	.countdown {
 		margin-top: 80px;
+	}
+
+	.leaderboards {
+		display: flex;
+		margin: 0 auto;
+		margin-top: 80px;
+		gap: 30px;
+	}
+
+	.leaderboards__panel {
+		width: 320px;
+	}
+
+	.result-section {
+		width: 100%;
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 0 20px;
 	}
 </style>

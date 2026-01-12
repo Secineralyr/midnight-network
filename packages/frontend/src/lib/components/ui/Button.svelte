@@ -62,8 +62,8 @@ function handleClick(event: MouseEvent): void {
 
 <button
 	bind:this={buttonElement}
-	class="button button--{variant} button--{size}"
-	class:button--disabled={disabled}
+	class={`btn ${variant} ${size}`}
+	class:disabled={disabled}
 	{type}
 	{disabled}
 	onclick={handleClick}
@@ -76,81 +76,67 @@ function handleClick(event: MouseEvent): void {
 </button>
 
 <style>
-	.button {
+	.btn {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		gap: var(--spacing-sm);
-		font-family: var(--font-japanese);
-		font-weight: var(--font-weight-medium);
-		border-radius: var(--radius-lg);
-		transition:
-			background-color var(--transition-fast),
-			border-color var(--transition-fast),
-			color var(--transition-fast);
+		gap: 10px;
+		border-radius: 4px;
+		font-weight: 600;
+		border: none;
 		cursor: pointer;
+		transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 		white-space: nowrap;
 	}
 
-	/* バリアント: primary */
-	.button--primary {
-		background-color: var(--color-bg-card);
-		color: var(--color-text-primary);
-		border: 1px solid var(--color-border-primary);
+	.btn.primary {
+		background: #201E3A;
+		color: #ffffff;
 	}
 
-	.button--primary:hover:not(.button--disabled) {
-		background-color: var(--color-bg-card-hover);
-		border-color: var(--color-border-focus);
+	.btn.primary:hover:not(.disabled) {
+		background: #35325a;
 	}
 
-	/* バリアント: secondary */
-	.button--secondary {
-		background-color: transparent;
-		color: var(--color-text-secondary);
-		border: 1px solid var(--color-border-secondary);
+	.btn.secondary {
+		background: transparent;
+		color: #c6c9df;
+		border: 1px solid #3b3854;
 	}
 
-	.button--secondary:hover:not(.button--disabled) {
-		background-color: var(--color-bg-card);
-		color: var(--color-text-primary);
+	.btn.secondary:hover:not(.disabled) {
+		color: #ffffff;
+		border-color: #58557b;
 	}
 
-	/* バリアント: ghost */
-	.button--ghost {
-		background-color: transparent;
-		color: var(--color-text-secondary);
-		border: none;
+	.btn.ghost {
+		background: transparent;
+		color: #c6c9df;
 	}
 
-	.button--ghost:hover:not(.button--disabled) {
-		background-color: var(--color-bg-card);
-		color: var(--color-text-primary);
+	.btn.ghost:hover:not(.disabled) {
+		color: #ffffff;
 	}
 
-	/* サイズ: sm */
-	.button--sm {
-		padding: var(--spacing-xs) var(--spacing-md);
-		font-size: var(--font-size-sm);
+	.btn.sm {
 		min-height: 32px;
+		padding: 6px 14px;
+		font-size: 14px;
 	}
 
-	/* サイズ: md */
-	.button--md {
-		padding: var(--spacing-sm) var(--spacing-lg);
-		font-size: var(--font-size-base);
+	.btn.md {
 		min-height: 40px;
+		padding: 10px 18px;
+		font-size: 16px;
 	}
 
-	/* サイズ: lg */
-	.button--lg {
-		padding: var(--spacing-md) var(--spacing-xl);
-		font-size: var(--font-size-lg);
+	.btn.lg {
 		min-height: 48px;
+		padding: 12px 24px;
+		font-size: 18px;
 	}
 
-	/* 無効状態 */
-	.button--disabled {
+	.btn.disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
 	}

@@ -1,6 +1,7 @@
 <script lang="ts">
 import { IconSearch } from '@tabler/icons-svelte';
 import LoggedInPanel from '../user/LoggedInPanel.svelte';
+import RankBadge from '../rank/RankBadge.svelte';
 
 /**
  * ヘッダーコンポーネント
@@ -16,6 +17,8 @@ interface Props {
 		username: string;
 		/** アバターURL */
 		avatarUrl?: string;
+		/** ランク値 */
+		rank?: number;
 	} | null;
 	/** 検索ボタン表示フラグ（リーダーボードページ用） */
 	showSearchButton?: boolean;
@@ -63,15 +66,25 @@ function closePanel(): void {
 				</button>
 			{/if}
 			{#if user}
-				<button type="button" onclick={handleUserClick}>
-					<img
-						src={user.avatarUrl || '/images/default-avatar.png'}
-						alt={user.username}
-					/>
-				</button>
-				{#if isPanelOpen}
-					<LoggedInPanel {user} onClose={closePanel} />
-				{/if}
+				<div class="logged-user">
+					<button class="user-icon-button" type="button" onclick={handleUserClick}>
+						<img
+							class="icon"
+							src={user.avatarUrl || 'https://placehold.co/400'}
+							alt={user.username}
+						/>
+						{#if user.rank !== undefined}
+							<RankBadge rank={user.rank} class="user-rank-badge" />
+						{/if}
+					</button>
+					{#if isPanelOpen}
+						<div class="panel-overlay-position">
+							<div class="panel-overlay">
+								<LoggedInPanel {user} onClose={closePanel} />
+							</div>
+						</div>
+					{/if}
+				</div>
 			{:else}
 				<a href="/login">ログイン</a>
 			{/if}
@@ -96,8 +109,8 @@ function closePanel(): void {
 		background: linear-gradient(
 			to right,
 			transparent 0%,
-			#110C1A 10%,
-			#110C1A 90%,
+			rgba(17, 12, 26, 0.75) 10%,
+			rgba(17, 12, 26, 0.75) 90%,
 			transparent 100%
 		);
 		backdrop-filter: blur(10px);
@@ -120,10 +133,6 @@ function closePanel(): void {
 		align-items: center;
 	}
 
-	header > div > .left-side {
-
-	}
-
 	header > div > .left-side > .line {
 		width: 1px;
 		height: 100%;
@@ -137,7 +146,33 @@ function closePanel(): void {
 		height: 100%;
 	}
 
-	header > div > .right-side {
+	header > div > .right-side > .logged-user > .user-icon-button {
+		height: 60px;
+		width: 60px;
+		position: relative;
+		top: 16px;
+		border-radius: 9999px;
+		border: 2px solid #fff;
+	}
+	header > div > .right-side > .logged-user > .user-icon-button > .icon {
+		height: 100%;
+		border-radius: 9999px;
+	}
 
+	header > div > .right-side > .logged-user > .user-icon-button > :global(.user-rank-badge) {
+		position: absolute;
+		bottom: -5px;
+		right: -5px;
+		width: 24px;
+		height: 24px;
+	}
+
+	header > div > .right-side > .logged-user > .panel-overlay-position {
+		position: relative;
+	}
+	header > div > .right-side > .logged-user > .panel-overlay-position > .panel-overlay {
+		position: absolute;
+		top: 20px;
+		right: 0;
 	}
 </style>

@@ -23,6 +23,24 @@ import { orpc } from '$lib/orpc';
 /** ユーザー名 */
 const username = $derived($page.params.username);
 
+const userIdQuery = createQuery(() => ({
+	queryKey: ['user', 'resolveId', username],
+	queryFn: async () => {
+		if (!username) {
+			return null;
+		}
+
+		const users = await orpc.searchUser(username);
+		return (
+			users.find((user) => user.username === username) ??
+			users.find((user) => user.username.toLowerCase() === username.toLowerCase()) ??
+			null
+		);
+	},
+}));
+
+const userId = $derived(userIdQuery.data?.userId ?? null);
+
 /** グラフの期間の型 */
 type GraphSpanValue = (typeof GraphSpan)[keyof typeof GraphSpan];
 
@@ -37,32 +55,74 @@ const isOwnProfile = $state(false);
 
 /** ユーザープロフィール取得 */
 const profileQuery = createQuery(() => ({
-	queryKey: ['user', 'profile', username],
-	queryFn: () => orpc.user.profile(username),
+	queryKey: ['user', 'profile', userId],
+	queryFn: () => {
+		if (!userId) {
+			throw new Error('Missing userId for profile query.');
+		}
+		return orpc.user.profile(userId);
+	},
+	enabled: Boolean(userId),
 }));
 
 /** 累計pt推移データ */
 const totalPtQuery = createQuery(() => ({
-	queryKey: ['user', 'totalPt', username, graphSpan],
-	queryFn: () => orpc.user.totalPtChart({ userId: username, span: graphSpan }),
+	queryKey: ['user', 'totalPt', userId, graphSpan],
+	queryFn: () => {
+		if (!userId) {
+			throw new Error('Missing userId for totalPtChart query.');
+		}
+		return orpc.user.totalPtChart({ userId, span: graphSpan });
+	},
+	enabled: Boolean(userId),
 }));
 
 /** 獲得pt推移データ */
 const earnedPtQuery = createQuery(() => ({
-	queryKey: ['user', 'earnedPt', username, graphSpan],
-	queryFn: () => orpc.user.earnedPtChart({ userId: username, span: graphSpan }),
+	queryKey: ['user', 'earnedPt', userId, graphSpan],
+	queryFn: () => {
+		if (!userId) {
+			throw new Error('Missing userId for earnedPtChart query.');
+		}
+		return orpc.user.earnedPtChart({ userId, span: graphSpan });
+	},
+	enabled: Boolean(userId),
+}));
+
+/** 投稿タイム推移チャート */
+const postTimeQuery = createQuery(() => ({
+	queryKey: ['user', 'postTime', userId, graphSpan],
+	queryFn: () => {
+		if (!userId) {
+			throw new Error('Missing userId for postTimeChart query.');
+		}
+		return orpc.user.postTimeChart({ userId, span: graphSpan });
+	},
+	enabled: Boolean(userId),
 }));
 
 /** レーダーチャートデータ */
 const radarQuery = createQuery(() => ({
-	queryKey: ['user', 'radar', username],
-	queryFn: () => orpc.user.radarChart(username),
+	queryKey: ['user', 'radar', userId],
+	queryFn: () => {
+		if (!userId) {
+			throw new Error('Missing userId for radarChart query.');
+		}
+		return orpc.user.radarChart(userId);
+	},
+	enabled: Boolean(userId),
 }));
 
 /** ヒートマップデータ */
 const heatmapQuery = createQuery(() => ({
-	queryKey: ['user', 'heatmap', username],
-	queryFn: () => orpc.user.heatmapChart(username),
+	queryKey: ['user', 'heatmap', userId],
+	queryFn: () => {
+		if (!userId) {
+			throw new Error('Missing userId for heatmapChart query.');
+		}
+		return orpc.user.heatmapChart(userId);
+	},
+	enabled: Boolean(userId),
 }));
 
 /** 設定取得 */
@@ -123,42 +183,40 @@ function handleSaveSettings(settings: Partial<SettingTypeT>): void {
 </svelte:head>
 
 <div class="user-page">
-	<div class="user-page__header">
-		<div class="user-page__profile">
+	<div class="user-header">
+		<div class="user-profile">
 			<img
 				src="https://placehold.co/400"
 				alt={username}
-				class="user-page__avatar"
+				class="user-avatar"
 			/>
-			<h1 class="user-page__username font-alphanumeric">@{username}</h1>
+			<h1 class="user-username">@{username}</h1>
 		</div>
 		{#if isOwnProfile}
-			<Button variant="ghost" onclick={openSettings}>
-				<IconSettings size={20} />
-				設定
-			</Button>
+			<div class="user-settings">
+				<Button variant="ghost" size="sm" onclick={openSettings}>
+					<IconSettings size={18} />
+					設定
+				</Button>
+			</div>
 		{/if}
 	</div>
 
 	{#if profileQuery.data}
-		<div class="user-page__content container">
-			<div class="user-page__grid">
-				<aside class="user-page__sidebar">
-					<div class="card">
-						<RankDisplay
-							currentRank={profileQuery.data.currentRank}
-							isLoading={profileQuery.isLoading}
-						/>
-					</div>
-					<div class="card">
-						<RankStatus
-							rankStatus={profileQuery.data.rankStatus}
-							isLoading={profileQuery.isLoading}
-						/>
-					</div>
+		<div class="user-content">
+			<div class="user-grid">
+				<aside class="user-sidebar">
+					<RankDisplay
+						currentRank={profileQuery.data.currentRank}
+						isLoading={profileQuery.isLoading}
+					/>
+					<RankStatus
+						rankStatus={profileQuery.data.rankStatus}
+						isLoading={profileQuery.isLoading}
+					/>
 				</aside>
 
-				<main class="user-page__main">
+				<main class="user-main">
 					{#if profileQuery.data.statistics}
 						<Statistics
 							statistics={profileQuery.data.statistics}
@@ -166,7 +224,7 @@ function handleSaveSettings(settings: Partial<SettingTypeT>): void {
 						/>
 					{/if}
 
-					<div class="charts-grid">
+					<div class="user-charts">
 						{#if totalPtQuery.data}
 							<LineChart
 								title="累計pt推移"
@@ -178,6 +236,8 @@ function handleSaveSettings(settings: Partial<SettingTypeT>): void {
 								currentSpan={String(graphSpan)}
 								onSpanChange={handleSpanChange}
 								isLoading={totalPtQuery.isLoading}
+								height="10rem"
+								showRankBadge
 							/>
 						{/if}
 
@@ -192,34 +252,52 @@ function handleSaveSettings(settings: Partial<SettingTypeT>): void {
 								currentSpan={String(graphSpan)}
 								onSpanChange={handleSpanChange}
 								isLoading={earnedPtQuery.isLoading}
+								height="10rem"
 							/>
 						{/if}
 
-						{#if radarQuery.data}
-							<RadarChart
-								title="チャート"
-								data={radarQuery.data}
-								isLoading={radarQuery.isLoading}
+						{#if postTimeQuery.data}
+							<BarChart
+								title="投稿タイム推移"
+								data={postTimeQuery.data.map((d) => ({
+									label: d.label,
+									value: d.value,
+								}))}
+								spanOptions={spanOptions}
+								currentSpan={String(graphSpan)}
+								onSpanChange={handleSpanChange}
+								isLoading={postTimeQuery.isLoading}
+								height="10rem"
 							/>
 						{/if}
 
-						{#if heatmapQuery.data}
-							<Heatmap
-								title="ビートマップ"
-								data={heatmapQuery.data}
-								isLoading={heatmapQuery.isLoading}
-							/>
-						{/if}
+						<div class="user-charts-row">
+							{#if radarQuery.data}
+								<RadarChart
+									title="チャート"
+									data={radarQuery.data}
+									isLoading={radarQuery.isLoading}
+								/>
+							{/if}
+
+							{#if heatmapQuery.data}
+								<Heatmap
+									title="ビートマップ"
+									data={heatmapQuery.data}
+									isLoading={heatmapQuery.isLoading}
+								/>
+							{/if}
+						</div>
 					</div>
 				</main>
 			</div>
 		</div>
-	{:else if profileQuery.isLoading}
-		<div class="user-page__loading">
+	{:else if userIdQuery.isLoading || profileQuery.isLoading}
+		<div class="user-loading">
 			<p>読み込み中...</p>
 		</div>
 	{:else}
-		<div class="user-page__not-found">
+		<div class="user-not-found">
 			<p>ユーザーが見つかりませんでした</p>
 		</div>
 	{/if}
@@ -236,99 +314,131 @@ function handleSaveSettings(settings: Partial<SettingTypeT>): void {
 
 <style>
 	.user-page {
-		padding-bottom: var(--spacing-3xl);
+		padding-bottom: 50px;
+		color: #fff;
 	}
 
-	.user-page__header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: var(--spacing-2xl) var(--spacing-lg);
-		max-width: var(--content-max-width);
+	.user-header {
+		width: 100%;
 		margin: 0 auto;
-	}
-
-	.user-page__profile {
+		padding: 40px;
+		position: relative;
 		display: flex;
+		flex-direction: column;
 		align-items: center;
-		gap: var(--spacing-lg);
+		gap: 10px;
+		text-align: center;
 	}
 
-	.user-page__avatar {
+	.user-profile {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 10px;
+	}
+
+	.user-avatar {
 		width: 80px;
 		height: 80px;
-		border-radius: var(--radius-full);
+		border-radius: 50%;
 		object-fit: cover;
-		border: 3px solid var(--color-border-secondary);
 	}
 
-	.user-page__username {
-		font-size: var(--font-size-3xl);
-		font-weight: var(--font-weight-bold);
-		color: var(--color-text-primary);
+	.user-username {
+		font-family: 'Lexend', sans-serif;
+		font-size: 1.3rem;
+		font-weight: 600;
 	}
 
-	.user-page__content {
-		max-width: var(--content-max-width);
+	.user-settings {
+		position: absolute;
+		top: 12px;
+		right: 0;
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		font-size: 0.85rem;
 	}
 
-	.user-page__grid {
+	.user-content {
+		width: 100%;
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 0 20px;
+	}
+
+	.user-grid {
 		display: grid;
-		grid-template-columns: 300px 1fr;
-		gap: var(--spacing-xl);
+		grid-template-columns: 16rem 1fr;
+		gap: 20px;
+		align-items: start;
 	}
 
-	.user-page__sidebar {
+	.user-sidebar {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-lg);
+		gap: 20px;
 	}
 
-	.user-page__main {
+	.user-main {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-xl);
+		gap: 20px;
 	}
 
-	.charts-grid {
+	.user-charts {
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+	}
+
+	.user-charts-row {
 		display: grid;
 		grid-template-columns: repeat(2, 1fr);
-		gap: var(--spacing-lg);
+		gap: 20px;
 	}
 
-	.user-page__loading,
-	.user-page__not-found {
+	.user-loading,
+	.user-not-found {
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		min-height: 300px;
-		color: var(--color-text-secondary);
+		min-height: 200px;
+		color: #c6c9df;
 	}
 
-	@media (max-width: 1024px) {
-		.user-page__grid {
+	@media (max-width: 73.14rem) {
+		.user-grid {
 			grid-template-columns: 1fr;
 		}
 
-		.user-page__sidebar {
+		.user-sidebar {
 			flex-direction: row;
 			flex-wrap: wrap;
 		}
 
-		.user-page__sidebar > .card {
+		.user-sidebar :global(.rank-display),
+		.user-sidebar :global(.status) {
 			flex: 1;
-			min-width: 280px;
+			min-width: 14.29rem;
 		}
 	}
 
-	@media (max-width: 768px) {
-		.user-page__header {
-			flex-direction: column;
-			align-items: flex-start;
-			gap: var(--spacing-md);
+	@media (max-width: 54.86rem) {
+		.user-header {
+			padding: 2.14rem 0 20px;
 		}
 
-		.charts-grid {
+		.user-settings {
+			position: static;
+			margin-top: 0.71rem;
+		}
+
+		.user-sidebar {
+			flex-direction: column;
+		}
+
+		.user-charts-row {
 			grid-template-columns: 1fr;
 		}
 	}

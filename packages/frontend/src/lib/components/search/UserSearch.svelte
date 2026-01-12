@@ -2,7 +2,7 @@
 import type { ApiSimpleUserInfoT } from '@midnight-network/shared/rpc/models';
 import { IconSearch } from '@tabler/icons-svelte';
 import { createQuery } from '@tanstack/svelte-query';
-import { animate } from 'motion';
+import { fly } from 'svelte/transition';
 import { orpc } from '$lib/orpc';
 
 /**
@@ -21,19 +21,20 @@ const { placeholder = 'ユーザー名を入力', onSelect }: Props = $props();
 
 let searchQuery = $state('');
 let isFocused = $state(false);
-let inputElement: HTMLInputElement | undefined = $state();
-let suggestionsElement: HTMLDivElement | undefined = $state();
 
 /** 検索クエリ（デバウンス用） */
 let debouncedQuery = $state('');
 let debounceTimeout: ReturnType<typeof setTimeout> | undefined;
 
 $effect(() => {
+	// searchQueryを同期的に読み取ることで依存関係として追跡される
+	const currentQuery = searchQuery;
+
 	if (debounceTimeout) {
 		clearTimeout(debounceTimeout);
 	}
 	debounceTimeout = setTimeout(() => {
-		debouncedQuery = searchQuery;
+		debouncedQuery = currentQuery;
 	}, 300);
 
 	return () => {
@@ -47,17 +48,20 @@ $effect(() => {
 const searchResults = createQuery(() => ({
 	queryKey: ['searchUser', debouncedQuery],
 	queryFn: () => orpc.searchUser(debouncedQuery),
-	enabled: debouncedQuery.length >= 2,
+	enabled: debouncedQuery.length > 0,
 }));
 
-/** サジェストを表示するかどうか */
-const showSuggestions = $derived(isFocused && debouncedQuery.length >= 2 && (searchResults.data?.length ?? 0) > 0);
+/** 検索中かどうか */
+const isSearching = $derived(debouncedQuery.length > 0 && searchResults.isLoading);
 
-$effect(() => {
-	if (suggestionsElement && showSuggestions) {
-		animate(suggestionsElement, { opacity: [0, 1], y: [-10, 0] }, { duration: 0.2 });
-	}
-});
+/** サジェストドロップダウンを表示するかどうか */
+const showDropdown = $derived(isFocused && debouncedQuery.length > 0);
+
+/** 検索結果があるかどうか */
+const hasResults = $derived((searchResults.data?.length ?? 0) > 0);
+
+/** 表示する検索結果 */
+const displayResults = $derived(searchResults.data ?? []);
 
 /**
  * 入力変更ハンドラ
@@ -106,12 +110,11 @@ function handleKeydown(event: KeyboardEvent): void {
 </script>
 
 <div class="search">
-	<div class="search__input-wrapper">
-		<IconSearch size={20} class="search__icon" />
+	<div class="search-input-wrapper">
+		<IconSearch size={20} class="search-icon" />
 		<input
-			bind:this={inputElement}
 			type="text"
-			class="search__input"
+			class="search-input"
 			{placeholder}
 			value={searchQuery}
 			oninput={handleInput}
@@ -120,17 +123,25 @@ function handleKeydown(event: KeyboardEvent): void {
 			onkeydown={handleKeydown}
 		/>
 	</div>
-	{#if showSuggestions}
-		<div class="search__suggestions" bind:this={suggestionsElement}>
-			{#each searchResults.data ?? [] as user (user.userId)}
-				<button
-					type="button"
-					class="search__suggestion"
-					onclick={() => handleSelectUser(user)}
-				>
-					<span class="search__suggestion-username">@{user.username}</span>
-				</button>
-			{/each}
+	{#if showDropdown}
+		<div class="search-suggestions" transition:fly={{ y: -10, duration: 200 }}>
+			{#if isSearching}
+				<div class="search-loading">検索中...</div>
+			{:else if hasResults}
+				<div class="search-results-list">
+					{#each displayResults as user (user.userId)}
+						<button
+							type="button"
+							class="search-suggestion"
+							onclick={() => handleSelectUser(user)}
+						>
+							<span class="search-suggestion-username">@{user.username}</span>
+						</button>
+					{/each}
+				</div>
+			{:else}
+				<div class="search-no-results">ユーザーが見つかりません</div>
+			{/if}
 		</div>
 	{/if}
 </div>
@@ -142,71 +153,88 @@ function handleKeydown(event: KeyboardEvent): void {
 		max-width: 500px;
 	}
 
-	.search__input-wrapper {
+	.search-input-wrapper {
 		display: flex;
 		align-items: center;
-		gap: var(--spacing-sm);
-		padding: var(--spacing-md) var(--spacing-lg);
-		background-color: var(--color-bg-input);
-		border: 1px solid var(--color-border-secondary);
-		border-radius: var(--radius-full);
-		transition: border-color var(--transition-fast);
+		gap: 10px;
+		padding: 15px 20px;
+		background-color: #2F2D53;
+		border: 1px solid #2F2D53;
+		border-radius: 9999px;
+		transition: border-color 150ms ease;
 	}
 
-	.search__input-wrapper:focus-within {
-		border-color: var(--color-border-focus);
+	.search-input-wrapper:focus-within {
+		border-color: #4E4B71;
 	}
 
-	.search :global(.search__icon) {
-		color: var(--color-text-muted);
+	.search :global(.search-icon) {
+		color: #fff;
 		flex-shrink: 0;
 	}
 
-	.search__input {
+	.search-input {
 		flex: 1;
-		font-family: var(--font-japanese);
-		font-size: var(--font-size-base);
-		color: var(--color-text-primary);
+		font-family: 'M PLUS 2', sans-serif;
+		font-size: 1rem;
+		color: #ffffff;
 		background: transparent;
 	}
 
-	.search__input::placeholder {
-		color: var(--color-text-placeholder);
+	.search-input::placeholder {
+		color: #6b6f7e;
 	}
 
-	.search__suggestions {
+	.search-suggestions {
 		position: absolute;
 		top: 100%;
 		left: 0;
 		right: 0;
-		margin-top: var(--spacing-sm);
-		background-color: var(--color-bg-card);
-		border: 1px solid var(--color-border-secondary);
-		border-radius: var(--radius-lg);
+		margin-top: 10px;
+		background-color: #201E3A;
+		border: 1px solid #2F2D53;
+		border-radius: 5px;
 		overflow: hidden;
-		z-index: var(--z-dropdown);
-		box-shadow: var(--shadow-lg);
+		z-index: 100;
+		box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
 	}
 
-	.search__suggestion {
-		display: block;
+	.search-results-list {
+		max-height: calc(40px * 6);
+		overflow-y: auto;
+		overscroll-behavior: contain;
+	}
+
+	.search-loading,
+	.search-no-results {
+		padding: 10px 20px;
+		text-align: center;
+		font-family: 'M PLUS 2', sans-serif;
+		font-size: 0.875rem;
+		color: #ddd;
+	}
+
+	.search-suggestion {
+		display: flex;
+		align-items: center;
 		width: 100%;
-		padding: var(--spacing-sm) var(--spacing-lg);
+		height: 40px;
+		padding: 0 20px;
 		text-align: left;
-		font-family: var(--font-alphanumeric);
-		font-size: var(--font-size-base);
-		color: var(--color-text-primary);
+		font-family: 'Lexend', sans-serif;
+		font-size: 1rem;
+		color: #ffffff;
 		background: none;
 		border: none;
 		cursor: pointer;
-		transition: background-color var(--transition-fast);
+		transition: background-color 150ms ease;
 	}
 
-	.search__suggestion:hover {
-		background-color: var(--color-bg-card-hover);
+	.search-suggestion:hover {
+		background-color: #2F2D53;
 	}
 
-	.search__suggestion-username {
-		color: var(--color-text-primary);
+	.search-suggestion-username {
+		color: #ffffff;
 	}
 </style>

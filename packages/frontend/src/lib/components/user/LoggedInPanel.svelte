@@ -64,112 +64,100 @@ function handleBackdropClick(event: MouseEvent): void {
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-<div class="panel-backdrop" onclick={handleBackdropClick}>
-	<div class="panel" bind:this={panelElement}>
-		<div class="panel__header">
-			<div class="panel__user-info">
-				<span class="panel__status">ログイン中</span>
-				<span class="panel__username">@{user.username}</span>
-			</div>
-			<div class="panel__rank">
-				<RankIcon rank={currentRank} size="lg" />
-			</div>
+<div class="panel" bind:this={panelElement}>
+	<div class="panel-header">
+		<div class="panel-info">
+			<span class="panel-status">ログイン中</span>
+			<span class="panel-name">@{user.username}</span>
 		</div>
-		<div class="panel__actions">
-			<button type="button" class="panel__action" onclick={goToMyPage}>
-				<span class="panel__action-text">マイページ</span>
-				<IconUser size={20} />
-			</button>
-			<button type="button" class="panel__action" onclick={handleLogout}>
-				<span class="panel__action-text">ログアウト</span>
-				<IconLogout size={20} />
-			</button>
+		<div class="panel-rank">
+			<RankIcon rank={currentRank} />
 		</div>
+	</div>
+	<div class="panel-divider"></div>
+	<div class="panel-actions">
+		<button type="button" class="panel-action" onclick={goToMyPage}>
+			<span class="panel-text">マイページ</span>
+			<IconUser size={16} stroke={3} />
+		</button>
+		<button type="button" class="panel-action" onclick={handleLogout}>
+			<span class="panel-text">ログアウト</span>
+			<IconLogout size={16} stroke={3} />
+		</button>
 	</div>
 </div>
 
 <style>
-	.panel-backdrop {
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		z-index: var(--z-dropdown);
-	}
-
 	.panel {
-		position: absolute;
-		top: calc(var(--header-height) + var(--spacing-sm));
-		right: var(--spacing-lg);
-		width: 280px;
-		background-color: var(--color-bg-card);
-		border: 1px solid var(--color-border-secondary);
-		border-radius: var(--radius-xl);
+		background: #201E3A;
+		border-radius: 8px;
+		box-shadow: 0 0 5px rgba(0, 0, 0, .25);
 		overflow: hidden;
-		box-shadow: var(--shadow-lg);
+		padding: 10px 20px;
+		color: #ffffff;
+		font-size: 0.9rem;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
 	}
 
-	.panel__header {
+	.panel-header {
 		display: flex;
-		align-items: center;
 		justify-content: space-between;
-		padding: var(--spacing-lg);
-		background-color: var(--color-bg-secondary);
-		border-bottom: 1px solid var(--color-border-secondary);
+		align-items: center;
+		gap: 20px;
 	}
 
-	.panel__user-info {
+	.panel-info {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-xs);
+		gap: 10px;
 	}
 
-	.panel__status {
-		font-size: var(--font-size-sm);
-		color: var(--color-text-muted);
+	.panel-info > span {
+		white-space: nowrap;
 	}
 
-	.panel__username {
-		font-family: var(--font-alphanumeric);
-		font-size: var(--font-size-lg);
-		font-weight: var(--font-weight-semibold);
-		color: var(--color-text-primary);
+	.panel-rank {
+		width: 60px;
 	}
 
-	.panel__rank {
-		display: flex;
-		align-items: center;
+	.panel-rank :global(.rank-icon) {
+		width: 100%;
+		height: 100%;
 	}
 
-	.panel__actions {
+
+	.panel-status {
+		font-size: 0.9em;
+	}
+
+	.panel-name {
+		font-weight: 600;
+	}
+
+	.panel-divider {
+		height: 1px;
+		background: #2F2D53;
+	}
+
+	.panel-actions {
 		display: flex;
 		flex-direction: column;
+		gap: 10px;
+		margin-bottom: 5px;
 	}
 
-	.panel__action {
+	.panel-action {
 		display: flex;
 		align-items: center;
-		justify-content: center;
-		gap: var(--spacing-sm);
-		padding: var(--spacing-md) var(--spacing-lg);
-		color: var(--color-text-primary);
-		font-family: var(--font-japanese);
-		font-size: var(--font-size-base);
-		border-bottom: 1px solid var(--color-border-secondary);
-		transition: background-color var(--transition-fast);
+		justify-content: end;
+		gap: 5px;
+		font-weight: 600;
+		transition: opacity 0.15s ease;
 	}
 
-	.panel__action:last-child {
-		border-bottom: none;
-	}
-
-	.panel__action:hover {
-		background-color: var(--color-bg-card-hover);
-	}
-
-	.panel__action-text {
-		flex: 1;
-		text-align: center;
+	.panel-action:hover {
+		opacity: 0.85;
 	}
 </style>

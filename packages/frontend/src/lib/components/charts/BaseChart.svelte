@@ -1,5 +1,5 @@
-<script lang="ts">
-import type { EChartsOption } from 'echarts';
+<script lang="ts" generics="T extends EChartsCoreOption">
+import type { EChartsCoreOption } from 'echarts';
 import * as echarts from 'echarts';
 import { onMount } from 'svelte';
 
@@ -8,16 +8,16 @@ import { onMount } from 'svelte';
  * @description echartsの基底コンポーネント。各チャートはこれを継承
  */
 
-interface Props {
+interface Props<T extends EChartsCoreOption> {
 	/** チャートオプション */
-	options: EChartsOption;
+	options: EChartsCoreOption;
 	/** 高さ */
 	height?: string;
 	/** ローディング状態 */
 	isLoading?: boolean;
 }
 
-const { options, height = '300px', isLoading = false }: Props = $props();
+const { options, height = '300px', isLoading = false }: Props<T> = $props();
 
 let chartElement: HTMLDivElement | undefined = $state();
 let chartInstance: echarts.ECharts | undefined = $state();
@@ -26,7 +26,7 @@ let chartInstance: echarts.ECharts | undefined = $state();
 const darkTheme = {
 	backgroundColor: 'transparent',
 	textStyle: {
-		color: '#a0a3b1',
+		color: '#c6c9df',
 		fontFamily: "'Lexend', 'M PLUS 2', sans-serif",
 	},
 	title: {
@@ -36,12 +36,12 @@ const darkTheme = {
 	},
 	legend: {
 		textStyle: {
-			color: '#a0a3b1',
+			color: '#c6c9df',
 		},
 	},
 	tooltip: {
-		backgroundColor: '#252a3d',
-		borderColor: '#3d4157',
+		backgroundColor: '#2f2d4a',
+		borderColor: '#3a3755',
 		textStyle: {
 			color: '#ffffff',
 		},
@@ -49,30 +49,30 @@ const darkTheme = {
 	xAxis: {
 		axisLine: {
 			lineStyle: {
-				color: '#3d4157',
+				color: '#4a4768',
 			},
 		},
 		axisLabel: {
-			color: '#a0a3b1',
+			color: '#c6c9df',
 		},
 		splitLine: {
 			lineStyle: {
-				color: '#2d3347',
+				color: '#34314f',
 			},
 		},
 	},
 	yAxis: {
 		axisLine: {
 			lineStyle: {
-				color: '#3d4157',
+				color: '#4a4768',
 			},
 		},
 		axisLabel: {
-			color: '#a0a3b1',
+			color: '#c6c9df',
 		},
 		splitLine: {
 			lineStyle: {
-				color: '#2d3347',
+				color: '#34314f',
 			},
 		},
 	},
@@ -109,7 +109,7 @@ $effect(() => {
 			chartInstance.showLoading({
 				text: '',
 				color: '#c5c9e6',
-				maskColor: 'rgba(13, 15, 26, 0.8)',
+				maskColor: 'rgba(20, 18, 32, 0.7)',
 			});
 		} else {
 			chartInstance.hideLoading();

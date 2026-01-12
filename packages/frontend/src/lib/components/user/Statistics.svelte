@@ -27,10 +27,10 @@ $effect(() => {
 
 /** 統計項目（上段） */
 const upperStats = $derived([
-	{ label: '参加回数', value: `${statistics.totalParticipationCount}回` },
+	{ label: '総参加回数', value: `${statistics.totalParticipationCount}回` },
 	{ label: '平均順位', value: `${statistics.averagePlace.toFixed(1)}位` },
 	{ label: '最高順位', value: `${statistics.maxPlace}位` },
-	{ label: '優勝回数', value: `${statistics.winCount}回` },
+	{ label: '1位獲得回数', value: `${statistics.winCount}回` },
 	{ label: 'ランクイン回数', value: `${statistics.withinCount}回` },
 ]);
 
@@ -38,33 +38,34 @@ const upperStats = $derived([
 const lowerStats = $derived([
 	{ label: '平均タイム', value: formatAvgTime(statistics.averageTime) },
 	{ label: 'WR', value: formatWinRate(statistics.wr) },
-	{ label: '最遅タイム', value: `${statistics.lateTime.toFixed(3)}s` },
-	{ label: '最早タイム', value: `${statistics.earlyTime.toFixed(3)}s` },
+	{ label: '最遅タイム', value: `${(statistics.lateTime/1000).toFixed(3)}s` },
+	{ label: '最早タイム', value: `${(statistics.earlyTime/1000).toFixed(3)}s` },
 	{ label: 'フライング回数', value: `${statistics.flyingCount}回` },
 ]);
 </script>
 
-<div class="statistics card" bind:this={containerElement}>
+<div class="stats" bind:this={containerElement}>
 	{#if isLoading}
-		<div class="statistics__skeleton">
+		<div class="stats-skeleton">
 			{#each Array(10) as _, i (i)}
-				<div class="skeleton statistics__skeleton-item"></div>
+				<div class="stats-skeleton-item"></div>
 			{/each}
 		</div>
 	{:else}
-		<div class="statistics__row">
+		<h3 class="stats-title">統計データ</h3>
+		<div class="stats-row">
 			{#each upperStats as stat (stat.label)}
-				<div class="statistics__item">
-					<span class="statistics__label">{stat.label}</span>
-					<span class="statistics__value font-alphanumeric">{stat.value}</span>
+				<div class="stats-item">
+					<span class="stats-label">{stat.label}</span>
+					<span class="stats-value">{stat.value}</span>
 				</div>
 			{/each}
 		</div>
-		<div class="statistics__row">
+		<div class="stats-row">
 			{#each lowerStats as stat (stat.label)}
-				<div class="statistics__item">
-					<span class="statistics__label">{stat.label}</span>
-					<span class="statistics__value font-alphanumeric">{stat.value}</span>
+				<div class="stats-item">
+					<span class="stats-label">{stat.label}</span>
+					<span class="stats-value">{stat.value}</span>
 				</div>
 			{/each}
 		</div>
@@ -72,69 +73,76 @@ const lowerStats = $derived([
 </div>
 
 <style>
-	.statistics {
-		padding: var(--spacing-lg);
+	.stats {
+		padding: 20px;
+		background: #201E3A;
+		border-radius: 5px;
+		color: #ffffff;
 	}
 
-	.statistics__row {
+	.stats-title {
+		font-size: 1rem;
+		font-weight: 600;
+		margin-bottom: 10px;
+	}
+
+	.stats-row {
 		display: grid;
 		grid-template-columns: repeat(5, 1fr);
-		gap: var(--spacing-md);
-		padding: var(--spacing-md) 0;
+		gap: 20px;
 	}
 
-	.statistics__row:first-child {
-		border-bottom: 1px solid var(--color-border-secondary);
+	.stats-row + .stats-row {
+		margin-top: 20px;
 	}
 
-	.statistics__item {
+	.stats-item {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		text-align: center;
+		gap: 5px;
 	}
 
-	.statistics__label {
-		font-family: var(--font-japanese);
-		font-size: var(--font-size-xs);
-		color: var(--color-text-muted);
-		margin-bottom: var(--spacing-xs);
+	.stats-label {
+		font-size: 0.86rem;
+		color: #fff;
 	}
 
-	.statistics__value {
-		font-size: var(--font-size-lg);
-		font-weight: var(--font-weight-semibold);
-		color: var(--color-text-primary);
+	.stats-value {
+		font-size: 1rem;
+		font-weight: 600;
+		letter-spacing: 0.01em;
 	}
 
-	/* スケルトン */
-	.statistics__skeleton {
+	.stats-skeleton {
 		display: grid;
 		grid-template-columns: repeat(5, 1fr);
-		gap: var(--spacing-md);
+		gap: 20px;
 	}
 
-	.statistics__skeleton-item {
-		height: 48px;
-		border-radius: var(--radius-md);
+	.stats-skeleton-item {
+		height: 3.43rem;
+		border-radius: 4px;
+		background: #2f2d4a;
 	}
 
-	@media (max-width: 768px) {
-		.statistics__row {
+	@media (max-width: 54.86rem) {
+		.stats-row {
 			grid-template-columns: repeat(3, 1fr);
 		}
 
-		.statistics__skeleton {
+		.stats-skeleton {
 			grid-template-columns: repeat(3, 1fr);
 		}
 	}
 
-	@media (max-width: 480px) {
-		.statistics__row {
+	@media (max-width: 34.29rem) {
+		.stats-row {
 			grid-template-columns: repeat(2, 1fr);
 		}
 
-		.statistics__skeleton {
+		.stats-skeleton {
 			grid-template-columns: repeat(2, 1fr);
 		}
 	}

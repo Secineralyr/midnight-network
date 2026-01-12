@@ -17,22 +17,39 @@ interface Props {
 
 const { currentPage, maxPage, onPageChange }: Props = $props();
 
-/** 表示するページ番号配列 */
+/** 表示するページ番号配列（最大5ページ） */
 const visiblePages = $derived(() => {
 	const pages: number[] = [];
-	const start = Math.max(0, currentPage - 3);
-	const end = Math.min(maxPage, currentPage + 3);
+	const totalPages = maxPage + 1;
 
-	for (let i = start; i <= end; i++) {
-		pages.push(i);
+	if (totalPages <= 5) {
+		for (let i = 0; i < totalPages; i++) {
+			pages.push(i);
+		}
+	} else {
+		let start = Math.max(0, currentPage - 2);
+		let end = start + 4;
+
+		if (end > maxPage) {
+			end = maxPage;
+			start = end - 4;
+		}
+
+		for (let i = start; i <= end; i++) {
+			pages.push(i);
+		}
 	}
 	return pages;
 });
 
+/** 前へボタンが非活性かどうか */
+const isPrevDisabled = $derived(currentPage === 0 || maxPage < 5);
+
+/** 次へボタンが非活性かどうか */
+const isNextDisabled = $derived(currentPage === maxPage || maxPage < 5);
+
 /**
  * ページボタンクリックハンドラ
- * @param page - ページ番号
- * @param button - ボタン要素
  */
 function handlePageClick(page: number, button: HTMLButtonElement): void {
 	if (page !== currentPage) {
@@ -42,78 +59,124 @@ function handlePageClick(page: number, button: HTMLButtonElement): void {
 }
 
 /**
- * ホバー開始ハンドラ
- * @param button - ボタン要素
- * @param isActive - アクティブ状態
+ * 前へボタンクリックハンドラ
  */
-function handleMouseEnter(button: HTMLButtonElement, isActive: boolean): void {
-	if (!isActive) {
-		animate(button, { scale: 1.1 }, { duration: 0.15 });
+function handlePrev(button: HTMLButtonElement): void {
+	if (!isPrevDisabled) {
+		animate(button, { scale: [1, 0.9, 1] }, { duration: 0.2 });
+		onPageChange(currentPage - 1);
 	}
 }
 
 /**
- * ホバー終了ハンドラ
- * @param button - ボタン要素
+ * 次へボタンクリックハンドラ
  */
-function handleMouseLeave(button: HTMLButtonElement): void {
-	animate(button, { scale: 1 }, { duration: 0.15 });
+function handleNext(button: HTMLButtonElement): void {
+	if (!isNextDisabled) {
+		animate(button, { scale: [1, 0.9, 1] }, { duration: 0.2 });
+		onPageChange(currentPage + 1);
+	}
 }
 </script>
 
-<div class="pagination">
+<div class="pager">
+	<button
+		type="button"
+		class="pager-arrow"
+		class:disabled={isPrevDisabled}
+		onclick={(e) => handlePrev(e.currentTarget)}
+		aria-label="前のページ"
+	>
+		<svg width="8" height="12" viewBox="0 0 8 12" fill="none">
+			<path d="M7 1L2 6L7 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+		</svg>
+	</button>
+
 	{#each visiblePages() as page (page)}
 		{@const isActive = page === currentPage}
 		<button
 			type="button"
-			class="pagination__button"
-			class:pagination__button--active={isActive}
+			class="pager-button"
+			class:active={isActive}
 			onclick={(e) => handlePageClick(page, e.currentTarget)}
-			onmouseenter={(e) => handleMouseEnter(e.currentTarget, isActive)}
-			onmouseleave={(e) => handleMouseLeave(e.currentTarget)}
 		>
-			{#if isActive}
-				<span class="pagination__number font-alphanumeric">{page + 1}</span>
-			{/if}
+			<span class="pager-number">{page + 1}</span>
 		</button>
 	{/each}
+
+	<button
+		type="button"
+		class="pager-arrow"
+		class:disabled={isNextDisabled}
+		onclick={(e) => handleNext(e.currentTarget)}
+		aria-label="次のページ"
+	>
+		<svg width="8" height="12" viewBox="0 0 8 12" fill="none">
+			<path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+		</svg>
+	</button>
 </div>
 
 <style>
-	.pagination {
+	.pager {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		gap: var(--spacing-md);
+		gap: 20px;
 	}
 
-	.pagination__button {
+	.pager-button {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 48px;
-		height: 48px;
-		border-radius: var(--radius-full);
-		border: 2px solid var(--color-border-secondary);
-		background-color: transparent;
+		width: 40px;
+		height: 40px;
+		border-radius: 50%;
+		border: 1px solid #4E4B71;
+		background: transparent;
+		color: #fff;
 		cursor: pointer;
-		transition:
-			border-color var(--transition-fast),
-			background-color var(--transition-fast);
+		transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 	}
 
-	.pagination__button:hover:not(.pagination__button--active) {
-		border-color: var(--color-border-focus);
+	.pager-button:hover {
+		background: #b8c4ff;
+		border-color: #b8c4ff;
+		color: #201e3a;
 	}
 
-	.pagination__button--active {
-		background-color: var(--color-accent-primary);
-		border-color: var(--color-accent-primary);
+	.pager-button.active {
+		background: #b8c4ff;
+		border-color: #b8c4ff;
+		color: #201e3a;
 	}
 
-	.pagination__number {
-		font-size: var(--font-size-lg);
-		font-weight: var(--font-weight-bold);
-		color: var(--color-bg-primary);
+	.pager-number {
+		font-size: 1rem;
+		font-weight: 500;
+	}
+
+	.pager-arrow {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 40px;
+		height: 40px;
+		border-radius: 50%;
+		border: 1px solid #b8c4ff;
+		background: transparent;
+		color: #fff;
+		cursor: pointer;
+		transition: background 0.15s ease, color 0.15s ease;
+	}
+
+	.pager-arrow:hover:not(.disabled) {
+		background: #b8c4ff;
+		color: #201e3a;
+	}
+
+	.pager-arrow.disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
 	}
 </style>

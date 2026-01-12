@@ -90,7 +90,7 @@ export function formatDate(date: Date): string {
  * @returns 小数3桁の文字列
  */
 export function formatWinRate(wr: number): string {
-	return wr.toFixed(3);
+	return (wr * 100).toFixed(3);
 }
 
 /**
@@ -99,5 +99,5 @@ export function formatWinRate(wr: number): string {
  * @returns X.XXXs 形式の文字列
  */
 export function formatAvgTime(avgTime: number): string {
-	return `${avgTime.toFixed(3)}s`;
+	return `${(avgTime / 1000).toFixed(3)}s`;
 }

@@ -76,19 +76,19 @@ import { IconBrandGithub, IconBrandX } from '@tabler/icons-svelte';
 	.right {
 		display: flex;
 		align-items: center;
-		gap: var(--spacing-md);
+		gap: 10px;
 	}
 
 	.social {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		color: var(--color-text-muted);
-		transition: color var(--transition-fast);
+		color: #808080;
+		transition: color 150ms ease;
 	}
 
 	.social:hover {
-		color: var(--color-text-secondary);
+		color: #fff;
 	}
 
 	.link {

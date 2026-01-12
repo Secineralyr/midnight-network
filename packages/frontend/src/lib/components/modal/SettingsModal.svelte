@@ -88,32 +88,32 @@ const settingItems: { key: keyof SettingTypeT; label: string }[] = [
 
 {#if isOpen}
 	<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-	<div class="settings-modal__backdrop" bind:this={backdropElement} onclick={handleBackdropClick}>
-		<div class="settings-modal" bind:this={modalElement}>
-			<div class="settings-modal__header">
-				<h2 class="settings-modal__title">ユーザー設定</h2>
-				<button type="button" class="settings-modal__close" onclick={handleClose}>
+	<div class="modal-backdrop" bind:this={backdropElement} onclick={handleBackdropClick}>
+		<div class="modal" bind:this={modalElement}>
+			<div class="modal-header">
+				<h2 class="modal-title">ユーザー設定</h2>
+				<button type="button" class="modal-close" onclick={handleClose}>
 					<IconX size={24} />
 				</button>
 			</div>
-			<div class="settings-modal__content">
+			<div class="modal-body">
 				{#each settingItems as item (item.key)}
-					<div class="settings-modal__item">
-						<span class="settings-modal__label">{item.label}</span>
+					<div class="modal-item">
+						<span class="modal-label">{item.label}</span>
 						<button
 							type="button"
-							class="settings-modal__toggle"
-							class:settings-modal__toggle--active={localSettings[item.key]}
+							class="toggle"
+							class:active={localSettings[item.key]}
 							onclick={() => handleToggle(item.key, !localSettings[item.key])}
 							role="switch"
 							aria-checked={localSettings[item.key]}
 						>
-							<span class="settings-modal__toggle-knob"></span>
+							<span class="toggle-knob"></span>
 						</button>
 					</div>
 				{/each}
 			</div>
-			<div class="settings-modal__footer">
+			<div class="modal-footer">
 				<Button onclick={handleSave}>保存</Button>
 			</div>
 		</div>
@@ -121,110 +121,107 @@ const settingItems: { key: keyof SettingTypeT; label: string }[] = [
 {/if}
 
 <style>
-	.settings-modal__backdrop {
+	.modal-backdrop {
 		position: fixed;
 		top: 0;
 		left: 0;
 		right: 0;
 		bottom: 0;
-		background-color: var(--color-bg-overlay);
+		background: rgba(0, 0, 0, 0.45);
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		z-index: var(--z-modal-backdrop);
+		z-index: 300;
+		padding: 24px;
 	}
 
-	.settings-modal {
+	.modal {
 		width: 100%;
-		max-width: 480px;
-		background-color: var(--color-bg-card);
-		border: 1px solid var(--color-border-secondary);
-		border-radius: var(--radius-xl);
+		max-width: 720px;
+		background: #23213a;
+		border-radius: 18px;
+		box-shadow: 0 20px 40px rgba(7, 6, 16, 0.45);
 		overflow: hidden;
-		z-index: var(--z-modal);
 	}
 
-	.settings-modal__header {
+	.modal-header {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: var(--spacing-lg);
-		border-bottom: 1px solid var(--color-border-secondary);
+		padding: 22px 26px 12px;
 	}
 
-	.settings-modal__title {
-		font-family: var(--font-japanese);
-		font-size: var(--font-size-xl);
-		font-weight: var(--font-weight-semibold);
-		color: var(--color-text-primary);
+	.modal-title {
+		font-size: 26px;
+		font-weight: 600;
+		color: #ffffff;
 	}
 
-	.settings-modal__close {
+	.modal-close {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		color: var(--color-text-secondary);
-		transition: color var(--transition-fast);
+		color: #ffffff;
+		opacity: 0.8;
+		transition: opacity 0.15s ease;
 	}
 
-	.settings-modal__close:hover {
-		color: var(--color-text-primary);
+	.modal-close:hover {
+		opacity: 1;
 	}
 
-	.settings-modal__content {
-		padding: var(--spacing-lg);
+	.modal-body {
+		padding: 8px 26px 8px;
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-lg);
+		gap: 20px;
 	}
 
-	.settings-modal__item {
+	.modal-item {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: var(--spacing-md);
+		gap: 16px;
 	}
 
-	.settings-modal__label {
-		font-family: var(--font-japanese);
-		font-size: var(--font-size-base);
-		color: var(--color-text-primary);
+	.modal-label {
+		font-size: 18px;
+		color: #ffffff;
 	}
 
-	.settings-modal__toggle {
+	.toggle {
 		position: relative;
-		width: 52px;
-		height: 28px;
-		background-color: var(--color-bg-secondary);
-		border-radius: var(--radius-full);
+		width: 58px;
+		height: 30px;
+		background: #3a3755;
+		border-radius: 999px;
 		padding: 2px;
 		cursor: pointer;
-		transition: background-color var(--transition-fast);
+		transition: background 0.2s ease;
 	}
 
-	.settings-modal__toggle--active {
-		background-color: var(--color-accent-primary);
-	}
-
-	.settings-modal__toggle-knob {
+	.toggle-knob {
 		position: absolute;
-		top: 2px;
-		left: 2px;
+		top: 3px;
+		left: 3px;
 		width: 24px;
 		height: 24px;
-		background-color: var(--color-bg-primary);
-		border-radius: var(--radius-full);
-		transition: transform var(--transition-fast);
+		background: #b9c4ff;
+		border-radius: 50%;
+		transition: transform 0.2s ease;
 	}
 
-	.settings-modal__toggle--active .settings-modal__toggle-knob {
-		transform: translateX(24px);
+	.toggle.active {
+		background: #5560a6;
 	}
 
-	.settings-modal__footer {
+	.toggle.active .toggle-knob {
+		transform: translateX(28px);
+	}
+
+	.modal-footer {
 		display: flex;
-		justify-content: center;
-		padding: var(--spacing-lg);
-		border-top: 1px solid var(--color-border-secondary);
+		justify-content: flex-end;
+		padding: 16px 26px 24px;
 	}
 </style>

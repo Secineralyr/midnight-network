@@ -1,6 +1,7 @@
 <script lang="ts">
 import type { RankStatusT } from '@midnight-network/shared/rpc/user/models';
 import { animate } from 'motion';
+import GaugeBar from '$lib/components/ui/GaugeBar.svelte';
 
 /**
  * ランクステータスコンポーネント
@@ -26,29 +27,39 @@ $effect(() => {
 
 /** ステータス項目 */
 const statusItems = $derived([
-	{ label: '累計pt', value: rankStatus.totalPt.toLocaleString() },
-	{ label: '連続参加', value: `${rankStatus.streakParticipationAt}日` },
-	{ label: '連続欠席', value: `${rankStatus.streakAbsenceAt}日` },
-	{ label: '連続上位入賞', value: `${rankStatus.streakWithinTopAt}日` },
-	{ label: '連続フライング', value: `${rankStatus.streakFlyingAt}日` },
-	{ label: '降格保護', value: rankStatus.protectCoolTime > 0 ? `${rankStatus.protectCoolTime}日` : 'なし' },
+	{ label: '累計ポイント', value: `${rankStatus.totalPt.toLocaleString()}pt` },
+	{ label: '連続参加日数', value: `${rankStatus.streakParticipationAt}` },
+	{ label: '連続未参加日数', value: `${rankStatus.streakAbsenceAt}` },
+	{ label: '連続ランクイン回数', value: `${rankStatus.streakWithinTopAt}` },
+	{ label: '連続フライング回数', value: `${rankStatus.streakFlyingAt}` },
+	{
+		label: 'プロテクトクールタイム',
+		value: rankStatus.protectCoolTime > 0 ? `回復まで残り${rankStatus.protectCoolTime}回` : '回復済み',
+		isGauge: true,
+	},
 ]);
 </script>
 
-<div class="rank-status" bind:this={containerElement}>
+<div class="status" bind:this={containerElement}>
 	{#if isLoading}
-		<div class="rank-status__skeleton">
+		<div class="status-skeleton">
 			{#each Array(6) as _, i (i)}
-				<div class="skeleton rank-status__skeleton-item"></div>
+				<div class="status-skeleton-item"></div>
 			{/each}
 		</div>
 	{:else}
-		<h3 class="rank-status__title">ランクステータス</h3>
-		<div class="rank-status__list">
+		<h3 class="status-title">ランクステータス</h3>
+		<div class="status-list">
 			{#each statusItems as item (item.label)}
-				<div class="rank-status__item">
-					<span class="rank-status__label">{item.label}</span>
-					<span class="rank-status__value font-alphanumeric">{item.value}</span>
+				<div class="status-item" class:status-item-gauge={item.isGauge}>
+					<span class="status-label">{item.label}</span>
+					{#if item.isGauge}
+						<div class="status-gauge">
+							<GaugeBar value={100} text={item.value} textPosition="center" />
+						</div>
+					{:else}
+						<span class="status-value">{item.value}</span>
+					{/if}
 				</div>
 			{/each}
 		</div>
@@ -56,57 +67,60 @@ const statusItems = $derived([
 </div>
 
 <style>
-	.rank-status {
-		padding: var(--spacing-lg);
+	.status {
+		padding: 20px;
+		background: #201E3A;
+		border-radius: 5px;
+		color: #fff;
 	}
 
-	.rank-status__title {
-		font-family: var(--font-japanese);
-		font-size: var(--font-size-xl);
-		font-weight: var(--font-weight-semibold);
-		color: var(--color-text-primary);
-		margin-bottom: var(--spacing-md);
+	.status-title {
+		font-size: 1rem;
+		font-weight: 600;
+		margin-bottom: 10px;
 	}
 
-	.rank-status__list {
+	.status-list {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-sm);
+		gap: 10px;
 	}
 
-	.rank-status__item {
+	.status-item {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		padding: var(--spacing-xs) 0;
-		border-bottom: 1px solid var(--color-border-secondary);
+		font-size: 0.93rem;
 	}
 
-	.rank-status__item:last-child {
-		border-bottom: none;
+	.status-label {
+		color: #c6c9df;
 	}
 
-	.rank-status__label {
-		font-family: var(--font-japanese);
-		font-size: var(--font-size-sm);
-		color: var(--color-text-secondary);
+	.status-value {
+		font-weight: 600;
 	}
 
-	.rank-status__value {
-		font-size: var(--font-size-base);
-		font-weight: var(--font-weight-semibold);
-		color: var(--color-text-primary);
+	.status-item.status-item-gauge {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 10px;
+		margin-top: 10px;
 	}
 
-	/* スケルトン */
-	.rank-status__skeleton {
+	.status-gauge {
+		width: 100%;
+	}
+
+	.status-skeleton {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-sm);
+		gap: 10px;
 	}
 
-	.rank-status__skeleton-item {
-		height: 28px;
-		border-radius: var(--radius-md);
+	.status-skeleton-item {
+		height: 25px;
+		border-radius: 10px;
+		background: #2f2d4a;
 	}
 </style>

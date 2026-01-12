@@ -4,7 +4,6 @@
  */
 
 @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=M+PLUS+2:wght@400;500;600;700&family=Michroma&display=swap');
-@import './variables.css';
 
 /* リセットスタイル */
 *,
@@ -22,8 +21,8 @@ html {
 }
 
 body {
-	font-family: var(--font-japanese);
-	background-color: #1c1724;
+	font-family: 'M PLUS 2', sans-serif;
+	background-color: #1C1724;
 	color: #fff;
 	line-height: 1.6;
 	min-height: 100vh;
@@ -36,31 +35,18 @@ h3,
 h4,
 h5,
 h6 {
-	font-family: var(--font-alphanumeric);
-}
-
-/* 特殊文字用クラス */
-.font-special {
-	font-family: var(--font-special);
-}
-
-.font-alphanumeric {
-	font-family: var(--font-alphanumeric);
-}
-
-.font-japanese {
-	font-family: var(--font-japanese);
+	font-family: 'Lexend', sans-serif;
 }
 
 /* リンクスタイル */
 a {
-	color: var(--color-accent-primary);
+	color: #e2e7ff;
 	text-decoration: none;
-	transition: color var(--transition-fast);
+	transition: color 150ms ease;
 }
 
 a:hover {
-	color: var(--color-text-primary);
+	color: #fff;
 }
 
 /* ボタンリセット */
@@ -105,16 +91,16 @@ img {
 }
 
 ::-webkit-scrollbar-track {
-	background: var(--color-bg-secondary);
+	background: #1C1724;
 }
 
 ::-webkit-scrollbar-thumb {
-	background: var(--color-border-primary);
-	border-radius: var(--radius-full);
+	background: #2F2D53;
+	border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-	background: var(--color-accent-secondary);
+	background: #4E4B71;
 }
 
 input:focus-visible {
@@ -123,13 +109,13 @@ input:focus-visible {
 
 /* セレクション */
 ::selection {
-	background-color: var(--color-accent-primary);
-	color: var(--color-bg-primary);
+	background-color: #B8C4FF;
+	color: #0d0f1a;
 }
 
 /* フォーカスアウトライン */
 :focus-visible {
-	outline: 2px solid var(--color-border-focus);
+	outline: 2px solid #B8C4FF;
 	outline-offset: 2px;
 }
 
@@ -150,37 +136,6 @@ input:focus-visible {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-}
-
-/* コンテナ */
-.container {
-	width: 100%;
-	max-width: var(--content-max-width);
-	margin: 0 auto;
-	padding: 0 var(--spacing-md);
-}
-
-/* カード共通スタイル */
-.card {
-	background-color: var(--color-bg-card);
-	border-radius: var(--radius-lg);
-	border: 1px solid var(--color-border-secondary);
-}
-
-/* スケルトンローディング */
-.skeleton {
-	background: linear-gradient(90deg, var(--color-bg-card) 25%, var(--color-bg-card-hover) 50%, var(--color-bg-card) 75%);
-	background-size: 200% 100%;
-	animation: skeleton-loading 1.5s infinite;
-}
-
-@keyframes skeleton-loading {
-	0% {
-		background-position: 200% 0;
-	}
-	100% {
-		background-position: -200% 0;
-	}
 }
 
 /* フェードイン */

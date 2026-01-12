@@ -16,11 +16,9 @@ interface Props {
 	data: HeatmapResponseT;
 	/** ローディング状態 */
 	isLoading?: boolean;
-	/** 高さ */
-	height?: string;
 }
 
-const { title, data, isLoading = false, height = '300px' }: Props = $props();
+const { title, data, isLoading = false }: Props = $props();
 
 /** 7列 x N行のグリッドデータを生成 */
 const gridData = $derived(() => {
@@ -138,21 +136,32 @@ const chartOptions: EChartsOption = $derived({
 });
 </script>
 
-<div class="heatmap card">
-	<h4 class="heatmap__title">{title}</h4>
-	<BaseChart options={chartOptions} {height} {isLoading} />
+<div class="chart-card">
+	<h4 class="chart-title">{title}</h4>
+	<div class="chart-body">
+		<BaseChart options={chartOptions} height="100%" {isLoading} />
+	</div>
 </div>
 
 <style>
-	.heatmap {
-		padding: var(--spacing-lg);
+	.chart-card {
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+		padding: 20px;
+		background: #201E3A;
+		border-radius: 5px;
+		color: #ffffff;
 	}
 
-	.heatmap__title {
-		font-family: var(--font-japanese);
-		font-size: var(--font-size-lg);
-		font-weight: var(--font-weight-semibold);
-		color: var(--color-text-primary);
-		margin-bottom: var(--spacing-md);
+	.chart-title {
+		font-size: 1rem;
+		font-weight: 600;
+		margin: 0;
+	}
+
+	.chart-body {
+		width: 100%;
+		aspect-ratio: 1 / 1;
 	}
 </style>

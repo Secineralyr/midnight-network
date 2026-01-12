@@ -1,8 +1,8 @@
 <script lang="ts">
 import type { RankHistResponseT } from '@midnight-network/shared/rpc/leaderboard/models';
+import { RankType } from '@midnight-network/shared/rank';
 import type { EChartsOption } from 'echarts';
-import { getRankGrade, getRankText, type RankTypeValue } from '$lib/utils/rank';
-import Select from '../ui/Select.svelte';
+import { getRankGrade, getRankIconPath, getRankText, type RankTypeValue } from '$lib/utils/rank';
 import BaseChart from './BaseChart.svelte';
 
 /**
@@ -28,65 +28,116 @@ interface Props {
 
 const { data, sortBy = 'rank', onSortChange, isLoading = false, height = '200px' }: Props = $props();
 
-/** ソートオプション */
-const sortOptions = [
-	{ label: 'ランク', value: 'rank' },
-	{ label: 'WR', value: 'wr' },
-	{ label: '平均タイム', value: 'avgTime' },
-	{ label: '今日のタイム', value: 'matchTime' },
-];
-
 /**
  * ランクの色を取得
  * @param rank - ランク値
- * @returns 色コード
+ * @returns 色コードまたはグラデーションオブジェクト
  */
-function getRankColor(rank: RankTypeValue): string {
+function getRankColor(rank: RankTypeValue) {
 	const grade = getRankGrade(rank);
+
+	// tachyonとluminalはグラデーション
+	if (grade === 'tachyon') {
+		return {
+			type: 'linear',
+			x: 0,
+			y: 0,
+			x2: 1,
+			y2: 0,
+			colorStops: [
+				{ offset: 0, color: '#00CDE8' },
+				{ offset: 0.5, color: '#371EC4' },
+				{ offset: 1, color: '#6069EB' },
+			],
+		};
+	}
+
+	if (grade === 'luminal') {
+		return {
+			type: 'linear',
+			x: 0,
+			y: 0,
+			x2: 1,
+			y2: 0,
+			colorStops: [
+				{ offset: 0, color: '#FF9999' },
+				{ offset: 0.5, color: '#99CCFF' },
+				{ offset: 1, color: '#FFFF99' },
+			],
+		};
+	}
+
+	// その他は単色
 	const colorMap: Record<string, string> = {
-		tachyon: '#00d4ff',
-		luminal: '#ff6b9d',
-		gold: '#ffd700',
-		silver: '#c0c0c0',
-		bronze: '#cd7f32',
-		normal: '#808080',
-		beginner: '#f5f5f5',
-		norank: '#4a4a4a',
+		gold: '#FFD500',
+		silver: '#CCCCCC',
+		bronze: '#E69645',
+		normal: '#666666',
+		beginner: '#A6A6A6',
 	};
-	return colorMap[grade] || '#808080';
+	return colorMap[grade] || '#000';
+}
+
+/**
+ * xAxis用のrich設定を生成
+ * @returns rich設定オブジェクト
+ */
+function generateRichConfig(): Record<string, object> {
+	const rich: Record<string, object> = {};
+	data.forEach((d, index) => {
+		const iconPath = d.rank === RankType.NoRank ? '/rank/time/nr.png' : getRankIconPath(d.rank);
+		rich[`rank${index}`] = {
+			backgroundColor: {
+				image: iconPath,
+			},
+			height: 32,
+		};
+	});
+	return rich;
 }
 
 /** チャートオプション */
-const chartOptions: EChartsOption = $derived({
+const chartOptions = $derived({
 	grid: {
-		left: 80,
+		left: 60,
 		right: 20,
 		top: 20,
 		bottom: 60,
 	},
 	xAxis: {
 		type: 'category',
-		data: data.map((d) => getRankText(d.rank)),
+		data: data.map((_, index) => index.toString()),
 		axisLabel: {
-			rotate: 0,
 			interval: 0,
+			formatter: (_: string, index: number) => {
+				return `{rank${index}|}`;
+			},
+			rich: generateRichConfig(),
+		},
+		axisTick: {
+			show: false,
+		},
+		axisLine: {
+			show: false,
 		},
 	},
 	yAxis: {
 		type: 'value',
-		name: 'player',
-		nameLocation: 'middle',
-		nameGap: 50,
 		splitNumber: 4,
 		axisLabel: {
-			formatter: (value: number) => `${value.toLocaleString()} player`,
+			formatter: (value: number) => `${value.toLocaleString()} %`,
+		},
+		splitLine: {
+			lineStyle: {
+				color: 'rgba(255, 255, 255, 0.1)',
+			},
 		},
 	},
 	series: [
 		{
 			type: 'bar',
 			data: data.map((d) => ({
-				value: d.percent * 1000,
+				value: d.percent,
 				itemStyle: {
 					color: getRankColor(d.rank),
 				},
@@ -100,9 +151,10 @@ const chartOptions: EChartsOption = $derived({
 			type: 'shadow',
 		},
 		formatter: (params: unknown) => {
-			const p = params as { name: string; value: number }[];
-			if (p?.[0]) {
-				return `${p[0].name}<br/>${p[0].value.toLocaleString()} player`;
+			const p = params as { dataIndex: number; value: number }[];
+			if (p?.[0] && data[p[0].dataIndex]) {
+				const rankName = getRankText(data[p[0].dataIndex].rank);
+				return `${rankName}<br/>${p[0].value.toLocaleString()} %`;
 			}
 			return '';
 		},
@@ -118,29 +170,12 @@ function handleSortChange(criteria: string): void {
 }
 </script>
 
-<div class="rank-histogram">
-	<div class="rank-histogram__header">
-		<span class="rank-histogram__label">順位基準</span>
-		<Select options={sortOptions} value={sortBy} onchange={handleSortChange} />
-	</div>
+<div class="histogram">
 	<BaseChart options={chartOptions} {height} {isLoading} />
 </div>
 
 <style>
-	.rank-histogram {
-		padding: var(--spacing-lg);
-	}
-
-	.rank-histogram__header {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-md);
-		margin-bottom: var(--spacing-md);
-	}
-
-	.rank-histogram__label {
-		font-family: var(--font-japanese);
-		font-size: var(--font-size-sm);
-		color: var(--color-text-secondary);
+	.histogram {
+		padding: 0;
 	}
 </style>

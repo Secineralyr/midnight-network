@@ -1,5 +1,7 @@
 <script lang="ts">
+import { RankType } from '@midnight-network/shared/rank';
 import type { EChartsOption } from 'echarts';
+import { getRankBadgePath, getRankFromPt } from '$lib/utils/rank';
 import Select from '../ui/Select.svelte';
 import BaseChart from './BaseChart.svelte';
 
@@ -31,6 +33,8 @@ interface Props {
 	isLoading?: boolean;
 	/** 高さ */
 	height?: string;
+	/** ランクバッジを表示するか */
+	showRankBadge?: boolean;
 }
 
 const {
@@ -45,6 +49,7 @@ const {
 	onSpanChange,
 	isLoading = false,
 	height = '200px',
+	showRankBadge = false,
 }: Props = $props();
 
 /** チャートオプション */
@@ -100,7 +105,18 @@ const chartOptions: EChartsOption = $derived({
 		formatter: (params: unknown) => {
 			const p = params as { name: string; value: number }[];
 			if (p?.[0]) {
-				return `${p[0].name}<br/>pt: ${p[0].value.toLocaleString()}`;
+				const pt = p[0].value;
+				let html = `${p[0].name}<br/>pt: ${pt.toLocaleString()}`;
+
+				if (showRankBadge) {
+					const rank = getRankFromPt(pt);
+					if (rank !== RankType.NoRank) {
+						const badgePath = getRankBadgePath(rank);
+						html += `<br/><span style="vertical-align: middle">ランク: </span><img src="${badgePath}" alt="Rank" style="display: inline; width: 24px; height: 24px; vertical-align: middle; margin-top: 4px;" />`;
+					}
+				}
+
+				return html;
 			}
 			return '';
 		},
@@ -116,30 +132,31 @@ function handleSpanChange(span: string): void {
 }
 </script>
 
-<div class="line-chart card">
-	<div class="line-chart__header">
-		<h4 class="line-chart__title">{title}</h4>
+<div class="chart-card">
+	<div class="chart-header">
+		<h4 class="chart-title">{title}</h4>
 		<Select options={spanOptions} value={currentSpan} onchange={handleSpanChange} />
 	</div>
 	<BaseChart options={chartOptions} {height} {isLoading} />
 </div>
 
 <style>
-	.line-chart {
-		padding: var(--spacing-lg);
+	.chart-card {
+		padding: 20px;
+		background: #201E3A;
+		border-radius: 5px;
+		color: #ffffff;
 	}
 
-	.line-chart__header {
+	.chart-header {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		margin-bottom: var(--spacing-md);
+		margin-bottom: 10px;
 	}
 
-	.line-chart__title {
-		font-family: var(--font-japanese);
-		font-size: var(--font-size-lg);
-		font-weight: var(--font-weight-semibold);
-		color: var(--color-text-primary);
+	.chart-title {
+		font-size: 1rem;
+		font-weight: 600;
 	}
 </style>

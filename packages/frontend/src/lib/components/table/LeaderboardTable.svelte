@@ -99,7 +99,7 @@ function handleRowClick(username: string): void {
  * @param row - 行要素
  */
 function handleRowMouseEnter(row: HTMLButtonElement): void {
-	animate(row, { backgroundColor: 'rgba(45, 51, 71, 0.5)' }, { duration: 0.15 });
+	animate(row, { backgroundColor: '#323054' }, { duration: 0.15 });
 }
 
 /**
@@ -107,65 +107,75 @@ function handleRowMouseEnter(row: HTMLButtonElement): void {
  * @param row - 行要素
  */
 function handleRowMouseLeave(row: HTMLButtonElement): void {
-	animate(row, { backgroundColor: 'transparent' }, { duration: 0.15 });
+	animate(row, { backgroundColor: '#2a2845' }, { duration: 0.15 });
 }
 </script>
 
-<div class="leaderboard-table">
+<div class="table-root">
+	<div class="table-header">
+		<span class="table-header-cell">順位</span>
+		<span class="table-header-cell">前日比</span>
+		<span class="table-header-cell table-header-cell-wide">名前</span>
+		<span class="table-header-cell">WR</span>
+		<span class="table-header-cell">Avg</span>
+		<span class="table-header-cell">pt</span>
+		<span class="table-header-cell">ランク</span>
+	</div>
 	{#if isLoading}
-		<div class="leaderboard-table__skeleton">
+		<div class="table-skeleton">
 			{#each Array(10) as _, i (i)}
-				<div class="skeleton leaderboard-table__skeleton-row"></div>
+				<div class="table-skeleton-row"></div>
 			{/each}
 		</div>
 	{:else}
 		{#if myRanking}
-			<div class="leaderboard-table__my-ranking">
+			<div class="table-highlight">
 				<button
 					type="button"
-					class="leaderboard-table__row leaderboard-table__row--highlight"
+					class="table-row"
+					class:highlighted={true}
 					onclick={() => handleRowClick(myRanking.user.username)}
 				>
-					<span class="leaderboard-table__cell font-alphanumeric">{formatPlace(myRanking.place)}</span>
-					<span class="leaderboard-table__cell font-alphanumeric">{formatPlaceChange(myRanking.place, myRanking.previousPlace)}</span>
+					<span class="table-cell">{formatPlace(myRanking.place)}</span>
+					<span class="table-cell">{formatPlaceChange(myRanking.place, myRanking.previousPlace)}</span>
 					<img
-						src="/images/default-avatar.png"
+						src="https://placehold.co/400"
 						alt={myRanking.user.username}
-						class="leaderboard-table__avatar"
+						class="avatar"
 					/>
-					<span class="leaderboard-table__cell leaderboard-table__cell--name font-alphanumeric">@{myRanking.user.username}</span>
-					<span class="leaderboard-table__cell font-alphanumeric">{formatWinRate(myRanking.wr)}</span>
-					<span class="leaderboard-table__cell font-alphanumeric">{formatAvgTime(myRanking.averageTime)}</span>
-					<span class="leaderboard-table__cell font-alphanumeric">{formatPt(myRanking.totalPt)}</span>
-					<div class="leaderboard-table__rank">
-						<RankIcon rank={myRanking.rank} size="sm" />
+					<span class="table-cell name">@{myRanking.user.username}</span>
+					<span class="table-cell">{formatWinRate(myRanking.wr)}</span>
+					<span class="table-cell">{formatAvgTime(myRanking.averageTime)}</span>
+					<span class="table-cell">{formatPt(myRanking.totalPt)}</span>
+					<div class="table-rank">
+						<RankIcon rank={myRanking.rank} />
 					</div>
 				</button>
 			</div>
 		{/if}
-		<div class="leaderboard-table__list">
+		<div class="table-list">
 			{#each table.getRowModel().rows as row (row.id)}
 				{@const rowData = row.original}
 				<button
 					type="button"
-					class="leaderboard-table__row"
+					class="table-row"
 					onclick={() => handleRowClick(rowData.user.username)}
 					onmouseenter={(e) => handleRowMouseEnter(e.currentTarget as HTMLButtonElement)}
 					onmouseleave={(e) => handleRowMouseLeave(e.currentTarget as HTMLButtonElement)}
 				>
-					<span class="leaderboard-table__cell font-alphanumeric">{formatPlace(rowData.place)}</span>
-					<span class="leaderboard-table__cell font-alphanumeric">{formatPlaceChange(rowData.place, rowData.previousPlace)}</span>
+					<span class="table-cell">{formatPlace(rowData.place)}</span>
+					<span class="table-cell">{formatPlaceChange(rowData.place, rowData.previousPlace)}</span>
 					<img
-						src="/images/default-avatar.png"
+						src="https://placehold.co/400"
 						alt={rowData.user.username}
-						class="leaderboard-table__avatar"
+						class="avatar"
 					/>
-					<span class="leaderboard-table__cell leaderboard-table__cell--name font-alphanumeric">@{rowData.user.username}</span>
-					<span class="leaderboard-table__cell font-alphanumeric">{formatWinRate(rowData.wr)}</span>
-					<span class="leaderboard-table__cell font-alphanumeric">{formatAvgTime(rowData.averageTime)}</span>
-					<span class="leaderboard-table__cell font-alphanumeric">{formatPt(rowData.totalPt)}</span>
-					<div class="leaderboard-table__rank">
-						<RankIcon rank={rowData.rank} size="sm" />
+					<span class="table-cell name">@{rowData.user.username}</span>
+					<span class="table-cell">{formatWinRate(rowData.wr)}</span>
+					<span class="table-cell">{formatAvgTime(rowData.averageTime)}</span>
+					<span class="table-cell">{formatPt(rowData.totalPt)}</span>
+					<div class="table-rank">
+						<RankIcon rank={rowData.rank} />
 					</div>
 				</button>
 			{/each}
@@ -174,84 +184,111 @@ function handleRowMouseLeave(row: HTMLButtonElement): void {
 </div>
 
 <style>
-	.leaderboard-table {
+	.table-root {
 		width: 100%;
+		color: #ffffff;
+		font-size: 14px;
 	}
 
-	.leaderboard-table__my-ranking {
-		margin-bottom: var(--spacing-md);
+	.table-header {
+		display: grid;
+		grid-template-columns: 40px 40px 40px 1fr 80px 80px 80px 40px;
+		gap: 10px;
+		padding: 10px 20px;
+		color: #fff;
+		font-size: 0.875rem;
+		font-family: 'M PLUS 2', sans-serif;
+		border-bottom: 1px solid #d3d3d3;
+		margin-bottom: 10px;
 	}
 
-	.leaderboard-table__list {
+	.table-header-cell {
+		white-space: nowrap;
+	}
+
+	.table-header-cell-wide {
+		grid-column: span 2;
+	}
+
+	.table-highlight {
+		margin-bottom: 12px;
+	}
+
+	.table-list {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-xs);
+		gap: 10px;
 	}
 
-	.leaderboard-table__row {
+	.table-row {
 		display: grid;
 		grid-template-columns: 60px 60px 40px 1fr 80px 80px 80px 40px;
 		align-items: center;
-		gap: var(--spacing-md);
-		padding: var(--spacing-sm) var(--spacing-md);
-		background-color: var(--color-bg-card);
-		border: 1px solid var(--color-border-secondary);
-		border-radius: var(--radius-lg);
-		cursor: pointer;
-		transition: border-color var(--transition-fast);
-		width: 100%;
+		gap: 10px;
+		padding: 10px 20px;
+		background: #201E3A;
+		border-radius: 5px;
 		text-align: left;
+		transition: background 0.15s ease;
 	}
 
-	.leaderboard-table__row:hover {
-		border-color: var(--color-border-focus);
+	.table-row:hover {
+		background: #323054;
 	}
 
-	.leaderboard-table__row--highlight {
-		background-color: var(--color-bg-card-hover);
-		border-color: var(--color-accent-primary);
+	.table-row.highlighted {
+		background: #343259;
 	}
 
-	.leaderboard-table__cell {
-		font-size: var(--font-size-sm);
-		color: var(--color-text-primary);
+	.table-cell {
+		white-space: nowrap;
 	}
 
-	.leaderboard-table__cell--name {
-		font-weight: var(--font-weight-semibold);
+	.table-cell.name {
+		font-size: 1rem;
+		font-weight: 600;
 	}
 
-	.leaderboard-table__avatar {
+	.avatar {
 		width: 32px;
 		height: 32px;
-		border-radius: var(--radius-full);
+		border-radius: 50%;
+		border: 1px solid rgba(255, 255, 255, 0.18);
 		object-fit: cover;
 	}
 
-	.leaderboard-table__rank {
+	.table-rank {
 		display: flex;
 		justify-content: center;
 	}
 
-	/* スケルトン */
-	.leaderboard-table__skeleton {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-xs);
+	.table-rank :global(.rank-icon) {
+		width: 32px;
 	}
 
-	.leaderboard-table__skeleton-row {
+	.table-skeleton {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+	}
+
+	.table-skeleton-row {
 		height: 52px;
-		border-radius: var(--radius-lg);
+		border-radius: 12px;
+		background: #2f2d4a;
 	}
 
 	@media (max-width: 768px) {
-		.leaderboard-table__row {
+		.table-header {
+			display: none;
+		}
+
+		.table-row {
 			grid-template-columns: 40px 40px 32px 1fr 60px 40px;
 		}
 
-		.leaderboard-table__cell:nth-child(5),
-		.leaderboard-table__cell:nth-child(6) {
+		.table-cell:nth-child(5),
+		.table-cell:nth-child(6) {
 			display: none;
 		}
 	}

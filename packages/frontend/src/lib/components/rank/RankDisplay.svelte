@@ -4,6 +4,7 @@ import type { CurrentRankT } from '@midnight-network/shared/rpc/user/models';
 import { animate } from 'motion';
 import { formatPt } from '$lib/utils/format';
 import RankIcon from './RankIcon.svelte';
+import GaugeBar from '$lib/components/ui/GaugeBar.svelte';
 
 /**
  * ランク表示コンポーネント
@@ -49,39 +50,30 @@ const progressPercent = $derived(() => {
 	if (isNoRank || !('nextRankPt' in currentRank)) {
 		return 0;
 	}
-	const pt = currentRank.nextRankPt;
-	if (pt >= 0) {
-		return 0;
-	}
-	return Math.min(100, Math.max(0, ((1000 + pt) / 1000) * 100));
+	return (1 - (currentRank.nextRankPt / 500)) * 100;
 });
 </script>
 
 <div class="rank-display" bind:this={containerElement}>
 	{#if isLoading}
-		<div class="rank-display__skeleton">
-			<div class="skeleton rank-display__skeleton-icon"></div>
-			<div class="skeleton rank-display__skeleton-bar"></div>
+		<div class="rank-display-skeleton">
+			<div class="rank-display-skeleton-icon"></div>
+			<div class="rank-display-skeleton-bar"></div>
 		</div>
 	{:else}
-		<h3 class="rank-display__title">現在ランク</h3>
-		<div class="rank-display__icon">
-			<RankIcon rank={rankValue} size="xl" />
+		<h3 class="rank-display-title">現在ランク</h3>
+		<div class="rank-display-icon">
+			<RankIcon rank={rankValue} />
 		</div>
 		{#if !isNoRank && 'nextRankPt' in currentRank}
-			<div class="rank-display__progress">
-				<span class="rank-display__label">次のランクまで</span>
-				<div class="rank-display__bar">
-					<div class="rank-display__bar-fill" style="width: {progressPercent()}%"></div>
-					<span class="rank-display__bar-text">{nextRankPtText()}</span>
-				</div>
+			<div class="rank-display-progress">
+				<span class="rank-display-label">次のランクまで</span>
+				<GaugeBar value={progressPercent()} text={nextRankPtText()} />
 			</div>
 		{:else if isNoRank && 'remainingParticipationCount' in currentRank}
-			<div class="rank-display__norank">
-				<span class="rank-display__label">ランク取得まで残り</span>
-				<span class="rank-display__count"
-					>{currentRank.remainingParticipationCount}回参加</span
-				>
+			<div class="rank-display-norank">
+				<span class="rank-display-label">ランク取得まで残り</span>
+				<span class="rank-display-count">{currentRank.remainingParticipationCount}回</span>
 			</div>
 		{/if}
 	{/if}
@@ -89,94 +81,58 @@ const progressPercent = $derived(() => {
 
 <style>
 	.rank-display {
-		padding: var(--spacing-lg);
+		padding: 20px;
+		background: #201E3A;
+		border-radius: 5px;
+		color: #ffffff;
 	}
 
-	.rank-display__title {
-		font-family: var(--font-japanese);
-		font-size: var(--font-size-xl);
-		font-weight: var(--font-weight-semibold);
-		color: var(--color-text-primary);
-		margin-bottom: var(--spacing-lg);
+	.rank-display-title {
+		font-size: 1rem;
+		font-weight: 600;
+		margin-bottom: 10px;
 	}
 
-	.rank-display__icon {
+	.rank-display-icon {
 		display: flex;
 		justify-content: center;
-		margin-bottom: var(--spacing-xl);
+		margin-bottom: 20px;
+		margin-top: 20px;
 	}
 
-	.rank-display__progress {
+	.rank-display-icon :global(.rank-icon) {
+		width: 80px;
+	}
+
+	.rank-display-progress {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-sm);
+		gap: 10px;
 	}
 
-	.rank-display__label {
-		font-size: var(--font-size-sm);
-		color: var(--color-text-secondary);
+	.rank-display-label {
+		font-size: 0.86rem;
+		color: #fff;
 	}
 
-	.rank-display__bar {
-		position: relative;
-		height: 32px;
-		background-color: var(--color-bg-secondary);
-		border-radius: var(--radius-lg);
-		overflow: hidden;
-	}
-
-	.rank-display__bar-fill {
-		position: absolute;
-		top: 0;
-		left: 0;
-		height: 100%;
-		background-color: var(--color-accent-primary);
-		border-radius: var(--radius-lg);
-		transition: width var(--transition-normal);
-	}
-
-	.rank-display__bar-text {
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		font-family: var(--font-alphanumeric);
-		font-size: var(--font-size-sm);
-		font-weight: var(--font-weight-medium);
-		color: var(--color-text-primary);
-	}
-
-	.rank-display__norank {
+	.rank-display-norank {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-sm);
+		gap: 20px;
 		text-align: center;
 	}
 
-	.rank-display__count {
-		font-family: var(--font-alphanumeric);
-		font-size: var(--font-size-lg);
-		font-weight: var(--font-weight-semibold);
-		color: var(--color-text-primary);
+	.rank-display-count {
+		font-size: 1rem;
+		font-weight: 600;
 	}
 
-	/* スケルトン */
-	.rank-display__skeleton {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: var(--spacing-lg);
-	}
-
-	.rank-display__skeleton-icon {
-		width: 120px;
-		height: 120px;
-		border-radius: var(--radius-lg);
-	}
-
-	.rank-display__skeleton-bar {
-		width: 100%;
-		height: 32px;
-		border-radius: var(--radius-lg);
+	@keyframes skeleton-loading {
+		0% {
+			background-position: 200% 0;
+		}
+		100% {
+			background-position: -200% 0;
+		}
 	}
 </style>

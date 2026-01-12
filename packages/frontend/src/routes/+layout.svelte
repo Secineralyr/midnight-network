@@ -34,7 +34,7 @@ onMount(() => {
 </svelte:head>
 
 <QueryClientProvider client={queryClient}>
-	<div class="app">
+	<div class="app" data-sveltekit-preload-code="viewport" data-sveltekit-preload-data="hover">
 		<HeroBg />
 		<Header user={currentUser} />
 		<main class="main">
@@ -47,14 +47,10 @@ onMount(() => {
 </QueryClientProvider>
 
 <style>
-	.app {
-		display: flex;
-		flex-direction: column;
-		min-height: 100vh;
-	}
-
 	.main {
-		flex: 1;
-		padding-top: var(--header-height);
+		padding-top: 56px;
+		max-width: 840px;
+		margin: 0 auto;
+		margin-bottom: 80px;
 	}
 </style>

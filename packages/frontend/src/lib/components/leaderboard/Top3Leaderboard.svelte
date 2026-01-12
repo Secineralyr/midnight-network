@@ -45,9 +45,9 @@ function handleUserClick(username: string): void {
 }
 </script>
 
-<div class="top3-leaderboard" bind:this={containerElement}>
-	<h3 class="top3-leaderboard__title">{title}</h3>
-	<div class="top3-leaderboard__list">
+<div class="top-panel" bind:this={containerElement}>
+	<h3 class="top-title">{title}</h3>
+	<div class="top-list">
 		{#if isLoading}
 			{#each [1, 2, 3] as index (index)}
 				<Top3Card
@@ -85,21 +85,25 @@ function handleUserClick(username: string): void {
 </div>
 
 <style>
-	.top3-leaderboard {
-		padding: var(--spacing-lg);
-	}
-
-	.top3-leaderboard__title {
-		font-family: var(--font-japanese);
-		font-size: var(--font-size-lg);
-		font-weight: var(--font-weight-semibold);
-		color: var(--color-text-primary);
-		margin-bottom: var(--spacing-md);
-	}
-
-	.top3-leaderboard__list {
+	.top-panel {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-sm);
+		gap: 20px;
+		padding: 20px;
+		background: #201E3A;
+		border-radius: 5px;
+		width: 100%;
+	}
+
+	.top-title {
+		font-size: 1.15rem;
+		font-weight: 600;
+		color: #fff;
+	}
+
+	.top-list {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
 	}
 </style>

@@ -2,6 +2,7 @@
 import type { Container, Engine, ILoadParams } from '@tsparticles/engine';
 import { loadSlim } from '@tsparticles/slim';
 import { onMount } from 'svelte';
+import { page } from '$app/state';
 
 /**
  * ヒーロー背景コンポーネント
@@ -129,13 +130,13 @@ onMount(() => {
 });
 </script>
 
-<div class="hero-bg">
+<div class={{ 'hero-bg': true, 'is-home': page.url.pathname === '/' }}>
 	<div bind:this={containerElement}></div>
 </div>
 
 <style>
 	.hero-bg {
-		position: fixed;
+		position: absolute;
 		top: 0;
 		left: 0;
 		right: 0;
@@ -143,7 +144,15 @@ onMount(() => {
 		z-index: -1;
 		overflow: hidden;
 		width: 100%;
-		height: 850px;
 		mask-image: linear-gradient(to bottom, black 0%, black 80%, transparent 90%);
+		transition: height 0.2s ease-in-out;
+	}
+
+	.is-home {
+		height: 850px;
+	}
+
+	.hero-bg:not(.is-home) {
+		height: 350px;
 	}
 </style>

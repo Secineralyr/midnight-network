@@ -1,6 +1,27 @@
 <script lang="ts">
 import { IconChevronDown } from '@tabler/icons-svelte';
-import { animate } from 'motion';
+import { cubicOut } from 'svelte/easing';
+
+/**
+ * ポップイントランジション
+ * フェードイン + スケール + ブラーで前に押し出される感じ
+ */
+function popIn(_node: Element, { duration = 150 }: { duration?: number } = {}) {
+	return {
+		duration,
+		easing: cubicOut,
+		css: (t: number) => {
+			const blur = (1 - t) * 6;
+			const scale = 0.92 + t * 0.08;
+			return `
+				opacity: ${t};
+				filter: blur(${blur}px);
+				transform: scale(${scale});
+				transform-origin: top center;
+			`;
+		}
+	};
+}
 
 /**
  * セレクトボックスコンポーネント
@@ -20,17 +41,14 @@ interface Props {
 	options: SelectOption[];
 	/** 現在の値 */
 	value: string;
-	/** ラベル */
-	label?: string;
 	/** 値変更ハンドラ */
 	onchange?: (value: string) => void;
 }
 
-let { options, value = $bindable(), label, onchange }: Props = $props();
+let { options, value = $bindable(), onchange }: Props = $props();
 
 let isOpen = $state(false);
 let containerElement: HTMLDivElement | undefined = $state();
-let dropdownElement: HTMLDivElement | undefined = $state();
 
 /** 現在選択されているオプションのラベル */
 const selectedLabel = $derived(options.find((opt) => opt.value === value)?.label || '');
@@ -40,11 +58,6 @@ const selectedLabel = $derived(options.find((opt) => opt.value === value)?.label
  */
 function toggleDropdown(): void {
 	isOpen = !isOpen;
-	if (dropdownElement) {
-		if (isOpen) {
-			animate(dropdownElement, { opacity: [0, 1], y: [-10, 0] }, { duration: 0.2 });
-		}
-	}
 }
 
 /**
@@ -71,22 +84,20 @@ function handleClickOutside(event: MouseEvent): void {
 <svelte:window onclick={handleClickOutside} />
 
 <div class="select" bind:this={containerElement}>
-	{#if label}
-		<span class="select__label">{label}</span>
-	{/if}
-	<button type="button" class="select__trigger" onclick={toggleDropdown} aria-expanded={isOpen}>
-		<span class="select__value">{selectedLabel}</span>
-		<span class="select__icon">
-			<IconChevronDown size={20} />
+	<button type="button" class="select-trigger" onclick={toggleDropdown} aria-expanded={isOpen}>
+		<span class="select-value">{selectedLabel}</span>
+		<span class="select-icon">
+			<IconChevronDown size={18} />
 		</span>
 	</button>
 	{#if isOpen}
-		<div class="select__dropdown" bind:this={dropdownElement}>
-			{#each options as option (option.value)}
+		<div class="select-menu" transition:popIn>
+			{#each options as option, i (option.value)}
 				<button
 					type="button"
-					class="select__option"
-					class:select__option--selected={option.value === value}
+					class="select-option"
+					class:selected={option.value === value}
+					style="--index: {i}"
 					onclick={() => selectOption(option.value)}
 				>
 					{option.label}
@@ -99,81 +110,81 @@ function handleClickOutside(event: MouseEvent): void {
 <style>
 	.select {
 		position: relative;
-		display: inline-flex;
-		flex-direction: column;
-		gap: var(--spacing-xs);
 	}
 
-	.select__label {
-		font-size: var(--font-size-sm);
-		color: var(--color-text-secondary);
-	}
-
-	.select__trigger {
+	.select-trigger {
+		padding: 5px 12px;
+		background: #2f2d4a;
+		border-radius: 4px;
+		color: #ffffff;
+		font-size: 0.85rem;
+		transition: background 0.15s ease;
 		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: var(--spacing-md);
-		padding: var(--spacing-sm) var(--spacing-md);
-		background-color: var(--color-bg-card);
-		border: 1px solid var(--color-border-secondary);
-		border-radius: var(--radius-lg);
-		color: var(--color-text-primary);
-		font-size: var(--font-size-base);
-		min-width: 120px;
-		cursor: pointer;
-		transition: border-color var(--transition-fast);
+		gap: 10px;
 	}
 
-	.select__trigger:hover {
-		border-color: var(--color-border-focus);
+	.select-value {
+		font-weight: 600;
 	}
 
-	.select__value {
-		font-family: var(--font-japanese);
+	.select-trigger:hover {
+		background: #35325a;
 	}
 
-	.select__icon {
-		color: var(--color-text-secondary);
-		transition: transform var(--transition-fast);
+	.select-icon {
+		color: #c6c9df;
+		transition: transform 0.2s ease;
+		display: inline-flex;
 	}
 
-	.select__trigger[aria-expanded='true'] .select__icon {
+	.select-trigger[aria-expanded='true'] .select-icon {
 		transform: rotate(180deg);
 	}
 
-	.select__dropdown {
+	.select-menu {
 		position: absolute;
 		top: 100%;
 		left: 0;
-		right: 0;
-		margin-top: var(--spacing-xs);
-		background-color: var(--color-bg-card);
-		border: 1px solid var(--color-border-secondary);
-		border-radius: var(--radius-lg);
+		min-width: 100%;
+		margin-top: 5px;
+		background: #23213a;
+		border-radius: 4px;
 		overflow: hidden;
-		z-index: var(--z-dropdown);
+		z-index: 9999;
+		box-shadow: 0 0px 5px rgba(0, 0, 0, 0.35);
 	}
 
-	.select__option {
-		display: block;
+	@keyframes slideInFromLeft {
+		from {
+			opacity: 0;
+			transform: translateX(-8px);
+		}
+		to {
+			opacity: 1;
+			transform: translateX(0);
+		}
+	}
+
+	.select-option {
 		width: 100%;
-		padding: var(--spacing-sm) var(--spacing-md);
+		padding: 10px;
 		text-align: left;
-		color: var(--color-text-primary);
-		font-size: var(--font-size-base);
-		font-family: var(--font-japanese);
-		background: none;
-		border: none;
+		color: #ffffff;
+		font-size: 0.975rem;
+		background: transparent;
 		cursor: pointer;
-		transition: background-color var(--transition-fast);
+		transition: background 0.15s ease;
+		white-space: nowrap;
+		animation: slideInFromLeft 0.2s ease forwards;
+		animation-delay: calc(var(--index) * 30ms);
+		opacity: 0;
 	}
 
-	.select__option:hover {
-		background-color: var(--color-bg-card-hover);
+	.select-option:hover {
+		background: #2f2d4a;
 	}
 
-	.select__option--selected {
-		background-color: var(--color-bg-secondary);
+	.select-option.selected {
+		background: #35325a;
 	}
 </style>

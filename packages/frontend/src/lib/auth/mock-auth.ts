@@ -1,14 +1,16 @@
 import { browser } from '$app/environment';
 
 export type MockUser = {
-	userId: string;
-	username: string;
-	avatarUrl?: string;
-};
+		userId: string;
+		username: string;
+		avatarUrl?: string;
+		rank?: number;
+	};
 
 const MOCK_USER: MockUser = {
 	userId: 'local-user',
 	username: 'local',
+	rank: 1,
 };
 
 const LOCAL_STORAGE_KEY = 'mn:mock-auth';

@@ -3,6 +3,7 @@
  */
 
 import { RankText, RankType } from '@midnight-network/shared/rank';
+import { rankPointThresholds } from '@midnight-network/shared/rank-status-system';
 
 /** ランクタイプの値型 */
 export type RankTypeValue = (typeof RankType)[keyof typeof RankType];
@@ -75,6 +76,33 @@ export function getRankClassName(rankValue: RankTypeValue): string {
  * @returns アイコンパス
  */
 export function getRankIconPath(rankValue: RankTypeValue): string {
-	const grade = getRankGrade(rankValue);
-	return `/images/ranks/${grade}.png`;
+	return `/rank/time/${rankValue}.png`;
+}
+
+/**
+ * ランクバッジのパスを取得する
+ * @param rankValue - ランクの数値
+ * @returns バッジパス
+ */
+export function getRankBadgePath(rankValue: RankTypeValue): string {
+	return `/rank/budge/${rankValue}.png`;
+}
+
+/**
+ * ptからランク番号を取得する
+ * @param pt - 累計pt
+ * @returns ランク番号（-1=NoRank, 0-12）
+ */
+export function getRankFromPt(pt: number): RankTypeValue {
+	if (pt <= 0) {
+		return RankType.NoRank;
+	}
+
+	for (const threshold of rankPointThresholds) {
+		if (pt >= threshold.minimumPoints) {
+			return threshold.rankNumber as RankTypeValue;
+		}
+	}
+
+	return RankType.NoRank;
 }

@@ -34,55 +34,41 @@ const isRankUp = $derived(result.rankShift === RankShiftType.RankUp);
 const isRankDown = $derived(result.rankShift === RankShiftType.RankDown);
 </script>
 
-<div class="last-result card" bind:this={containerElement}>
+<div class="result" bind:this={containerElement}>
 	{#if isLoading}
-		<div class="last-result__skeleton">
-			<div class="skeleton last-result__skeleton-title"></div>
-			<div class="skeleton last-result__skeleton-content"></div>
+		<div class="result-skeleton">
+			<div class="result-skeleton-title"></div>
+			<div class="result-skeleton-content"></div>
 		</div>
 	{:else}
-		<div class="last-result__header">
-			<h3 class="last-result__title">前回のリザルト</h3>
-			<span class="last-result__date font-alphanumeric"
-				>({formatDate(result.targetDate)})</span
-			>
+		<div class="result-header">
+			<h3 class="result-title">前回のリザルト</h3>
+			<span class="result-date">({formatDate(result.targetDate)})</span>
 		</div>
-		<div class="last-result__content">
-			<div class="last-result__stats">
-				<div class="last-result__stat">
-					<span class="last-result__stat-label">順位</span>
-					<span class="last-result__stat-value last-result__stat-value--place font-alphanumeric">
-						{result.place}
-					</span>
+		<div class="result-content">
+			<div class="result-stats">
+				<div class="result-stat">
+					<span class="result-label">順位</span>
+					<span class="result-value result-place">{result.place}</span>
 				</div>
-				<div class="last-result__stat">
-					<span class="last-result__stat-label">タイム</span>
-					<span class="last-result__stat-value font-alphanumeric">
-						{formatTimeDiff(result.time)}
-					</span>
+				<div class="result-stat">
+					<span class="result-label">タイム</span>
+					<span class="result-value">{formatTimeDiff(result.time)}</span>
 				</div>
-				<div class="last-result__stat">
-					<span class="last-result__stat-label">獲得pt</span>
-					<span class="last-result__stat-value font-alphanumeric">
-						{result.earnedPt >= 0 ? '+' : ''}{result.earnedPt}
-					</span>
+				<div class="result-stat">
+					<span class="result-label">獲得pt</span>
+					<span class="result-value">{result.earnedPt >= 0 ? '+' : ''}{result.earnedPt}</span>
 				</div>
-				<div class="last-result__total">
-					<span class="last-result__total-value font-alphanumeric">
-						= {formatPt(result.latestTotalPt)}
-					</span>
+				<div class="result-total">
+					<span class="result-total-value">= {formatPt(result.latestTotalPt)}</span>
 					{#if isRankUp}
-						<span class="last-result__rank-shift last-result__rank-shift--up">
-							Rank up!
-						</span>
+						<span class="result-shift up">Rank up!</span>
 					{:else if isRankDown}
-						<span class="last-result__rank-shift last-result__rank-shift--down">
-							Rank down
-						</span>
+						<span class="result-shift down">Rank down</span>
 					{/if}
 				</div>
 			</div>
-			<div class="last-result__rank">
+			<div class="result-rank">
 				<RankIcon rank={result.latestRank} size="lg" />
 			</div>
 		</div>
@@ -90,121 +76,129 @@ const isRankDown = $derived(result.rankShift === RankShiftType.RankDown);
 </div>
 
 <style>
-	.last-result {
-		padding: var(--spacing-lg);
+	.result {
+		padding: 24px 28px;
+		background: #23213a;
+		border-radius: 18px;
+		color: #ffffff;
+		box-shadow: 0 18px 30px rgba(7, 6, 16, 0.4);
 	}
 
-	.last-result__header {
+	.result-header {
 		display: flex;
 		align-items: baseline;
-		gap: var(--spacing-sm);
-		margin-bottom: var(--spacing-lg);
+		gap: 10px;
+		margin-bottom: 20px;
 	}
 
-	.last-result__title {
-		font-family: var(--font-japanese);
-		font-size: var(--font-size-xl);
-		font-weight: var(--font-weight-semibold);
-		color: var(--color-text-primary);
+	.result-title {
+		font-size: 20px;
+		font-weight: 600;
 	}
 
-	.last-result__date {
-		font-size: var(--font-size-sm);
-		color: var(--color-text-muted);
+	.result-date {
+		font-size: 14px;
+		color: #c6c9df;
 	}
 
-	.last-result__content {
+	.result-content {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		gap: var(--spacing-lg);
+		gap: 24px;
 	}
 
-	.last-result__stats {
+	.result-stats {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-sm);
+		gap: 12px;
 	}
 
-	.last-result__stat {
+	.result-stat {
 		display: flex;
 		align-items: baseline;
-		gap: var(--spacing-md);
+		gap: 16px;
 	}
 
-	.last-result__stat-label {
-		font-family: var(--font-japanese);
-		font-size: var(--font-size-sm);
-		color: var(--color-text-secondary);
+	.result-label {
+		font-size: 15px;
+		color: #c6c9df;
 		min-width: 60px;
 	}
 
-	.last-result__stat-value {
-		font-size: var(--font-size-xl);
-		font-weight: var(--font-weight-semibold);
-		color: var(--color-text-primary);
+	.result-value {
+		font-size: 22px;
+		font-weight: 600;
 	}
 
-	.last-result__stat-value--place {
-		color: var(--color-accent-success);
+	.result-place {
+		color: #f2c35b;
 	}
 
-	.last-result__total {
+	.result-total {
 		display: flex;
 		align-items: center;
-		gap: var(--spacing-sm);
-		margin-top: var(--spacing-sm);
+		gap: 12px;
+		margin-top: 6px;
 	}
 
-	.last-result__total-value {
-		font-size: var(--font-size-2xl);
-		font-weight: var(--font-weight-bold);
-		color: var(--color-text-primary);
+	.result-total-value {
+		font-size: 32px;
+		font-weight: 700;
 	}
 
-	.last-result__rank-shift {
-		font-size: var(--font-size-sm);
-		font-weight: var(--font-weight-semibold);
+	.result-shift {
+		font-size: 16px;
+		font-weight: 600;
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
 	}
 
-	.last-result__rank-shift--up {
-		color: var(--color-accent-success);
+	.result-shift.up {
+		color: #7cf17a;
 	}
 
-	.last-result__rank-shift--down {
-		color: var(--color-accent-error);
+	.result-shift.down {
+		color: #ff6b6b;
 	}
 
-	.last-result__rank {
+	.result-rank {
 		flex-shrink: 0;
+		filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.35));
 	}
 
-	/* スケルトン */
-	.last-result__skeleton {
+	.result-rank :global(.rank-icon) {
+		width: 80px;
+	}
+
+	.result-skeleton {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-md);
+		gap: 16px;
 	}
 
-	.last-result__skeleton-title {
+	.result-skeleton-title {
 		width: 200px;
 		height: 28px;
-		border-radius: var(--radius-md);
+		border-radius: 10px;
+		background: #2f2d4a;
 	}
 
-	.last-result__skeleton-content {
+	.result-skeleton-content {
 		width: 100%;
-		height: 120px;
-		border-radius: var(--radius-md);
+		height: 140px;
+		border-radius: 12px;
+		background: #2f2d4a;
 	}
 
 	@media (max-width: 768px) {
-		.last-result__content {
+		.result-content {
 			flex-direction: column;
 			align-items: flex-start;
 		}
 
-		.last-result__rank {
+		.result-rank {
 			align-self: center;
 		}
 	}

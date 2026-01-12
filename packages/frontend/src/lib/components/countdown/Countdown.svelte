@@ -58,11 +58,11 @@ const formattedTime = $derived(formatTime(remainingSeconds));
 	}
 
 	div > h2, p, small {
-		font-family: var(--font-japanese);
+		font-family: 'M PLUS 2', sans-serif;
 	}
 
 	div > div {
-		font-family: var(--font-special);
+		font-family: 'Michroma', sans-serif;
 	}
 
 	.root {

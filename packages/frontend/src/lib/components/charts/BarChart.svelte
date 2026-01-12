@@ -98,30 +98,31 @@ function handleSpanChange(span: string): void {
 }
 </script>
 
-<div class="bar-chart card">
-	<div class="bar-chart__header">
-		<h4 class="bar-chart__title">{title}</h4>
+<div class="chart-card">
+	<div class="chart-header">
+		<h4 class="chart-title">{title}</h4>
 		<Select options={spanOptions} value={currentSpan} onchange={handleSpanChange} />
 	</div>
 	<BaseChart options={chartOptions} {height} {isLoading} />
 </div>
 
 <style>
-	.bar-chart {
-		padding: var(--spacing-lg);
+	.chart-card {
+		padding: 20px;
+		background: #201E3A;
+		border-radius: 5px;
+		color: #ffffff;
 	}
 
-	.bar-chart__header {
+	.chart-header {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		margin-bottom: var(--spacing-md);
+		margin-bottom: 10px;
 	}
 
-	.bar-chart__title {
-		font-family: var(--font-japanese);
-		font-size: var(--font-size-lg);
-		font-weight: var(--font-weight-semibold);
-		color: var(--color-text-primary);
+	.chart-title {
+		font-size: 1rem;
+		font-weight: 600;
 	}
 </style>
