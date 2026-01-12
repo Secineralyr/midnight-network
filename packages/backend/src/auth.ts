@@ -31,10 +31,22 @@ export const auth = betterAuth({
 					pkce: true,
 					// MisskeyのIndieAuthはclient_secretなしでトークン交換を行う
 					getToken: async ({ code, codeVerifier, redirectURI }): Promise<OAuth2Tokens> => {
+						// デバッグ: code_verifierからcode_challengeを計算
+						let computedChallenge = 'N/A';
+						if (codeVerifier) {
+							const encoder = new TextEncoder();
+							const data = encoder.encode(codeVerifier);
+							const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+							const hashArray = new Uint8Array(hashBuffer);
+							const base64 = btoa(String.fromCharCode(...hashArray));
+							computedChallenge = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+						}
 						console.info(
 							`Token exchange request: ${JSON.stringify({
 								code: code?.substring(0, 10) + '...',
 								codeVerifier: codeVerifier ? `${codeVerifier.substring(0, 10)}...` : 'NULL',
+								codeVerifierLength: codeVerifier?.length,
+								computedChallenge,
 								redirectURI,
 								clientId: createHostToOrigin(env.BACKEND_HOST),
 							})}`,
