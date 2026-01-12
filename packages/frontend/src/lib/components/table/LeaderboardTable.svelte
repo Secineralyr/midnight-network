@@ -97,22 +97,6 @@ const table = createTable({
 function handleRowClick(username: string): void {
 	onRowClick?.(username);
 }
-
-/**
- * 行ホバー開始ハンドラ
- * @param row - 行要素
- */
-function handleRowMouseEnter(row: HTMLButtonElement): void {
-	animate(row, { backgroundColor: '#323054' }, { duration: 0.15 });
-}
-
-/**
- * 行ホバー終了ハンドラ
- * @param row - 行要素
- */
-function handleRowMouseLeave(row: HTMLButtonElement): void {
-	animate(row, { backgroundColor: '#2a2845' }, { duration: 0.15 });
-}
 </script>
 
 <div class="table-root">
@@ -164,8 +148,6 @@ function handleRowMouseLeave(row: HTMLButtonElement): void {
 					type="button"
 					class="table-row"
 					onclick={() => handleRowClick(rowData.user.username)}
-					onmouseenter={(e) => handleRowMouseEnter(e.currentTarget as HTMLButtonElement)}
-					onmouseleave={(e) => handleRowMouseLeave(e.currentTarget as HTMLButtonElement)}
 				>
 					<span class="table-cell">{formatPlace(rowData.place)}</span>
 					<span class="table-cell">{formatPlaceChange(rowData.place, rowData.previousPlace)}</span>
