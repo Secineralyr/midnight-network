@@ -16,6 +16,20 @@ view WinRate {
     wr     Float
 }
 
+view WinRatePlace {
+    userId String @unique
+    user   User   @relation(fields: [userId], references: [id])
+    wr     Float
+    place  Int
+}
+
+view WinRateYesterday {
+    userId String @unique
+    user   User   @relation(fields: [userId], references: [id])
+    wr     Float
+    place  Int
+}
+
 view ParticipantsPerMatch {
     matchDateId       Int       @unique
     matchDate         MatchDate @relation(fields: [matchDateId], references: [id])
@@ -44,6 +58,20 @@ view DeltaTimeMsAvg {
     userId String @unique
     user   User   @relation(fields: [userId], references: [id])
     dtAvg  Float
+}
+
+view DeltaTimeMsAvgYesterday {
+    userId String @unique
+    user   User   @relation(fields: [userId], references: [id])
+    dtAvg  Float
+    place  Int
+}
+
+view DeltaTimeMsAvgPlace {
+    userId String @unique
+    user   User   @relation(fields: [userId], references: [id])
+    dtAvg  Float
+    place  Int
 }
 
 view EarlyLateTime {
@@ -92,4 +120,11 @@ view RadarStatsAvg {
     averageTimeStd              Float
     averagePlaceStd             Float
     wrStd                       Float
+}
+
+view UserRankYesterday {
+    userId String @unique
+    user   User   @relation(fields: [userId], references: [id])
+    pt     Int
+    place Int
 }

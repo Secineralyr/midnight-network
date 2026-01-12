@@ -97,6 +97,11 @@ model User {
   userWithinCount                     UserWithinCount?
   userAveragePlace                    UserAveragePlace?
   userMaxPlace                        UserMaxPlace?
+  winRatePlace                        WinRatePlace?
+  winRateYesterday                    WinRateYesterday?
+  deltaTimeMsAvgYesterday             DeltaTimeMsAvgYesterday?
+  deltaTimeMsAvgPlace                 DeltaTimeMsAvgPlace?
+  userRankYesterday                   UserRankYesterday?
 }
 
 model UserSettings {

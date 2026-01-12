@@ -37,7 +37,7 @@ export async function averageTime(offset: AvgTimeParamsT): Promise<AvgTimeRespon
 				userSettings: {
 					OR: [{ showLeaderboardRanking: true }, { id: undefined }],
 				},
-				deltaTimeMsAvg: {
+				deltaTimeMsAvgPlace: {
 					isNot: null,
 				},
 			},
@@ -47,40 +47,46 @@ export async function averageTime(offset: AvgTimeParamsT): Promise<AvgTimeRespon
 		const { currentOffset, maxOffset, skip, take } = calculatePagination(selectTotalCount, offset);
 		console.info('rpc.leaderboard.averageTime.pagination', { currentOffset, maxOffset, skip, take });
 
-		const users = await prisma.user.findMany({
+		const users = (await prisma.user.findMany({
 			where: {
 				banned: false,
 				userSettings: {
 					OR: [{ showLeaderboardRanking: true }, { id: undefined }],
 				},
-				deltaTimeMsAvg: {
+				deltaTimeMsAvgPlace: {
 					isNot: null,
 				},
 			},
 			select: {
 				...statisticsSelector,
 				userName: true,
+				deltaTimeMsAvg: undefined,
+				deltaTimeMsAvgYesterday: true,
+				deltaTimeMsAvgPlace: true,
 			},
 			skip,
 			take,
 			orderBy: {
-				deltaTimeMsAvg: {
+				deltaTimeMsAvgPlace: {
 					dtAvg: 'asc',
 				},
 			},
-		});
+		})).map((v) => ({
+			...v,
+			deltaTimeMsAvg: v.deltaTimeMsAvgPlace,
+		}));
 
 		const previousPlaceMap = latestMatch ? await getPreviousPlaceMap(latestMatch.id) : new Map<string, number>();
 		console.info('rpc.leaderboard.averageTime.previousPlaceMap', previousPlaceMap.size);
 
-		const data = users.map((user, index) => {
+		const data = users.map((user) => {
 			const stats = makeStatistics(user);
 			const totalPt = user.userRankStatuses?.pt ?? 0;
 			const rank = makeCurrentRank(totalPt, stats?.totalParticipationCount ?? 0);
 
 			return {
-				place: skip + index + 1,
-				previousPlace: previousPlaceMap.get(user.id) ?? 0,
+				place: user.deltaTimeMsAvgPlace?.place ?? 0,
+				previousPlace: user.deltaTimeMsAvgYesterday?.place ?? 0,
 				user: {
 					userId: user.id,
 					username: user.userName,
@@ -254,6 +260,7 @@ export async function rank(offset: RankParamsT): Promise<RankResponseT> {
 			select: {
 				...statisticsSelector,
 				userName: true,
+				userRankYesterday: true,
 			},
 			skip,
 			take,
@@ -274,7 +281,7 @@ export async function rank(offset: RankParamsT): Promise<RankResponseT> {
 
 			return {
 				place: skip + index + 1,
-				previousPlace: previousPlaceMap.get(user.id) ?? 0,
+				previousPlace: user.userRankYesterday?.place ?? 0,
 				user: {
 					userId: user.id,
 					username: user.userName,
@@ -380,7 +387,7 @@ export async function wr(offset: WrParamsT): Promise<WrResponseT> {
 				userSettings: {
 					OR: [{ showLeaderboardRanking: true }, { id: undefined }],
 				},
-				winRate: {
+				winRatePlace: {
 					isNot: null,
 				},
 			},
@@ -390,40 +397,46 @@ export async function wr(offset: WrParamsT): Promise<WrResponseT> {
 		const { currentOffset, maxOffset, skip, take } = calculatePagination(selectTotalCount, offset);
 		console.info('rpc.leaderboard.wr.pagination', { currentOffset, maxOffset, skip, take });
 
-		const users = await prisma.user.findMany({
+		const users = (await prisma.user.findMany({
 			where: {
 				banned: false,
 				userSettings: {
 					OR: [{ showLeaderboardRanking: true }, { id: undefined }],
 				},
-				winRate: {
+				winRatePlace: {
 					isNot: null,
 				},
 			},
 			select: {
 				...statisticsSelector,
 				userName: true,
+				winRate: undefined,
+				winRatePlace: true,
+				winRateYesterday: true,
 			},
 			skip,
 			take,
 			orderBy: {
-				winRate: {
+				winRatePlace: {
 					wr: 'desc',
 				},
 			},
-		});
+		})).map((v) => ({
+			...v,
+			winRate: v.winRatePlace,
+		}));
 
 		const previousPlaceMap = latestMatch ? await getPreviousPlaceMap(latestMatch.id) : new Map<string, number>();
 		console.info('rpc.leaderboard.wr.previousPlaceMap', previousPlaceMap.size);
 
-		const data = users.map((user, index) => {
+		const data = users.map((user) => {
 			const stats = makeStatistics(user);
 			const totalPt = user.userRankStatuses?.pt ?? 0;
 			const rank = makeCurrentRank(totalPt, stats?.totalParticipationCount ?? 0);
 
 			return {
-				place: skip + index + 1,
-				previousPlace: previousPlaceMap.get(user.id) ?? 0,
+				place: user.winRatePlace?.place ?? 0,
+				previousPlace: user.winRateYesterday?.place ?? 0,
 				user: {
 					userId: user.id,
 					username: user.userName,
