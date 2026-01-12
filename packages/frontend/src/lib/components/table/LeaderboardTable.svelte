@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { PreviouslyTableResponseDataT } from '@midnight-network/shared/rpc/leaderboard/models';
+import type { BasicTableResponseDataT, PreviouslyTableResponseDataT } from '@midnight-network/shared/rpc/leaderboard/models';
 import type { ColumnDef } from '@tanstack/svelte-table';
 import { createTable, getCoreRowModel } from '@tanstack/svelte-table';
 import { animate } from 'motion';
@@ -44,7 +44,11 @@ const columns: ColumnDef<PreviouslyTableResponseDataT>[] = [
 		header: '前日比',
 		cell: (info) => {
 			const row = info.row.original;
-			return formatPlaceChange(row.place, row.previousPlace);
+			if ('previousPlace' in row) {
+				return formatPlaceChange(row.place, row.previousPlace);
+			} else {
+				return '-';
+			}
 		},
 	},
 	{

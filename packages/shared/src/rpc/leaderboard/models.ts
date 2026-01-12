@@ -32,7 +32,7 @@ export type BasicTableResponseDataT = z.infer<typeof BasicTableResponseData>;
 
 export const PreviouslyTableResponseData = BasicTableResponseData.clone().and(
 	z.object({
-		previousPlace: z.number(),
+		previousPlace: z.number().optional(),
 	}),
 );
 

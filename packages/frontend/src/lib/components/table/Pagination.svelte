@@ -7,9 +7,9 @@ import { animate } from 'motion';
  */
 
 interface Props {
-	/** 現在のページ（0始まり） */
+	/** 現在のページ（1始まり） */
 	currentPage: number;
-	/** 最大ページ数 */
+	/** 最大ページ数（1始まり） */
 	maxPage: number;
 	/** ページ変更ハンドラ */
 	onPageChange: (page: number) => void;
@@ -20,14 +20,13 @@ const { currentPage, maxPage, onPageChange }: Props = $props();
 /** 表示するページ番号配列（最大5ページ） */
 const visiblePages = $derived(() => {
 	const pages: number[] = [];
-	const totalPages = maxPage + 1;
 
-	if (totalPages <= 5) {
-		for (let i = 0; i < totalPages; i++) {
+	if (maxPage <= 5) {
+		for (let i = 1; i <= maxPage; i++) {
 			pages.push(i);
 		}
 	} else {
-		let start = Math.max(0, currentPage - 2);
+		let start = Math.max(1, currentPage - 2);
 		let end = start + 4;
 
 		if (end > maxPage) {
@@ -43,7 +42,7 @@ const visiblePages = $derived(() => {
 });
 
 /** 前へボタンが非活性かどうか */
-const isPrevDisabled = $derived(currentPage === 0 || maxPage < 5);
+const isPrevDisabled = $derived(currentPage === 1 || maxPage < 5);
 
 /** 次へボタンが非活性かどうか */
 const isNextDisabled = $derived(currentPage === maxPage || maxPage < 5);
@@ -100,7 +99,7 @@ function handleNext(button: HTMLButtonElement): void {
 			class:active={isActive}
 			onclick={(e) => handlePageClick(page, e.currentTarget)}
 		>
-			<span class="pager-number">{page + 1}</span>
+			<span class="pager-number">{page}</span>
 		</button>
 	{/each}
 

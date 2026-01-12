@@ -13,8 +13,8 @@ import { orpc } from '$lib/orpc';
  * @description トップ3バー、ランク分布、ランキングテーブル
  */
 
-/** 現在のページ */
-let currentPage = $state(0);
+/** 現在のページ（1始まり） */
+let currentPage = $state(1);
 
 /** 順位基準 */
 let sortCriteria = $state<'rank' | 'wr' | 'avgTime' | 'matchTime'>('rank');
@@ -38,6 +38,8 @@ function fetchLeaderboard(page: number, criteria: typeof sortCriteria) {
 			return orpc.leaderboard.averageTime(page);
 		case 'matchTime':
 			return orpc.leaderboard.matchTime(page);
+		default:
+			throw new Error('criteria is not supported value');
 	}
 }
 
@@ -97,7 +99,7 @@ function handlePageChange(page: number): void {
  */
 function handleSortChange(criteria: string): void {
 	sortCriteria = criteria as typeof sortCriteria;
-	currentPage = 0;
+	currentPage = 1;
 }
 </script>
 

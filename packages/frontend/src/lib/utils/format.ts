@@ -61,7 +61,11 @@ export function formatPlace(place: number): string {
  * @param previous - 前日の順位
  * @returns 変動表示文字列
  */
-export function formatPlaceChange(current: number, previous: number): string {
+export function formatPlaceChange(current: number, previous?: number): string {
+	if (previous === undefined || previous <= 0) {
+		return '-';
+	}
+
 	const diff = previous - current;
 	if (diff > 0) {
 		return `↑${diff}`;
