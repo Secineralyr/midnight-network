@@ -24,6 +24,7 @@ export const auth = betterAuth({
 				{
 					providerId: MisskeyOAuthProviderId,
 					clientId: createHostToOrigin(env.BACKEND_HOST),
+					clientSecret: '', // IndieAuthでは不要だが、Better Authの設定で必須
 					authorizationUrl: `${createHostToOrigin(env.MK_HOST)}/oauth/authorize`,
 					pkce: true,
 					// MisskeyのIndieAuthはclient_secretなしでトークン交換を行う
