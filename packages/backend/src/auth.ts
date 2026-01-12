@@ -31,6 +31,14 @@ export const auth = betterAuth({
 					pkce: true,
 					// MisskeyのIndieAuthはclient_secretなしでトークン交換を行う
 					getToken: async ({ code, codeVerifier, redirectURI }): Promise<OAuth2Tokens> => {
+						console.info(
+							`Token exchange request: ${{
+								code: code?.substring(0, 10) + '...',
+								codeVerifier: codeVerifier ? `${codeVerifier.substring(0, 10)}...` : 'NULL',
+								redirectURI,
+								clientId: createHostToOrigin(env.BACKEND_HOST),
+							}}`,
+						);
 						const response = await fetch(`${createHostToOrigin(env.MK_HOST)}/oauth/token`, {
 							method: 'POST',
 							headers: {
