@@ -11,7 +11,7 @@ export const auth = betterAuth({
 	database: prismaAdapter(prisma, {
 		provider: 'sqlite',
 	}),
-	baseURL: createHostToOrigin(env.WEB_HOST),
+	baseURL: createHostToOrigin(env.BACKEND_HOST),
 	basePath: authBasePath,
 	emailAndPassword: {
 		enabled: false,
@@ -21,7 +21,7 @@ export const auth = betterAuth({
 			config: [
 				{
 					providerId: MisskeyOAuthProviderId,
-					clientId: createHostToOrigin(env.WEB_HOST),
+					clientId: createHostToOrigin(env.BACKEND_HOST),
 					discoveryUrl: createHostToOrigin(`${env.MK_HOST}/.well-known/oauth-authorization-server`),
 				},
 			],

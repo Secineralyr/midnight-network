@@ -1,6 +1,7 @@
 MK_HOST = "<host>"
 API_TOKEN = "<token?>"
 WEB_HOST = "test.midnight.network.local"
+BACKEND_HOST = "<backend host>"
 BOT_USER_NAME = "username"
 DISABLE_USER_NAME = ["username"]
 ADMIN_USER_NAME = "<your username>"
