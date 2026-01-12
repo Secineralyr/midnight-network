@@ -24,6 +24,7 @@ export const auth = betterAuth({
 					providerId: MisskeyOAuthProviderId,
 					clientId: createHostToOrigin(env.BACKEND_HOST),
 					discoveryUrl: createHostToOrigin(`${env.MK_HOST}/.well-known/oauth-authorization-server`),
+					pkce: true,
 				},
 			],
 		}),
