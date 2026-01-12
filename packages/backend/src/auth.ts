@@ -13,6 +13,7 @@ export const auth = betterAuth({
 	}),
 	baseURL: createHostToOrigin(env.BACKEND_HOST),
 	basePath: authBasePath,
+	trustedOrigins: [createHostToOrigin(env.WEB_HOST)],
 	emailAndPassword: {
 		enabled: false,
 	},
