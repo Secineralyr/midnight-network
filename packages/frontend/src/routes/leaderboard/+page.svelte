@@ -1,5 +1,4 @@
 <script lang="ts">
-import type { PreviouslyTableResponseDataT } from '@midnight-network/shared/rpc/leaderboard/models';
 import { createQuery } from '@tanstack/svelte-query';
 import { goto } from '$app/navigation';
 import RankHistogram from '$lib/components/charts/RankHistogram.svelte';
@@ -55,25 +54,6 @@ const rankHistQuery = createQuery(() => ({
 	queryFn: () => orpc.leaderboard.rankHistogram(currentPage),
 }));
 
-/** ランクpt上位データ */
-const rankTopQuery = createQuery(() => ({
-	queryKey: ['rankTop'],
-	queryFn: () => orpc.rankTop(),
-}));
-
-/** ランクpt上位データをLeaderboardTable形式に変換 */
-const rankTopTableData = $derived<PreviouslyTableResponseDataT[]>(
-	rankTopQuery.data?.slice(0, 1).map((item) => ({
-		place: item.place,
-		user: item.user,
-		rank: item.rank,
-		totalPt: item.pt,
-		wr: 0,
-		averageTime: 0,
-		previousPlace: 0,
-	})) ?? [],
-);
-
 /** 最大ページ数 */
 const maxPage = $derived(rankQuery.data?.maxOffset ?? 0);
 
@@ -113,10 +93,11 @@ function handleSortChange(criteria: string): void {
 	</div>
 
 	<div class="leaderboard-page-content">
-		{#if rankTopTableData.length > 0}
+		{#if rankQuery.data?.yourRanking}
 			<LeaderboardTable
-				data={rankTopTableData}
-				isLoading={rankTopQuery.isLoading}
+				data={[]}
+				myRanking={rankQuery.data.yourRanking}
+				isLoading={rankQuery.isLoading}
 				onRowClick={handleRowClick}
 			/>
 		{/if}
