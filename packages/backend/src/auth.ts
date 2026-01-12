@@ -51,18 +51,20 @@ export const auth = betterAuth({
 								clientId: createHostToOrigin(env.BACKEND_HOST),
 							})}`,
 						);
+						const body = new URLSearchParams({
+							grant_type: 'authorization_code',
+							code,
+							redirect_uri: redirectURI,
+							client_id: createHostToOrigin(env.BACKEND_HOST),
+							code_verifier: codeVerifier ?? '',
+						}).toString();
+						console.info(`Token request body: ${body}`);
 						const response = await fetch(`${createHostToOrigin(env.MK_HOST)}/oauth/token`, {
 							method: 'POST',
 							headers: {
 								'Content-Type': 'application/x-www-form-urlencoded',
 							},
-							body: new URLSearchParams({
-								grant_type: 'authorization_code',
-								code,
-								redirect_uri: redirectURI,
-								client_id: createHostToOrigin(env.BACKEND_HOST),
-								code_verifier: codeVerifier ?? '',
-							}).toString(),
+							body,
 						});
 
 						if (!response.ok) {
