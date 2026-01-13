@@ -1,3 +1,4 @@
+import { RankType } from '@midnight-network/shared/rank';
 import type {
 	GetSettingsParamsT,
 	GetSettingsResponseT,
@@ -5,13 +6,17 @@ import type {
 	LastResultResponseT,
 	SetSettingsParamsT,
 	SetSettingsResponseT,
+	UserInfoResponseT,
 } from '@midnight-network/shared/rpc/me/models';
 import { RankShiftType } from '@midnight-network/shared/rpc/me/models';
+import { ORPCError } from '@orpc/server';
+import type { UserInfoParamsT } from '../../../../shared/src/rpc/me/models';
 import { prisma } from '../../db';
 import type { AuthContext } from '../../rpc';
 import { withCache } from '../helpers/cache';
 import { calculateTimeDifferenceSeconds, getLatestMatchDate } from '../helpers/match';
 import { calculateRankFromPoints, rankNumberToRankTypeValue } from '../helpers/rank';
+import { makeCurrentRank } from '../helpers/stats';
 
 /**
  * ログインユーザーの最新リザルトを取得する。
@@ -192,5 +197,54 @@ export async function setSettings(ctx: AuthContext, input: SetSettingsParamsT): 
 			showProfileStats: input.showProfileStats ?? true,
 			showProfileSearch: input.showProfileSearch ?? true,
 		},
+	});
+}
+
+/**
+ * ログインユーザー情報を取得する
+ * @param ctx 認証コンテキスト
+ * @param input 更新する設定（部分更新可能）
+ */
+export async function userInfo(ctx: AuthContext, _: UserInfoParamsT): Promise<UserInfoResponseT> {
+	const userId = ctx.user?.id;
+	console.info('rpc.me.userInfo', userId);
+	if (!userId) {
+		throw new ORPCError('NOT_FOUND', { message: 'userId is not found.' });
+	}
+
+	return await withCache(`userInfo:${userId}`, null, async () => {
+		const user = await prisma.user.findUnique({
+			where: { id: userId },
+			select: {
+				id: true,
+				userName: true,
+				userParticipantsCount: {
+					select: {
+						participantsCount: true,
+					},
+				},
+				userRankStatuses: {
+					select: {
+						pt: true,
+					}
+				}
+			}
+		});
+
+		if (!user) {
+			return {
+				id: userId,
+				latestRank: RankType.NoRank,
+				username: ctx.user?.name ?? '?',
+			};
+		}
+
+		const rank = makeCurrentRank(user.userRankStatuses?.pt ?? 0, user?.userParticipantsCount?.participantsCount ?? 0);
+
+		return {
+			id: user.id,
+			username: user.userName,
+			latestRank: rank.rank,
+		};
 	});
 }

@@ -2,6 +2,9 @@
 import { IconSearch } from '@tabler/icons-svelte';
 import LoggedInPanel from '../user/LoggedInPanel.svelte';
 import RankBadge from '../rank/RankBadge.svelte';
+import type { User } from 'better-auth';
+	import { createQuery } from '@tanstack/svelte-query';
+	import { orpc } from '$lib/orpc';
 
 /**
  * ヘッダーコンポーネント
@@ -10,16 +13,7 @@ import RankBadge from '../rank/RankBadge.svelte';
 
 interface Props {
 	/** 現在のユーザー情報 */
-	user?: {
-		/** ユーザーID */
-		userId: string;
-		/** ユーザー名 */
-		username: string;
-		/** アバターURL */
-		avatarUrl?: string;
-		/** ランク値 */
-		rank?: number;
-	} | null;
+	user?: User | null;
 	/** 検索ボタン表示フラグ（リーダーボードページ用） */
 	showSearchButton?: boolean;
 	/** 検索クリックハンドラ */
@@ -27,6 +21,12 @@ interface Props {
 }
 
 const { user = null, showSearchButton = false, onSearchClick }: Props = $props();
+
+/** ログインデータ取得 */
+const userInfoQuery = createQuery(() => ({
+	queryKey: ['userInfo', user?.id],
+	queryFn: () => orpc.me.userInfo(),
+}));
 
 let isPanelOpen = $state(false);
 
@@ -65,22 +65,20 @@ function closePanel(): void {
 					<IconSearch size={20} />
 				</button>
 			{/if}
-			{#if user}
+			{#if user && userInfoQuery.data}
 				<div class="logged-user">
 					<button class="user-icon-button" type="button" onclick={handleUserClick}>
 						<img
 							class="icon"
-							src={user.avatarUrl || 'https://placehold.co/400'}
-							alt={user.username}
+							src={'https://placehold.co/400'}
+							alt={userInfoQuery.data.username}
 						/>
-						{#if user.rank !== undefined}
-							<RankBadge rank={user.rank} class="user-rank-badge" />
-						{/if}
+						<RankBadge rank={userInfoQuery.data.latestRank} class="user-rank-badge" />
 					</button>
 					{#if isPanelOpen}
 						<div class="panel-overlay-position">
 							<div class="panel-overlay">
-								<LoggedInPanel {user} onClose={closePanel} />
+								<LoggedInPanel user={userInfoQuery.data} onClose={closePanel} />
 							</div>
 						</div>
 					{/if}

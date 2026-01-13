@@ -167,6 +167,9 @@ importers:
       p-retry:
         specifier: 'catalog:'
         version: 7.1.1
+      zod:
+        specifier: 'catalog:'
+        version: 4.2.1
     devDependencies:
       '@better-auth/cli':
         specifier: 'catalog:'

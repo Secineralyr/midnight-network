@@ -69,7 +69,7 @@ const isRankDown = $derived(result.rankShift === RankShiftType.RankDown);
 				</div>
 			</div>
 			<div class="result-rank">
-				<RankIcon rank={result.latestRank} size="lg" />
+				<RankIcon rank={result.latestRank} />
 			</div>
 		</div>
 	{/if}

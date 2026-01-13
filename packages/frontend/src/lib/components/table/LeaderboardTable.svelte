@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { BasicTableResponseDataT, PreviouslyTableResponseDataT } from '@midnight-network/shared/rpc/leaderboard/models';
+import type { BasicTableResponseDataT } from '@midnight-network/shared/rpc/leaderboard/models';
 import type { ColumnDef } from '@tanstack/svelte-table';
 import { createTable, getCoreRowModel } from '@tanstack/svelte-table';
 import { animate } from 'motion';
@@ -13,9 +13,9 @@ import RankIcon from '../rank/RankIcon.svelte';
 
 interface Props {
 	/** テーブルデータ */
-	data: PreviouslyTableResponseDataT[];
+	data: BasicTableResponseDataT[];
 	/** 自分のランキングデータ */
-	myRanking?: PreviouslyTableResponseDataT | null;
+	myRanking?: BasicTableResponseDataT | null;
 	/** ローディング状態 */
 	isLoading?: boolean;
 	/** 行クリックハンドラ */
@@ -33,7 +33,7 @@ $effect(() => {
 });
 
 /** カラム定義 */
-const columns: ColumnDef<PreviouslyTableResponseDataT>[] = [
+const columns: ColumnDef<BasicTableResponseDataT>[] = [
 	{
 		accessorKey: 'place',
 		header: '順位',
@@ -55,7 +55,7 @@ const columns: ColumnDef<PreviouslyTableResponseDataT>[] = [
 		accessorKey: 'user',
 		header: '名前',
 		cell: (info) => {
-			const user = info.getValue() as PreviouslyTableResponseDataT['user'];
+			const user = info.getValue() as BasicTableResponseDataT['user'];
 			return `@${user.username}`;
 		},
 	},

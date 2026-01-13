@@ -49,3 +49,15 @@ export const LastResultResponse = z.optional(
 );
 
 export type LastResultResponseT = z.infer<typeof LastResultResponse>;
+
+export const UserInfoParams = z.void();
+
+export type UserInfoParamsT = z.infer<typeof UserInfoParams>;
+
+export const UserInfoResponse = z.object({
+	id: z.string(),
+	username: z.string(),
+	latestRank: z.enum(RankType),
+});
+
+export type UserInfoResponseT = z.infer<typeof UserInfoResponse>;

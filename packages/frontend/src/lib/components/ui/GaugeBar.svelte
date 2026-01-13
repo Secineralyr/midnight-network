@@ -95,7 +95,7 @@ $effect(() => {
 	updateTextPosition(start);
 	animation = animate(start, target, {
 		duration: 1,
-		easing: 'ease',
+		ease: 'easeOut',
 		onUpdate: (latest) => {
 			animatedPercent = latest;
 			updateTextPosition(latest);

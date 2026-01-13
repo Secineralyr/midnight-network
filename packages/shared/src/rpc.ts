@@ -19,6 +19,8 @@ import {
 	LastResultResponse,
 	SetSettingsParams,
 	SetSettingsResponse,
+	UserInfoParams,
+	UserInfoResponse,
 } from './rpc/me/models';
 import {
 	RankTopParams,
@@ -47,6 +49,7 @@ export const meContract = {
 	lastResult: oc.input(LastResultParams).output(LastResultResponse),
 	getSettings: oc.input(GetSettingsParams).output(GetSettingsResponse),
 	setSettings: oc.input(SetSettingsParams).output(SetSettingsResponse),
+	userInfo: oc.input(UserInfoParams).output(UserInfoResponse),
 } as const;
 
 export const userContract = {

@@ -21,6 +21,7 @@ export type RankParamsT = z.infer<typeof RankParams>;
 
 export const BasicTableResponseData = z.object({
 	place: z.number(),
+	previousPlace: z.number().optional(),
 	user: ApiSimpleUserInfo,
 	wr: z.number(),
 	averageTime: z.number(),
@@ -30,19 +31,11 @@ export const BasicTableResponseData = z.object({
 
 export type BasicTableResponseDataT = z.infer<typeof BasicTableResponseData>;
 
-export const PreviouslyTableResponseData = BasicTableResponseData.clone().and(
-	z.object({
-		previousPlace: z.number().optional(),
-	}),
-);
-
-export type PreviouslyTableResponseDataT = z.infer<typeof PreviouslyTableResponseData>;
-
 export const RankResponse = z.object({
 	currentOffset: z.number(),
 	maxOffset: z.number(),
-	yourRanking: z.optional(PreviouslyTableResponseData),
-	data: PreviouslyTableResponseData.clone().array(),
+	yourRanking: z.optional(BasicTableResponseData),
+	data: BasicTableResponseData.clone().array(),
 });
 
 export type RankResponseT = z.infer<typeof RankResponse>;
@@ -54,8 +47,8 @@ export type WrParamsT = z.infer<typeof WrParams>;
 export const WrResponse = z.object({
 	currentOffset: z.number(),
 	maxOffset: z.number(),
-	yourRanking: z.optional(PreviouslyTableResponseData),
-	data: PreviouslyTableResponseData.clone().array(),
+	yourRanking: z.optional(BasicTableResponseData),
+	data: BasicTableResponseData.clone().array(),
 });
 
 export type WrResponseT = z.infer<typeof WrResponse>;
@@ -80,8 +73,8 @@ export type AvgTimeParamsT = z.infer<typeof AvgTimeParams>;
 export const AvgTimeResponse = z.object({
 	currentOffset: z.number(),
 	maxOffset: z.number(),
-	yourRanking: z.optional(PreviouslyTableResponseData),
-	data: PreviouslyTableResponseData.clone().array(),
+	yourRanking: z.optional(BasicTableResponseData),
+	data: BasicTableResponseData.clone().array(),
 });
 
 export type AvgTimeResponseT = z.infer<typeof AvgTimeResponse>;

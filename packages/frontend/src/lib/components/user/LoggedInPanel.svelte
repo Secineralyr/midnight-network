@@ -1,9 +1,8 @@
 <script lang="ts">
-import { RankType } from '@midnight-network/shared/rank';
-import { IconLogout, IconUser } from '@tabler/icons-svelte';
-import { animate } from 'motion';
-import type { RankTypeValue } from '$lib/utils/rank';
+import type { UserInfoResponseT } from '@midnight-network/shared/rpc/me/models';
 import RankIcon from '../rank/RankIcon.svelte';
+import { fly } from 'svelte/transition';
+import { IconLogout, IconUser } from '@tabler/icons-svelte';
 
 /**
  * ログインユーザーパネルコンポーネント
@@ -12,29 +11,12 @@ import RankIcon from '../rank/RankIcon.svelte';
 
 interface Props {
 	/** ユーザー情報 */
-	user: {
-		/** ユーザーID */
-		userId: string;
-		/** ユーザー名 */
-		username: string;
-		/** アバターURL */
-		avatarUrl?: string;
-	};
-	/** 現在のランク */
-	currentRank?: RankTypeValue;
+	user: UserInfoResponseT;
 	/** パネルを閉じるハンドラ */
 	onClose: () => void;
 }
 
-const { user, currentRank = RankType.GoldBefore, onClose }: Props = $props();
-
-let panelElement: HTMLDivElement | undefined = $state();
-
-$effect(() => {
-	if (panelElement) {
-		animate(panelElement, { opacity: [0, 1], y: [-10, 0] }, { duration: 0.2 });
-	}
-});
+const { user, onClose }: Props = $props();
 
 /**
  * マイページへ遷移
@@ -64,14 +46,14 @@ function handleBackdropClick(event: MouseEvent): void {
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-<div class="panel" bind:this={panelElement}>
+<div class="panel" transition:fly={{ y: -10, duration: 200 }}>
 	<div class="panel-header">
 		<div class="panel-info">
 			<span class="panel-status">ログイン中</span>
 			<span class="panel-name">@{user.username}</span>
 		</div>
 		<div class="panel-rank">
-			<RankIcon rank={currentRank} />
+			<RankIcon rank={user.latestRank} />
 		</div>
 	</div>
 	<div class="panel-divider"></div>

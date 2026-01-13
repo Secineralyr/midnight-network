@@ -14,7 +14,8 @@
     "better-auth": "catalog:",
     "elysia": "catalog:",
     "misskey-js": "catalog:",
-    "p-retry": "catalog:"
+    "p-retry": "catalog:",
+    "zod": "catalog:"
   },
   "scripts": {
     "build": "pnpm prisma:generate && pnpm type:sync && tsc -p tsconfig.json",
