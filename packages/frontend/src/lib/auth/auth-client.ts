@@ -6,8 +6,5 @@ export function createAuthClient() {
 		baseURL: import.meta.env.VITE_API_ROOT,
 		basePath: '/api/auth',
 		plugins: [miauthClient()],
-		fetchOptions: {
-			credentials: 'include',
-		},
 	});
 }
