@@ -3,6 +3,7 @@ import { createAuthEndpoint, APIError } from 'better-auth/api';
 import { z } from 'zod';
 import { randomUUID } from 'node:crypto';
 import type { User } from 'misskey-js/entities.js';
+import { MiAuthScopes } from '@midnight-network/shared/auth-misskey';
 
 export const miauthPlugin = () => {
 	return {
@@ -37,9 +38,9 @@ export const miauthPlugin = () => {
 
 					// MiAuth認証URLを構築
 					const params = new URLSearchParams({
-						name: ctx.context.appName || 'MidNight Network',
+						name: 'MidNight Network',
 						callback: appCallbackUrl,
-						permission: 'read:account',
+						permission: MiAuthScopes.join(','),
 					});
 
 					const miauthUrl = `https://${host}/miauth/${sessionId}?${params.toString()}`;
@@ -82,7 +83,6 @@ export const miauthPlugin = () => {
 					const checkUrl = `https://${host}/api/miauth/${sessionId}/check`;
 					const response = await fetch(checkUrl, {
 						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
 					});
 
 					if (!response.ok) {

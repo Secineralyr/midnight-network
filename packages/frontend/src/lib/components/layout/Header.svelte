@@ -25,7 +25,7 @@ const { user = null, showSearchButton = false, onSearchClick }: Props = $props()
 /** ログインデータ取得 */
 const userInfoQuery = createQuery(() => ({
 	queryKey: ['userInfo', user?.id],
-	queryFn: () => orpc.me.userInfo(),
+	queryFn: () => user ? orpc.me.userInfo() : null,
 }));
 
 let isPanelOpen = $state(false);

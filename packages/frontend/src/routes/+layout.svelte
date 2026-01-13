@@ -29,7 +29,10 @@ let currentUser = $state<User | null>(null);
 
 onMount(async () => {
 	const authClient = createAuthClient();
-	currentUser = (await authClient.getSession()).data.user;
+	const session = await authClient.getSession();
+	if (session.data) {
+		currentUser = session.data.user;
+	}
 });
 </script>
 
