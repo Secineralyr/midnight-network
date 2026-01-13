@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { randomUUID } from 'node:crypto';
 import type { User } from 'misskey-js/entities.js';
 import { MiAuthScopes } from '@midnight-network/shared/auth-misskey';
+import { setSessionCookie } from 'better-auth/cookies';
 
 export const miauthPlugin = () => {
 	return {
@@ -150,6 +151,7 @@ export const miauthPlugin = () => {
 					});
 
 					// リダイレクト
+					await setSessionCookie(ctx, { session, user });
 					throw ctx.redirect(callbackUrl || '/');
 				},
 			),
