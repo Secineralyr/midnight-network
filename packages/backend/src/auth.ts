@@ -22,4 +22,10 @@ export const auth = betterAuth({
 	user: {
 		modelName: 'AuthUser',
 	},
+	advanced: {
+		defaultCookieAttributes: {
+			sameSite: 'none',
+			secure: true,
+		},
+	},
 });
