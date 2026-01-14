@@ -55,8 +55,10 @@ $effect(() => {
 /** グラフの期間の型 */
 type GraphSpanValue = (typeof GraphSpan)[keyof typeof GraphSpan];
 
-/** グラフの期間 */
-let graphSpan = $state<GraphSpanValue>(GraphSpan.Daily);
+/** グラフの期間（各チャート個別） */
+let totalPtSpan = $state<GraphSpanValue>(GraphSpan.Daily);
+let earnedPtSpan = $state<GraphSpanValue>(GraphSpan.Daily);
+let postTimeSpan = $state<GraphSpanValue>(GraphSpan.Daily);
 
 /** 設定モーダル表示状態 */
 let isSettingsOpen = $state(false);
@@ -78,36 +80,36 @@ const profileQuery = createQuery(() => ({
 
 /** 累計pt推移データ */
 const totalPtQuery = createQuery(() => ({
-	queryKey: ['user', 'totalPt', userId, graphSpan],
+	queryKey: ['user', 'totalPt', userId, totalPtSpan],
 	queryFn: () => {
 		if (!userId) {
 			throw new Error('Missing userId for totalPtChart query.');
 		}
-		return orpc.user.totalPtChart({ userId, span: graphSpan });
+		return orpc.user.totalPtChart({ userId, span: totalPtSpan });
 	},
 	enabled: Boolean(userId),
 }));
 
 /** 獲得pt推移データ */
 const earnedPtQuery = createQuery(() => ({
-	queryKey: ['user', 'earnedPt', userId, graphSpan],
+	queryKey: ['user', 'earnedPt', userId, earnedPtSpan],
 	queryFn: () => {
 		if (!userId) {
 			throw new Error('Missing userId for earnedPtChart query.');
 		}
-		return orpc.user.earnedPtChart({ userId, span: graphSpan });
+		return orpc.user.earnedPtChart({ userId, span: earnedPtSpan });
 	},
 	enabled: Boolean(userId),
 }));
 
 /** 投稿タイム推移チャート */
 const postTimeQuery = createQuery(() => ({
-	queryKey: ['user', 'postTime', userId, graphSpan],
+	queryKey: ['user', 'postTime', userId, postTimeSpan],
 	queryFn: () => {
 		if (!userId) {
 			throw new Error('Missing userId for postTimeChart query.');
 		}
-		return orpc.user.postTimeChart({ userId, span: graphSpan });
+		return orpc.user.postTimeChart({ userId, span: postTimeSpan });
 	},
 	enabled: Boolean(userId),
 }));
@@ -158,12 +160,19 @@ const spanOptions = [
 	{ label: '月別', value: String(GraphSpan.Monthly) },
 ];
 
-/**
- * グラフ期間変更ハンドラ
- * @param span - 期間
- */
-function handleSpanChange(span: string): void {
-	graphSpan = Number(span) as GraphSpanValue;
+/** 累計pt期間変更ハンドラ */
+function handleTotalPtSpanChange(span: string): void {
+	totalPtSpan = Number(span) as GraphSpanValue;
+}
+
+/** 獲得pt期間変更ハンドラ */
+function handleEarnedPtSpanChange(span: string): void {
+	earnedPtSpan = Number(span) as GraphSpanValue;
+}
+
+/** 投稿タイム期間変更ハンドラ */
+function handlePostTimeSpanChange(span: string): void {
+	postTimeSpan = Number(span) as GraphSpanValue;
 }
 
 /**
@@ -242,8 +251,8 @@ function handleSaveSettings(settings: Partial<SettingTypeT>): void {
 									value: d.value,
 								}))}
 								spanOptions={spanOptions}
-								currentSpan={String(graphSpan)}
-								onSpanChange={handleSpanChange}
+								currentSpan={String(totalPtSpan)}
+								onSpanChange={handleTotalPtSpanChange}
 								isLoading={totalPtQuery.isLoading}
 								height="10rem"
 								showRankBadge
@@ -258,8 +267,8 @@ function handleSaveSettings(settings: Partial<SettingTypeT>): void {
 									value: d.value,
 								}))}
 								spanOptions={spanOptions}
-								currentSpan={String(graphSpan)}
-								onSpanChange={handleSpanChange}
+								currentSpan={String(earnedPtSpan)}
+								onSpanChange={handleEarnedPtSpanChange}
 								isLoading={earnedPtQuery.isLoading}
 								height="10rem"
 								unit="獲得pt"
@@ -274,8 +283,8 @@ function handleSaveSettings(settings: Partial<SettingTypeT>): void {
 									value: d.value,
 								}))}
 								spanOptions={spanOptions}
-								currentSpan={String(graphSpan)}
-								onSpanChange={handleSpanChange}
+								currentSpan={String(postTimeSpan)}
+								onSpanChange={handlePostTimeSpanChange}
 								isLoading={postTimeQuery.isLoading}
 								height="10rem"
 								unit="dt(秒)"
