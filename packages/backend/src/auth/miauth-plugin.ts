@@ -1,10 +1,11 @@
-import type { BetterAuthPlugin } from 'better-auth';
+import type { BetterAuthPlugin, User as BAUser } from 'better-auth';
 import { createAuthEndpoint, APIError } from 'better-auth/api';
 import { z } from 'zod';
 import { randomUUID } from 'node:crypto';
 import type { User } from 'misskey-js/entities.js';
 import { MiAuthScopes } from '@midnight-network/shared/auth-misskey';
 import { setSessionCookie } from 'better-auth/cookies';
+import type { WithExternalId } from '../auth';
 
 export const miauthPlugin = () => {
 	return {
@@ -130,7 +131,11 @@ export const miauthPlugin = () => {
 								name: misskeyUser.username,
 								email: `${misskeyUser.username}@${host}`,
 								emailVerified: false,
-							},
+								externalId: '',
+							} satisfies WithExternalId<Omit<BAUser, 'id' | 'createdAt' | 'updatedAt'>> as Omit<
+								BAUser,
+								'id' | 'createdAt' | 'updatedAt'
+							>,
 							{
 								providerId: 'miauth',
 								id: misskeyUser.id,

@@ -6,6 +6,11 @@ import { createHostToOrigin } from '../../shared/src/url';
 import { prisma } from './db';
 import { miauthPlugin } from './auth/miauth-plugin';
 
+export type WithExternalId<T> = T & { externalId: string };
+function isExternalId<T>(v: T): v is WithExternalId<T> {
+	return v && typeof v === 'object' && 'externalId' in v && typeof v.externalId === 'string';
+}
+
 export const auth = betterAuth({
 	database: prismaAdapter(prisma, {
 		provider: 'sqlite',
@@ -16,11 +21,21 @@ export const auth = betterAuth({
 	emailAndPassword: {
 		enabled: false,
 	},
-	plugins: [
-		miauthPlugin(),
-	],
+	plugins: [miauthPlugin()],
 	user: {
 		modelName: 'AuthUser',
+	},
+	databaseHooks: {
+		user: {
+			create: {
+				before: (user) => {
+					if (!isExternalId(user)) {
+						return Promise.resolve();
+					}
+					return Promise.resolve({ data: { id: user.externalId } });
+				},
+			},
+		},
 	},
 	advanced: {
 		defaultCookieAttributes: {
