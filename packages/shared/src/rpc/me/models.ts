@@ -38,7 +38,7 @@ export const RankShiftType = {
 
 export const LastResultResponse = z.optional(
 	z.object({
-		targetDate: z.date(),
+		targetDate: z.coerce.date(),
 		place: z.number(),
 		time: z.number(),
 		earnedPt: z.number(),
