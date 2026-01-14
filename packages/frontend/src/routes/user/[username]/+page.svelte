@@ -262,6 +262,7 @@ function handleSaveSettings(settings: Partial<SettingTypeT>): void {
 								onSpanChange={handleSpanChange}
 								isLoading={earnedPtQuery.isLoading}
 								height="10rem"
+								unit="獲得pt"
 							/>
 						{/if}
 
@@ -277,6 +278,10 @@ function handleSaveSettings(settings: Partial<SettingTypeT>): void {
 								onSpanChange={handleSpanChange}
 								isLoading={postTimeQuery.isLoading}
 								height="10rem"
+								unit="dt(秒)"
+								logScale={true}
+								logScaleMin={1}
+								logScaleMax={1}
 							/>
 						{/if}
 

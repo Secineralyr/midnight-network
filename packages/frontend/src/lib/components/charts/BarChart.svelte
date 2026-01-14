@@ -31,6 +31,14 @@ interface Props {
 	isLoading?: boolean;
 	/** 高さ */
 	height?: string;
+	/** 値の単位（例: 'pt', '円', '%'） */
+	unit?: string;
+	/** 対数スケールを使用 */
+	logScale?: boolean;
+	/** 対数スケール時の下限値 */
+	logScaleMin?: number;
+	/** 対数スケール時の上限値 */
+	logScaleMax?: number;
 }
 
 const {
@@ -45,7 +53,28 @@ const {
 	onSpanChange,
 	isLoading = false,
 	height = '200px',
+	unit = '',
+	logScale = false,
+	logScaleMin,
+	logScaleMax,
 }: Props = $props();
+
+/** 値が範囲外かどうかを判定 */
+function isOutOfRange(value: number): boolean {
+	if (!logScale) {
+		return false;
+	}
+	if (logScaleMin !== undefined && logScaleMax !== undefined && value >= -logScaleMin && value <= logScaleMax) {
+		return false;
+	}
+	if (logScaleMin !== undefined && logScaleMax === undefined && value >= -logScaleMin) {
+		return false;
+	}
+	if (logScaleMax !== undefined && logScaleMin === undefined && value <= logScaleMax) {
+		return false;
+	}
+	return true;
+}
 
 /** チャートオプション */
 const chartOptions: EChartsOption = $derived({
@@ -66,12 +95,14 @@ const chartOptions: EChartsOption = $derived({
 	series: [
 		{
 			type: 'bar',
-			data: data.map((d) => d.value),
+			data: data.map((d) => ({
+				value: logScale ? Math.min(Math.max(d.value, -logScaleMin), logScaleMax) : d.value,
+				itemStyle: {
+					color: d.value === 0 ? '#fff' : isOutOfRange(d.value) ? d.value < 0 ? '#F47D86' : '#7E78E4' : d.value < 0 ? '#FDBCC1' : '#A7B1F6',
+				},
+			})),
 			barWidth: '60%',
-			itemStyle: {
-				color: '#c5c9e6',
-				borderRadius: [4, 4, 0, 0],
-			},
+			barMinHeight: 5,
 		},
 	],
 	tooltip: {
@@ -80,9 +111,12 @@ const chartOptions: EChartsOption = $derived({
 			type: 'shadow',
 		},
 		formatter: (params: unknown) => {
-			const p = params as { name: string; value: number }[];
+			const p = params as { name: string; value: number; dataIndex: number }[];
 			if (p?.[0]) {
-				return `${p[0].name}<br/>pt: ${p[0].value >= 0 ? '+' : ''}${p[0].value}`;
+				const originalValue = data[p[0].dataIndex].value;
+				const sign = originalValue >= 0 ? '+' : '';
+				const unitLabel = unit ? `${unit}: ` : '';
+				return `${p[0].name}<br/>${unitLabel}${sign}${originalValue}`;
 			}
 			return '';
 		},
