@@ -21,7 +21,7 @@ interface Props {
 const { title, data, isLoading = false }: Props = $props();
 
 /** 7列 x N行のグリッドデータを生成 */
-const gridData = $derived(() => {
+const gridData = $derived.by(() => {
 	const result: [number, number, number][] = [];
 	const cols = 7;
 	const rows = Math.ceil(data.length / cols);
@@ -47,26 +47,29 @@ const gridData = $derived(() => {
 
 /**
  * 値から色を取得
- * @param value - 値
+ * @param value - 値（-1: 未参加, 0: フライング, 1以上: 順位）
  * @returns 色
  */
 function getColor(value: number): string {
 	if (value === -1) {
-		return '#252a3d';
+		return '#2F2D53'; // 未参加
 	}
 	if (value === 0) {
-		return '#ef4444';
+		return '#BA2E40'; // フライング
 	}
-	if (value <= 3) {
-		return '#c5c9e6';
+	if (value === 1) {
+		return '#FEB369'; // 1位
 	}
-	if (value <= 10) {
-		return '#8b8fad';
+	if (value === 2) {
+		return '#CCCCCC'; // 2位
 	}
-	if (value <= 50) {
-		return '#fbbf24';
+	if (value === 3) {
+		return '#C26330'; // 3位
 	}
-	return '#6b6f7e';
+	if (value >= 4 && value <= 10) {
+		return '#B8C4FF'; // 4〜10位
+	}
+	return '#4E4B71'; // それ以外
 }
 
 /** チャートオプション */
@@ -87,7 +90,7 @@ const chartOptions: EChartsOption = $derived({
 	},
 	yAxis: {
 		type: 'category',
-		data: Array.from({ length: gridData().rows }, (_, i) => i.toString()),
+		data: Array.from({ length: gridData.rows }, (_, i) => i.toString()),
 		splitArea: { show: false },
 		axisLine: { show: false },
 		axisTick: { show: false },
@@ -96,9 +99,13 @@ const chartOptions: EChartsOption = $derived({
 	series: [
 		{
 			type: 'heatmap',
-			data: gridData().data,
+			data: gridData.data.map((item) => ({
+				value: item,
+				itemStyle: {
+					color: getColor(item[2]),
+				},
+			})),
 			itemStyle: {
-				borderRadius: 4,
 				borderWidth: 2,
 				borderColor: '#1a1d2e',
 			},
@@ -113,17 +120,14 @@ const chartOptions: EChartsOption = $derived({
 		show: false,
 		min: -1,
 		max: 100,
-		inRange: {
-			color: ['#252a3d', '#ef4444', '#c5c9e6', '#8b8fad', '#fbbf24', '#6b6f7e'],
-		},
 	},
 	tooltip: {
 		formatter: (params: unknown) => {
-			const p = params as { data: [number, number, number] };
-			if (!p?.data) {
+			const p = params as { data: { value: [number, number, number] } };
+			if (!p?.data?.value) {
 				return '';
 			}
-			const value = p.data[2];
+			const value = p.data.value[2];
 			if (value === -1) {
 				return '未参加';
 			}

@@ -73,22 +73,22 @@ const chartOptions = $derived({
 		shape: 'polygon',
 		splitNumber: 4,
 		axisName: {
-			color: '#a0a3b1',
+			color: '#fff',
 		},
 		splitLine: {
 			lineStyle: {
-				color: '#3d4157',
+				color: '#A7B1F64C',
 			},
 		},
 		splitArea: {
 			show: true,
 			areaStyle: {
-				color: ['rgba(45, 51, 71, 0.3)', 'rgba(37, 42, 61, 0.3)'],
+				color: '#A7B1F61A',
 			},
 		},
 		axisLine: {
 			lineStyle: {
-				color: '#3d4157',
+				color: '#A7B1F6B3',
 			},
 		},
 		axisPointer: {
@@ -112,14 +112,14 @@ const chartOptions = $derived({
 					value: normalizedData(),
 					name: 'Stats',
 					areaStyle: {
-						color: 'rgba(197, 201, 230, 0.3)',
+						color: '#A7B1F65D',
 					},
 					lineStyle: {
-						color: '#c5c9e6',
+						color: '#DDE0FA',
 						width: 2,
 					},
 					itemStyle: {
-						color: '#c5c9e6',
+						color: '#E7E8EE',
 					},
 				},
 			],

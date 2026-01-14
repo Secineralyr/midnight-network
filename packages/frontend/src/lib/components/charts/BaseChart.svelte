@@ -26,54 +26,30 @@ let chartInstance: echarts.ECharts | undefined = $state();
 const darkTheme = {
 	backgroundColor: 'transparent',
 	textStyle: {
-		color: '#c6c9df',
+		color: '#ffffff',
 		fontFamily: "'Lexend', 'M PLUS 2', sans-serif",
 	},
-	title: {
-		textStyle: {
-			color: '#ffffff',
-		},
-	},
-	legend: {
-		textStyle: {
-			color: '#c6c9df',
-		},
-	},
 	tooltip: {
-		backgroundColor: '#2f2d4a',
-		borderColor: '#3a3755',
+		backgroundColor: '#2F2D53',
+		borderColor: '#201E3A',
 		textStyle: {
 			color: '#ffffff',
 		},
 	},
 	xAxis: {
-		axisLine: {
-			lineStyle: {
-				color: '#4a4768',
-			},
-		},
 		axisLabel: {
-			color: '#c6c9df',
+			color: '#ffffff', // ← ここで色を調整
 		},
-		splitLine: {
-			lineStyle: {
-				color: '#34314f',
-			},
+		axisLine: {
+			lineStyle: { color: '#ffffff' },
 		},
 	},
 	yAxis: {
-		axisLine: {
-			lineStyle: {
-				color: '#4a4768',
-			},
-		},
 		axisLabel: {
-			color: '#c6c9df',
+			color: '#ffffff', // ← ここで色を調整
 		},
 		splitLine: {
-			lineStyle: {
-				color: '#34314f',
-			},
+			lineStyle: { color: '#ffffff' },
 		},
 	},
 };

@@ -125,11 +125,12 @@ const chartOptions = $derived({
 		type: 'value',
 		splitNumber: 4,
 		axisLabel: {
+			color: '#fff',
 			formatter: (value: number) => `${value.toLocaleString()} %`,
 		},
 		splitLine: {
 			lineStyle: {
-				color: 'rgba(255, 255, 255, 0.1)',
+				color: '#A7B1F64C',
 			},
 		},
 	},

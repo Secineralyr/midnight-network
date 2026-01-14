@@ -77,11 +77,11 @@ const chartOptions: EChartsOption = $derived({
 			symbol: 'circle',
 			symbolSize: 8,
 			lineStyle: {
-				color: '#c5c9e6',
+				color: '#A7B1F6',
 				width: 2,
 			},
 			itemStyle: {
-				color: '#c5c9e6',
+				color: '#DCE0FF',
 				borderColor: '#ffffff',
 				borderWidth: 2,
 			},
@@ -93,8 +93,8 @@ const chartOptions: EChartsOption = $derived({
 					x2: 0,
 					y2: 1,
 					colorStops: [
-						{ offset: 0, color: 'rgba(197, 201, 230, 0.3)' },
-						{ offset: 1, color: 'rgba(197, 201, 230, 0)' },
+						{ offset: 0, color: '#DCE0FF4D' },
+						{ offset: 1, color: '#DCE0FF00' },
 					],
 				},
 			},
