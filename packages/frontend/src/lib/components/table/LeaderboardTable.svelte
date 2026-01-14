@@ -5,6 +5,7 @@ import { createTable, getCoreRowModel } from '@tanstack/svelte-table';
 import { animate } from 'motion';
 import { formatAvgTime, formatPlace, formatPlaceChange, formatPt, formatWinRate } from '$lib/utils/format';
 import RankIcon from '../rank/RankIcon.svelte';
+import UserAvatar from '../user/UserAvatar.svelte';
 
 /**
  * リーダーボードテーブルコンポーネント
@@ -126,11 +127,9 @@ function handleRowClick(username: string): void {
 				>
 					<span class="table-cell">{formatPlace(myRanking.place)}</span>
 					<span class="table-cell">{formatPlaceChange(myRanking.place, myRanking.previousPlace)}</span>
-					<img
-						src="https://placehold.co/400"
-						alt={myRanking.user.username}
-						class="avatar"
-					/>
+					<div class="avatar">
+						<UserAvatar userId={myRanking.user.userId} alt={myRanking.user.username} />
+					</div>
 					<span class="table-cell name">@{myRanking.user.username}</span>
 					<span class="table-cell">{formatWinRate(myRanking.wr)}</span>
 					<span class="table-cell">{formatAvgTime(myRanking.averageTime)}</span>
@@ -151,11 +150,9 @@ function handleRowClick(username: string): void {
 				>
 					<span class="table-cell">{formatPlace(rowData.place)}</span>
 					<span class="table-cell">{formatPlaceChange(rowData.place, rowData.previousPlace)}</span>
-					<img
-						src="https://placehold.co/400"
-						alt={rowData.user.username}
-						class="avatar"
-					/>
+					<div class="avatar">
+						<UserAvatar userId={rowData.user.userId} alt={rowData.user.username} />
+					</div>
 					<span class="table-cell name">@{rowData.user.username}</span>
 					<span class="table-cell">{formatWinRate(rowData.wr)}</span>
 					<span class="table-cell">{formatAvgTime(rowData.averageTime)}</span>
@@ -240,7 +237,7 @@ function handleRowClick(username: string): void {
 		height: 32px;
 		border-radius: 50%;
 		border: 1px solid rgba(255, 255, 255, 0.18);
-		object-fit: cover;
+		overflow: hidden;
 	}
 
 	.table-rank {

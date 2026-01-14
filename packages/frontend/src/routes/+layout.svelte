@@ -7,9 +7,9 @@ import Header from '$lib/components/layout/Header.svelte';
 import { createQueryClient } from '$lib/data/query-client';
 import '$lib/styles/global.css';
 import type { User } from 'better-auth';
-import { createAuthClient } from '$lib/auth/auth-client';
 import { fly } from 'svelte/transition';
 import { page } from '$app/state';
+import { createAuthClient } from '$lib/auth/auth-client';
 
 /**
  * ルートレイアウト

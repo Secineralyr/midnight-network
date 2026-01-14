@@ -19,7 +19,7 @@ function popIn(_node: Element, { duration = 150 }: { duration?: number } = {}) {
 				transform: scale(${scale});
 				transform-origin: top center;
 			`;
-		}
+		},
 	};
 }
 

@@ -1,6 +1,6 @@
 <script lang="ts">
-import type { RankHistResponseT } from '@midnight-network/shared/rpc/leaderboard/models';
 import { RankType } from '@midnight-network/shared/rank';
+import type { RankHistResponseT } from '@midnight-network/shared/rpc/leaderboard/models';
 import type { EChartsOption } from 'echarts';
 import { getRankGrade, getRankIconPath, getRankText, type RankTypeValue } from '$lib/utils/rank';
 import BaseChart from './BaseChart.svelte';

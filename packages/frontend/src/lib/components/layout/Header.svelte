@@ -1,10 +1,12 @@
 <script lang="ts">
 import { IconSearch } from '@tabler/icons-svelte';
-import LoggedInPanel from '../user/LoggedInPanel.svelte';
-import RankBadge from '../rank/RankBadge.svelte';
+import { createQuery, useQueryClient } from '@tanstack/svelte-query';
 import type { User } from 'better-auth';
-	import { createQuery } from '@tanstack/svelte-query';
-	import { orpc } from '$lib/orpc';
+import { primeMisskeyUsers } from '$lib/data/misskey-users';
+import { orpc } from '$lib/orpc';
+import RankBadge from '../rank/RankBadge.svelte';
+import LoggedInPanel from '../user/LoggedInPanel.svelte';
+import UserAvatar from '../user/UserAvatar.svelte';
 
 /**
  * ヘッダーコンポーネント
@@ -22,11 +24,21 @@ interface Props {
 
 const { user = null, showSearchButton = false, onSearchClick }: Props = $props();
 
+const queryClient = useQueryClient();
+
 /** ログインデータ取得 */
 const userInfoQuery = createQuery(() => ({
 	queryKey: ['userInfo', user?.id],
-	queryFn: () => user ? orpc.me.userInfo() : null,
+	queryFn: () => (user ? orpc.me.userInfo() : null),
 }));
+
+$effect(() => {
+	const userId = userInfoQuery.data?.id;
+	if (!userId) {
+		return;
+	}
+	primeMisskeyUsers(queryClient, [userId]).catch(() => null);
+});
 
 let isPanelOpen = $state(false);
 
@@ -68,11 +80,9 @@ function closePanel(): void {
 			{#if user && userInfoQuery.data}
 				<div class="logged-user">
 					<button class="user-icon-button" type="button" onclick={handleUserClick}>
-						<img
-							class="icon"
-							src={'https://placehold.co/400'}
-							alt={userInfoQuery.data.username}
-						/>
+						<div class="icon">
+							<UserAvatar userId={userInfoQuery.data.id} alt={userInfoQuery.data.username} />
+						</div>
 						<RankBadge rank={userInfoQuery.data.latestRank} class="user-rank-badge" />
 					</button>
 					{#if isPanelOpen}
@@ -153,8 +163,10 @@ function closePanel(): void {
 		border: 2px solid #fff;
 	}
 	header > div > .right-side > .logged-user > .user-icon-button > .icon {
+		width: 100%;
 		height: 100%;
 		border-radius: 9999px;
+		overflow: hidden;
 	}
 
 	header > div > .right-side > .logged-user > .user-icon-button > :global(.user-rank-badge) {

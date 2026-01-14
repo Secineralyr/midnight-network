@@ -1,5 +1,6 @@
 <script lang="ts">
 import { animate } from 'motion';
+
 interface Props {
 	/** Value in the 0-100 range. */
 	value?: number;
@@ -32,7 +33,7 @@ function stopAnimation(): void {
 }
 
 const clampedPercent = $derived.by(() => {
-	if (!Number.isFinite(value) || !Number.isFinite(max) || max <= 0) {
+	if (!(Number.isFinite(value) && Number.isFinite(max)) || max <= 0) {
 		return 0;
 	}
 	const percent = (value / max) * 100;
@@ -53,7 +54,7 @@ const measureText = $derived(displayText === '' ? ' ' : displayText);
 const showText = $derived(displayText !== '');
 
 function updateTextPosition(percent = animatedPercent): void {
-	if (!trackElement || !textElement) {
+	if (!(trackElement && textElement)) {
 		return;
 	}
 
@@ -86,9 +87,7 @@ function updateTextPosition(percent = animatedPercent): void {
 		return;
 	}
 
-	const raw = useInsidePosition
-		? fillWidth - padding - half
-		: fillWidth + padding + half;
+	const raw = useInsidePosition ? fillWidth - padding - half : fillWidth + padding + half;
 
 	const center = Math.min(max, Math.max(min, raw));
 	textLeft = center - half;
@@ -116,7 +115,7 @@ $effect(() => {
 });
 
 $effect(() => {
-	if (!trackElement || !textElement) {
+	if (!(trackElement && textElement)) {
 		return;
 	}
 

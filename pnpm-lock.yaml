@@ -228,6 +228,9 @@ importers:
       echarts:
         specifier: 'catalog:'
         version: 6.0.0
+      misskey-js:
+        specifier: 'catalog:'
+        version: 2025.12.1
       motion:
         specifier: 'catalog:'
         version: 12.23.26(react-dom@19.2.3(react@19.2.3))(react@19.2.3)

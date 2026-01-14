@@ -1,9 +1,9 @@
 <script lang="ts">
 import type { UserInfoResponseT } from '@midnight-network/shared/rpc/me/models';
-import RankIcon from '../rank/RankIcon.svelte';
-import { fly } from 'svelte/transition';
 import { IconLogout, IconUser } from '@tabler/icons-svelte';
+import { fly } from 'svelte/transition';
 import { goto } from '$app/navigation';
+import RankIcon from '../rank/RankIcon.svelte';
 
 /**
  * ログインユーザーパネルコンポーネント

@@ -47,31 +47,33 @@ export async function averageTime(offset: AvgTimeParamsT): Promise<AvgTimeRespon
 		const { currentOffset, maxOffset, skip, take } = calculatePagination(selectTotalCount, offset);
 		console.info('rpc.leaderboard.averageTime.pagination', { currentOffset, maxOffset, skip, take });
 
-		const users = (await prisma.user.findMany({
-			where: {
-				banned: false,
-				userSettings: {
-					OR: [{ showLeaderboardRanking: true }, { id: undefined }],
+		const users = (
+			await prisma.user.findMany({
+				where: {
+					banned: false,
+					userSettings: {
+						OR: [{ showLeaderboardRanking: true }, { id: undefined }],
+					},
+					deltaTimeMsAvgPlace: {
+						isNot: null,
+					},
 				},
-				deltaTimeMsAvgPlace: {
-					isNot: null,
+				select: {
+					...statisticsSelector,
+					userName: true,
+					deltaTimeMsAvg: undefined,
+					deltaTimeMsAvgYesterday: true,
+					deltaTimeMsAvgPlace: true,
 				},
-			},
-			select: {
-				...statisticsSelector,
-				userName: true,
-				deltaTimeMsAvg: undefined,
-				deltaTimeMsAvgYesterday: true,
-				deltaTimeMsAvgPlace: true,
-			},
-			skip,
-			take,
-			orderBy: {
-				deltaTimeMsAvgPlace: {
-					dtAvg: 'asc',
+				skip,
+				take,
+				orderBy: {
+					deltaTimeMsAvgPlace: {
+						dtAvg: 'asc',
+					},
 				},
-			},
-		})).map((v) => ({
+			})
+		).map((v) => ({
 			...v,
 			deltaTimeMsAvg: v.deltaTimeMsAvgPlace,
 		}));
@@ -397,31 +399,33 @@ export async function wr(offset: WrParamsT): Promise<WrResponseT> {
 		const { currentOffset, maxOffset, skip, take } = calculatePagination(selectTotalCount, offset);
 		console.info('rpc.leaderboard.wr.pagination', { currentOffset, maxOffset, skip, take });
 
-		const users = (await prisma.user.findMany({
-			where: {
-				banned: false,
-				userSettings: {
-					OR: [{ showLeaderboardRanking: true }, { id: undefined }],
+		const users = (
+			await prisma.user.findMany({
+				where: {
+					banned: false,
+					userSettings: {
+						OR: [{ showLeaderboardRanking: true }, { id: undefined }],
+					},
+					winRatePlace: {
+						isNot: null,
+					},
 				},
-				winRatePlace: {
-					isNot: null,
+				select: {
+					...statisticsSelector,
+					userName: true,
+					winRate: undefined,
+					winRatePlace: true,
+					winRateYesterday: true,
 				},
-			},
-			select: {
-				...statisticsSelector,
-				userName: true,
-				winRate: undefined,
-				winRatePlace: true,
-				winRateYesterday: true,
-			},
-			skip,
-			take,
-			orderBy: {
-				winRatePlace: {
-					wr: 'desc',
+				skip,
+				take,
+				orderBy: {
+					winRatePlace: {
+						wr: 'desc',
+					},
 				},
-			},
-		})).map((v) => ({
+			})
+		).map((v) => ({
 			...v,
 			winRate: v.winRatePlace,
 		}));

@@ -2,9 +2,9 @@
 import { RankType } from '@midnight-network/shared/rank';
 import type { CurrentRankT } from '@midnight-network/shared/rpc/user/models';
 import { animate } from 'motion';
+import GaugeBar from '$lib/components/ui/GaugeBar.svelte';
 import { formatPt } from '$lib/utils/format';
 import RankIcon from './RankIcon.svelte';
-import GaugeBar from '$lib/components/ui/GaugeBar.svelte';
 
 /**
  * ランク表示コンポーネント
@@ -50,7 +50,7 @@ const progressPercent = $derived(() => {
 	if (isNoRank || !('nextRankPt' in currentRank)) {
 		return 0;
 	}
-	return (1 - (currentRank.nextRankPt / 500)) * 100;
+	return (1 - currentRank.nextRankPt / 500) * 100;
 });
 </script>
 

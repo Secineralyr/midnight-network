@@ -1,10 +1,11 @@
 <script lang="ts">
-import { createQuery } from '@tanstack/svelte-query';
+import { createQuery, useQueryClient } from '@tanstack/svelte-query';
 import { goto } from '$app/navigation';
 import RankHistogram from '$lib/components/charts/RankHistogram.svelte';
 import LeaderboardTable from '$lib/components/table/LeaderboardTable.svelte';
 import Pagination from '$lib/components/table/Pagination.svelte';
 import Select from '$lib/components/ui/Select.svelte';
+import { primeMisskeyUsers } from '$lib/data/misskey-users';
 import { orpc } from '$lib/orpc';
 
 /**
@@ -13,6 +14,8 @@ import { orpc } from '$lib/orpc';
  */
 
 /** 現在のページ（1始まり） */
+const queryClient = useQueryClient();
+
 let currentPage = $state(1);
 
 /** 順位基準 */
@@ -47,6 +50,18 @@ const rankQuery = createQuery(() => ({
 	queryKey: ['leaderboard', sortCriteria, currentPage],
 	queryFn: () => fetchLeaderboard(currentPage, sortCriteria),
 }));
+
+const leaderboardUserIds = $derived([
+	...(rankQuery.data?.data.map((row) => row.user.userId) ?? []),
+	...(rankQuery.data?.yourRanking ? [rankQuery.data.yourRanking.user.userId] : []),
+]);
+
+$effect(() => {
+	if (leaderboardUserIds.length === 0) {
+		return;
+	}
+	primeMisskeyUsers(queryClient, leaderboardUserIds).catch(() => null);
+});
 
 /** ランク分布データ取得 */
 const rankHistQuery = createQuery(() => ({

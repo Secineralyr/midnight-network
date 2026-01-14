@@ -2,7 +2,7 @@
 import type { SettingTypeT } from '@midnight-network/shared/rpc/me/models';
 import { GraphSpan } from '@midnight-network/shared/rpc/user/models';
 import { IconSettings } from '@tabler/icons-svelte';
-import { createMutation, createQuery } from '@tanstack/svelte-query';
+import { createMutation, createQuery, useQueryClient } from '@tanstack/svelte-query';
 import { page } from '$app/stores';
 import BarChart from '$lib/components/charts/BarChart.svelte';
 import Heatmap from '$lib/components/charts/Heatmap.svelte';
@@ -13,6 +13,8 @@ import RankDisplay from '$lib/components/rank/RankDisplay.svelte';
 import Button from '$lib/components/ui/Button.svelte';
 import RankStatus from '$lib/components/user/RankStatus.svelte';
 import Statistics from '$lib/components/user/Statistics.svelte';
+import UserAvatar from '$lib/components/user/UserAvatar.svelte';
+import { primeMisskeyUsers } from '$lib/data/misskey-users';
 import { orpc } from '$lib/orpc';
 
 /**
@@ -22,6 +24,8 @@ import { orpc } from '$lib/orpc';
 
 /** ユーザー名 */
 const username = $derived($page.params.username);
+
+const queryClient = useQueryClient();
 
 const userIdQuery = createQuery(() => ({
 	queryKey: ['user', 'resolveId', username],
@@ -40,6 +44,13 @@ const userIdQuery = createQuery(() => ({
 }));
 
 const userId = $derived(userIdQuery.data?.userId ?? null);
+
+$effect(() => {
+	if (!userId) {
+		return;
+	}
+	primeMisskeyUsers(queryClient, [userId]).catch(() => null);
+});
 
 /** グラフの期間の型 */
 type GraphSpanValue = (typeof GraphSpan)[keyof typeof GraphSpan];
@@ -185,11 +196,9 @@ function handleSaveSettings(settings: Partial<SettingTypeT>): void {
 <div class="user-page">
 	<div class="user-header">
 		<div class="user-profile">
-			<img
-				src="https://placehold.co/400"
-				alt={username}
-				class="user-avatar"
-			/>
+			<div class="user-avatar">
+				<UserAvatar {userId} alt={username} />
+			</div>
 			<h1 class="user-username">@{username}</h1>
 		</div>
 		{#if isOwnProfile}
@@ -341,7 +350,7 @@ function handleSaveSettings(settings: Partial<SettingTypeT>): void {
 		width: 80px;
 		height: 80px;
 		border-radius: 50%;
-		object-fit: cover;
+		overflow: hidden;
 	}
 
 	.user-username {

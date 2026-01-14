@@ -1,12 +1,15 @@
 <script lang="ts">
 import type { ApiSimpleUserInfoT } from '@midnight-network/shared/rpc/models';
-import { createQuery } from '@tanstack/svelte-query';
+import { createQuery, useQueryClient } from '@tanstack/svelte-query';
 import { goto } from '$app/navigation';
 import Countdown from '$lib/components/countdown/Countdown.svelte';
 import Top3Leaderboard from '$lib/components/leaderboard/Top3Leaderboard.svelte';
 import LastResult from '$lib/components/result/LastResult.svelte';
 import UserSearch from '$lib/components/search/UserSearch.svelte';
+import { primeMisskeyUsers } from '$lib/data/misskey-users';
 import { orpc } from '$lib/orpc';
+
+const queryClient = useQueryClient();
 
 /**
  * トップページ
@@ -17,7 +20,6 @@ import { orpc } from '$lib/orpc';
 const todayTopQuery = createQuery(() => ({
 	queryKey: ['todayTop'],
 	queryFn: () => orpc.todayTop(),
-
 }));
 
 /** ランクpt上位データ */
@@ -25,6 +27,18 @@ const rankTopQuery = createQuery(() => ({
 	queryKey: ['rankTop'],
 	queryFn: () => orpc.rankTop(),
 }));
+
+const topUserIds = $derived([
+	...(todayTopQuery.data?.map((item) => item.user.userId) ?? []),
+	...(rankTopQuery.data?.map((item) => item.user.userId) ?? []),
+]);
+
+$effect(() => {
+	if (topUserIds.length === 0) {
+		return;
+	}
+	primeMisskeyUsers(queryClient, topUserIds).catch(() => null);
+});
 
 /** 前回のリザルト（ログインユーザーのみ） */
 const lastResultQuery = createQuery(() => ({

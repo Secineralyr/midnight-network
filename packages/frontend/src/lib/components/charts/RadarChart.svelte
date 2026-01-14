@@ -37,41 +37,33 @@ const rawValues = $derived(() => {
 	if (!data) {
 		return [0, 0, 0, 0, 0];
 	}
-	return [
-		data.totalPt,
-		data.wr,
-		data.averagePlace,
-		data.averageTime,
-		data.totalParticipationCount,
-	];
+	return [data.totalPt, data.wr, data.averagePlace, data.averageTime, data.totalParticipationCount];
 });
 
-const normalizedData = $derived(() =>
-	rawValues().map((value) => Math.min(100, value * 100)),
-);
+const normalizedData = $derived(() => rawValues().map((value) => Math.min(100, value * 100)));
 
 const axisTooltipSeries = $derived(() =>
-	indicatorLabels.map((label, index): EChartsOption => ({
-		type: 'radar',
-		name: `${label}-tooltip`,
-		data: [
-			{
-				value: normalizedData().map((value, valueIndex) =>
-					valueIndex === index ? value : 0,
-				),
+	indicatorLabels.map(
+		(label, index): EChartsOption => ({
+			type: 'radar',
+			name: `${label}-tooltip`,
+			data: [
+				{
+					value: normalizedData().map((value, valueIndex) => (valueIndex === index ? value : 0)),
+				},
+			],
+			symbol: 'circle',
+			symbolSize: 16,
+			showSymbol: true,
+			lineStyle: { opacity: 0 },
+			areaStyle: { opacity: 0 },
+			itemStyle: { opacity: 0 },
+			tooltip: {
+				trigger: 'item',
+				formatter: () => formatItemTooltip(rawValues(), index),
 			},
-		],
-		symbol: 'circle',
-		symbolSize: 16,
-		showSymbol: true,
-		lineStyle: { opacity: 0 },
-		areaStyle: { opacity: 0 },
-		itemStyle: { opacity: 0 },
-		tooltip: {
-			trigger: 'item',
-			formatter: () => formatItemTooltip(rawValues(), index),
-		},
-	})),
+		}),
+	),
 );
 
 /** チャートオプション */

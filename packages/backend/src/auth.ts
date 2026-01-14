@@ -3,8 +3,8 @@ import { authBasePath } from '@midnight-network/shared/auth-routes';
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { createHostToOrigin } from '../../shared/src/url';
-import { prisma } from './db';
 import { miauthPlugin } from './auth/miauth-plugin';
+import { prisma } from './db';
 
 export type WithExternalId<T> = T & { externalId: string };
 function isExternalId<T>(v: T): v is WithExternalId<T> {

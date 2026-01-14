@@ -3,6 +3,7 @@ import { animate } from 'motion';
 import { formatPlace, formatPt, formatTimeDiff } from '$lib/utils/format';
 import type { RankTypeValue } from '$lib/utils/rank';
 import RankIcon from '../rank/RankIcon.svelte';
+import UserAvatar from '../user/UserAvatar.svelte';
 
 /**
  * トップ3カードコンポーネント
@@ -15,10 +16,9 @@ type CardType = 'time' | 'pt';
 interface Props {
 	/** 順位 */
 	place: number;
+	userId?: string;
 	/** ユーザー名 */
 	username: string;
-	/** アバターURL */
-	avatarUrl?: string;
 	/** ランク値 */
 	rank: RankTypeValue;
 	/** タイム（time タイプ用） */
@@ -33,7 +33,7 @@ interface Props {
 	onclick?: () => void;
 }
 
-const { place, username, avatarUrl, rank, time, pt, type, isLoading = false, onclick }: Props = $props();
+const { place, userId, username, rank, time, pt, type, isLoading = false, onclick }: Props = $props();
 
 let cardElement: HTMLButtonElement | undefined = $state();
 
@@ -42,7 +42,6 @@ $effect(() => {
 		animate(cardElement, { opacity: [0, 1], y: [20, 0] }, { duration: 0.4, delay: place * 0.1 });
 	}
 });
-
 
 /**
  * クリック時のアニメーション
@@ -75,11 +74,9 @@ const valueText = $derived(type === 'time' && time !== undefined ? formatTimeDif
 		</div>
 	{:else}
 		<span class="place">{formatPlace(place)}</span>
-		<img
-			src={avatarUrl || 'https://placehold.co/400'}
-			alt={username}
-			class="avatar"
-		/>
+		<div class="avatar">
+			<UserAvatar {userId} alt={username} />
+		</div>
 		<div class="info">
 			<span class="name">@{username}</span>
 			<span class="value">{valueText}</span>
@@ -122,7 +119,7 @@ const valueText = $derived(type === 'time' && time !== undefined ? formatTimeDif
 		width: 55px;
 		height: 55px;
 		border-radius: 9999px;
-		object-fit: cover;
+		overflow: hidden;
 	}
 
 	.info {

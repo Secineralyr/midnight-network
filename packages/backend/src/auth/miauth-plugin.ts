@@ -1,10 +1,9 @@
-import type { BetterAuthPlugin, User as BAUser } from 'better-auth';
-import { createAuthEndpoint, APIError } from 'better-auth/api';
-import { z } from 'zod';
-import { randomUUID } from 'node:crypto';
-import type { User } from 'misskey-js/entities.js';
 import { MiAuthScopes } from '@midnight-network/shared/auth-misskey';
+import type { User as BAUser, BetterAuthPlugin } from 'better-auth';
+import { APIError, createAuthEndpoint } from 'better-auth/api';
 import { setSessionCookie } from 'better-auth/cookies';
+import type { User } from 'misskey-js/entities.js';
+import { z } from 'zod';
 import type { WithExternalId } from '../auth';
 
 export const miauthPlugin = () => {
@@ -26,7 +25,7 @@ export const miauthPlugin = () => {
 					const { host, callbackUrl } = ctx.query;
 
 					// セッションIDを生成
-					const sessionId = randomUUID();
+					const sessionId = crypto.randomUUID();
 
 					// セッション情報を一時保存（internalAdapterを使用）
 					await ctx.context.internalAdapter.createVerificationValue({

@@ -38,8 +38,8 @@ const upperStats = $derived([
 const lowerStats = $derived([
 	{ label: '平均タイム', value: formatAvgTime(statistics.averageTime) },
 	{ label: 'WR', value: formatWinRate(statistics.wr) },
-	{ label: '最遅タイム', value: `${(statistics.lateTime/1000).toFixed(3)}s` },
-	{ label: '最早タイム', value: `${(statistics.earlyTime/1000).toFixed(3)}s` },
+	{ label: '最遅タイム', value: `${(statistics.lateTime / 1000).toFixed(3)}s` },
+	{ label: '最早タイム', value: `${(statistics.earlyTime / 1000).toFixed(3)}s` },
 	{ label: 'フライング回数', value: `${statistics.flyingCount}回` },
 ]);
 </script>

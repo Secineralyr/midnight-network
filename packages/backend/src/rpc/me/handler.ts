@@ -226,9 +226,9 @@ export async function userInfo(ctx: AuthContext, _: UserInfoParamsT): Promise<Us
 				userRankStatuses: {
 					select: {
 						pt: true,
-					}
-				}
-			}
+					},
+				},
+			},
 		});
 
 		if (!user) {

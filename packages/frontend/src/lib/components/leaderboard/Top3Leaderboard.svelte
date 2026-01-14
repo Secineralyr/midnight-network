@@ -62,6 +62,7 @@ function handleUserClick(username: string): void {
 			{#each todayData as item (item.user.userId)}
 				<Top3Card
 					place={item.place}
+					userId={item.user.userId}
 					username={item.user.username}
 					rank={item.rank}
 					time={item.time}
@@ -73,6 +74,7 @@ function handleUserClick(username: string): void {
 			{#each rankPtData as item (item.user.userId)}
 				<Top3Card
 					place={item.place}
+					userId={item.user.userId}
 					username={item.user.username}
 					rank={item.rank}
 					pt={item.pt}
