@@ -83,17 +83,10 @@ export async function earnedPtChart(params: EarnedPtParamsT): Promise<EarnedPtRe
 		const startDate = new Date();
 		startDate.setUTCDate(startDate.getUTCDate() - maxDays);
 
-		// matchIdで直接フィルタ（リレーション経由フィルタはD1+Prismaで動作しない）
-		const validMatchDates = await prisma.matchDate.findMany({
-			where: { date: { gte: startDate } },
-			select: { id: true },
-		});
-		const validMatchIds = validMatchDates.map((m) => m.id);
-
 		const histories = await prisma.userRankHistory.findMany({
 			where: {
 				userId: params.userId,
-				matchId: { in: validMatchIds },
+				matchDate: { date: { gte: startDate } },
 			},
 			select: {
 				earnedPt: true,
@@ -190,17 +183,10 @@ export async function postTimeChart(params: PostTimeParamsT): Promise<PostTimeRe
 		const startDate = new Date();
 		startDate.setUTCDate(startDate.getUTCDate() - maxDays);
 
-		// matchDateIdで直接フィルタ（リレーション経由フィルタはD1+Prismaで動作しない）
-		const validMatchDates = await prisma.matchDate.findMany({
-			where: { date: { gte: startDate } },
-			select: { id: true },
-		});
-		const validMatchIds = validMatchDates.map((m) => m.id);
-
 		const records = await prisma.record.findMany({
 			where: {
 				userId: params.userId,
-				matchDateId: { in: validMatchIds },
+				matchDate: { date: { gte: startDate } },
 			},
 			select: {
 				place: true,
@@ -422,19 +408,10 @@ export async function totalPtChart(params: TotalPtParamsT): Promise<TotalPtRespo
 		startDate.setUTCDate(startDate.getUTCDate() - maxDays);
 		console.info(`totalPtChart.startDate=${startDate.toISOString()} maxDays=${maxDays}`);
 
-		// matchIdで直接フィルタ（リレーション経由フィルタはD1+Prismaで動作しない）
-		const validMatchDates = await prisma.matchDate.findMany({
-			where: { date: { gte: startDate } },
-			select: { id: true },
-		});
-		console.info(`totalPtChart.validMatchDates.length=${validMatchDates.length}`);
-		const validMatchIds = validMatchDates.map((m) => m.id);
-		console.info(`totalPtChart.validMatchIds.first5=${JSON.stringify(validMatchIds.slice(0, 5))}`);
-
 		const histories = await prisma.userRankHistory.findMany({
 			where: {
 				userId: params.userId,
-				matchId: { in: validMatchIds },
+				matchDate: { date: { gte: startDate } },
 			},
 			select: {
 				pt: true,
