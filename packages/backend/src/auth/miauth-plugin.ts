@@ -94,7 +94,7 @@ export const miauthPlugin = () => {
 
 					const data = await response.json<{
 						token: string;
-						user: User
+						user: User;
 					}>();
 					const { token, user: misskeyUser } = data;
 
@@ -133,6 +133,8 @@ export const miauthPlugin = () => {
 							},
 							{
 								providerId: 'miauth',
+								id: misskeyUser.id,
+								userId: misskeyUser.id,
 								accountId: misskeyUser.id,
 								accessToken: token,
 							},
