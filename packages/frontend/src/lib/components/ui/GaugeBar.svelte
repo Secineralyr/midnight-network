@@ -21,6 +21,7 @@ const gaugePadding = 5;
 let trackElement: HTMLDivElement | undefined = $state();
 let textElement: HTMLSpanElement | undefined = $state();
 let textLeft = $state(0);
+let textInFill = $state(false);
 let animatedPercent = $state(0);
 let animation: ReturnType<typeof animate> | null = null;
 let previousPercent = 0;
@@ -60,30 +61,37 @@ function updateTextPosition(percent = animatedPercent): void {
 	const textWidth = textElement.offsetWidth;
 	if (trackWidth <= 0 || textWidth <= 0) {
 		textLeft = 0;
+		textInFill = false;
 		return;
 	}
 	const padding = gaugePadding;
 	const half = textWidth / 2;
 	const min = padding + half;
 	const max = trackWidth - padding - half;
+	const fillWidth = (percent / 100) * trackWidth;
+	const targetFillWidth = (clampedPercent / 100) * trackWidth;
+	const fitsInTarget = textWidth + padding * 2 <= targetFillWidth;
+	const fitsInFill = textWidth + padding * 2 <= fillWidth;
+	const useInsidePosition = fitsInTarget || fitsInFill;
+	textInFill = fitsInTarget ? true : fitsInFill;
 	const available = trackWidth - padding * 2;
 	if (textWidth >= available) {
-		textLeft = trackWidth / 2;
+		textLeft = (trackWidth - textWidth) / 2;
 		return;
 	}
 
 	if (textPosition === 'center') {
-		textLeft = Math.min(max, Math.max(min, trackWidth / 2));
+		const center = Math.min(max, Math.max(min, trackWidth / 2));
+		textLeft = center - half;
 		return;
 	}
 
-	const fillWidth = (percent / 100) * trackWidth;
-	const fitsInFill = textWidth + padding * 2 <= fillWidth;
-	const raw = fitsInFill
+	const raw = useInsidePosition
 		? fillWidth - padding - half
 		: fillWidth + padding + half;
 
-	textLeft = Math.min(max, Math.max(min, raw));
+	const center = Math.min(max, Math.max(min, raw));
+	textLeft = center - half;
 }
 
 $effect(() => {
@@ -138,11 +146,12 @@ $effect(() => {
 	<div class="gauge-track" bind:this={trackElement}>
 		<div class="gauge-fill"></div>
 		{#if showText}
-			<div class="gauge-text-layer gauge-text-base">
+			<div
+				class="gauge-text-layer"
+				class:gauge-text-base={!textInFill}
+				class:gauge-text-invert={textInFill}
+			>
 				<span class="gauge-text" bind:this={textElement}>{displayText}</span>
-			</div>
-			<div class="gauge-text-layer gauge-text-invert">
-				<span class="gauge-text">{displayText}</span>
 			</div>
 		{/if}
 	</div>
@@ -184,13 +193,13 @@ $effect(() => {
 		position: absolute;
 		inset: 0;
 		pointer-events: none;
+		display: flex;
+		align-items: center;
 	}
 
 	.gauge-text {
-		position: absolute;
-		top: 50%;
+		position: relative;
 		left: var(--gauge-text-left);
-		transform: translate(-50%, -50%);
 		white-space: nowrap;
 	}
 
@@ -200,6 +209,5 @@ $effect(() => {
 
 	.gauge-text-invert {
 		color: #2F2D53;
-		clip-path: inset(0 calc(100% - var(--gauge-percent)) 0 0);
 	}
 </style>
