@@ -19,5 +19,10 @@ if (typeof window !== 'undefined') {
 }
 </script>
 
-<main>
-</main>
+<div></div>
+
+<style>
+div {
+	height: 500px;
+}
+</style>

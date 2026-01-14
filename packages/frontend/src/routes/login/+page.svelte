@@ -22,8 +22,14 @@ if (typeof window !== 'undefined') {
 }
 </script>
 
-<main>
+<div>
 	{#if errorMessage}
 		<p>{errorMessage}</p>
 	{/if}
-</main>
+</div>
+
+<style>
+div {
+	height: 500px;
+}
+</style>
