@@ -43,7 +43,7 @@ onMount(async () => {
 <QueryClientProvider client={queryClient}>
 	<div class="app" data-sveltekit-preload-code="viewport" data-sveltekit-preload-data="hover">
 		<HeroBg />
-		<Header user={currentUser} />
+		<Header user={currentUser} showSearchButton={page.url.pathname !== '/'} />
 		{#key page.url.pathname}
 		<main class="main" in:fly={{ duration: 300, delay: 300, x: 10 }} out:fly={{ duration: 300, x: -10 }}>
 			{#if children}

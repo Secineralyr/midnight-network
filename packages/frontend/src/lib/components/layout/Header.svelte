@@ -1,10 +1,14 @@
 <script lang="ts">
+import type { ApiSimpleUserInfoT } from '@midnight-network/shared/rpc/models';
 import { IconSearch } from '@tabler/icons-svelte';
 import { createQuery, useQueryClient } from '@tanstack/svelte-query';
 import type { User } from 'better-auth';
+import { afterNavigate, goto } from '$app/navigation';
+import { blur, fade } from 'svelte/transition';
 import { primeMisskeyUsers } from '$lib/data/misskey-users';
 import { orpc } from '$lib/orpc';
 import RankBadge from '../rank/RankBadge.svelte';
+import UserSearch from '../search/UserSearch.svelte';
 import LoggedInPanel from '../user/LoggedInPanel.svelte';
 import UserAvatar from '../user/UserAvatar.svelte';
 
@@ -41,6 +45,13 @@ $effect(() => {
 });
 
 let isPanelOpen = $state(false);
+let isSearchOpen = $state(false);
+
+afterNavigate(() => {
+	if (isSearchOpen) {
+		isSearchOpen = false;
+	}
+});
 
 /**
  * ユーザーアイコンクリック時のハンドラ
@@ -55,7 +66,30 @@ function handleUserClick(): void {
 function closePanel(): void {
 	isPanelOpen = false;
 }
+
+function handleSearchClick(): void {
+	isPanelOpen = false;
+	isSearchOpen = true;
+	onSearchClick?.();
+}
+
+function closeSearch(): void {
+	isSearchOpen = false;
+}
+
+function handleSearchSelect(user: ApiSimpleUserInfoT): void {
+	closeSearch();
+	goto(`/user/${user.username}`);
+}
+
+function handleSearchKeydown(event: KeyboardEvent): void {
+	if (event.key === 'Escape' && isSearchOpen) {
+		closeSearch();
+	}
+}
 </script>
+
+<svelte:window onkeydown={handleSearchKeydown} />
 
 <header>
 	<div>
@@ -73,7 +107,16 @@ function closePanel(): void {
 		</div>
 		<div class="right-side">
 			{#if showSearchButton}
-				<button type="button" onclick={onSearchClick}>
+				<button
+					class="search-button"
+					type="button"
+					aria-haspopup="dialog"
+					aria-expanded={isSearchOpen}
+					aria-label="Open user search"
+					onclick={handleSearchClick}
+					in:fade={{ duration: 200 }}
+					out:fade={{ duration: 200 }}
+				>
 					<IconSearch size={20} />
 				</button>
 			{/if}
@@ -99,6 +142,28 @@ function closePanel(): void {
 		</div>
 	</div>
 </header>
+
+{#if isSearchOpen}
+	<div class="search-modal-backdrop" in:fade={{ duration: 150 }} out:fade={{ duration: 150 }}>
+		<button
+			class="search-modal-dismiss"
+			type="button"
+			aria-label="Close search"
+			onclick={closeSearch}
+		></button>
+		<div
+			class="search-modal"
+			role="dialog"
+			aria-modal="true"
+			aria-label="User search"
+			tabindex="-1"
+			in:blur={{ duration: 150, amount: 10 }}
+			out:blur={{ duration: 150, amount: 10 }}
+		>
+			<UserSearch onSelect={handleSearchSelect} />
+		</div>
+	</div>
+{/if}
 
 <style>
 	a {
@@ -184,5 +249,54 @@ function closePanel(): void {
 		position: absolute;
 		top: 20px;
 		right: 0;
+	}
+
+	header > div > .right-side > .search-button {
+		height: 42px;
+		width: 42px;
+		border-radius: 9999px;
+		border: none;
+		background: #4E4B71;
+		color: #fff;
+		cursor: pointer;
+		display: grid;
+		place-items: center;
+		position: relative;
+		top: 16px;
+		transition: background-color 150ms ease, color 150ms ease;
+	}
+
+	header > div > .right-side > .search-button:hover {
+		background: #B8C4FF;
+		color: #000;
+	}
+
+	.search-modal-backdrop {
+		position: fixed;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: rgba(3, 0, 10, 0.4);
+		backdrop-filter: blur(5px);
+		z-index: 20;
+	}
+
+	.search-modal-dismiss {
+		position: absolute;
+		inset: 0;
+		border: none;
+		background: transparent;
+		padding: 0;
+		cursor: pointer;
+	}
+
+	.search-modal {
+		position: absolute;
+		z-index: 1;
+		width: 100%;
+		display: flex;
+		justify-content: center;
+		top: 200px;
 	}
 </style>

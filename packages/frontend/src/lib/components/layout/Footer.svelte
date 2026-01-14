@@ -1,33 +1,56 @@
 <script lang="ts">
-import { IconBrandGithub, IconBrandX } from '@tabler/icons-svelte';
+import MiIcon from '$lib/assets/MiIcon.svelte';
+import { IconBrandGithub, IconX, IconChevronRight } from '@tabler/icons-svelte';
+import { blur, fade } from 'svelte/transition';
 
-/**
- * フッターコンポーネント
- * @description サイトフッター。ロゴ、リンク、ソーシャルアイコン
- */
+const miLinks = [
+	{ href: 'https://misskey.io/@sangatsu_tsuitachi', label: 'ランカーBot' },
+	{ href: 'https://misskey.io/@secineralyr', label: 'Secineralyr' },
+];
+
+let isMiModalOpen = $state(false);
+
+function openMiModal(): void {
+	isMiModalOpen = true;
+}
+
+function closeMiModal(): void {
+	isMiModalOpen = false;
+}
+
+function handleModalKeydown(event: KeyboardEvent): void {
+	if (event.key === 'Escape' && isMiModalOpen) {
+		closeMiModal();
+	}
+}
+
 </script>
+
+<svelte:window onkeydown={handleModalKeydown} />
 
 <footer>
 	<div class="inner">
 		<div class="left">
-			<span class="logo"><img src="/secineralyr_text_logo.png" alt="Secineralyr"></span>
+			<a href="https://secinet.jp" target="_blank" rel="noopener noreferrer" class="logo"><img src="/secineralyr_text_logo.png" alt="Secineralyr"></a>
 			<nav class="nav">
 				<!-- 以下は現状無視 -->
-				<a href="/contact" class="link">お問い合わせ</a>
+				<!-- <a href="/contact" class="link">お問い合わせ</a>
 				<a href="/terms" class="link">利用規約</a>
-				<a href="/privacy" class="link">プライバシーポリシー</a>
+				<a href="/privacy" class="link">プライバシーポリシー</a> -->
 			</nav>
 		</div>
 		<div class="right">
-			<a
-				href="https://github.com"
-				target="_blank"
-				rel="noopener noreferrer"
-				class="social"
+			<button
+				class="social social-button"
+				type="button"
+				aria-haspopup="dialog"
+				aria-expanded={isMiModalOpen}
+				onclick={openMiModal}
 			>
-			</a>
+				<MiIcon weight={50} size={32} />
+			</button>
 			<a
-				href="https://github.com"
+				href="https://github.com/Secineralyr/midnight-network"
 				target="_blank"
 				rel="noopener noreferrer"
 				class="social"
@@ -37,6 +60,41 @@ import { IconBrandGithub, IconBrandX } from '@tabler/icons-svelte';
 		</div>
 	</div>
 </footer>
+
+{#if isMiModalOpen}
+	<div class="mi-modal-backdrop" in:fade={{ duration: 150 }} out:fade={{ duration: 150 }}>
+		<button class="mi-modal-dismiss" type="button" onclick={closeMiModal} aria-label="Close modal"></button>
+		<div
+			class="mi-modal"
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="mi-modal-title"
+			tabindex="-1"
+			in:blur={{ duration: 150, amount: 10 }}
+			out:blur={{ duration: 150, amount: 10 }}
+		>
+			<div class="mi-modal-header">
+				<h2 id="mi-modal-title">Misskeyリンク</h2>
+				<button class="mi-modal-close" type="button" onclick={closeMiModal} aria-label="Close">
+					<IconX size={16} />
+				</button>
+			</div>
+			<div class="mi-modal-links">
+				{#each miLinks as link (link.href)}
+					<a
+						class="mi-modal-link"
+						href={link.href}
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						<span>{link.label}</span>
+						<IconChevronRight />
+					</a>
+				{/each}
+			</div>
+		</div>
+	</div>
+{/if}
 
 <style>
 	footer {
@@ -87,11 +145,108 @@ import { IconBrandGithub, IconBrandX } from '@tabler/icons-svelte';
 		transition: color 150ms ease;
 	}
 
+	.social-button {
+		background: none;
+		border: none;
+		padding: 0;
+		cursor: pointer;
+	}
+
 	.social:hover {
 		color: #fff;
 	}
 
-	.link {
-		font-size: 0.75rem;
+	.mi-modal-backdrop {
+		position: fixed;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: rgba(3, 0, 10, 0.4);
+		backdrop-filter: blur(5px);
+		z-index: 10;
+	}
+
+	.mi-modal-dismiss {
+		position: absolute;
+		inset: 0;
+		border: none;
+		background: transparent;
+		padding: 0;
+		cursor: pointer;
+	}
+
+	.mi-modal {
+		position: relative;
+		z-index: 1;
+		width: 350px;
+		max-width: calc(100% - 40px);
+		background: #201E3A;
+		border-radius: 4px;
+		padding: 20px;
+		box-shadow: 0 10px 100px rgba(0, 0, 0, 0.4);
+	}
+
+	.mi-modal-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 10px;
+		margin-bottom: 10px;
+	}
+
+	.mi-modal-header h2 {
+		margin: 0;
+		font-size: 1rem;
+		font-weight: 600;
+		color: #fff;
+	}
+
+	.mi-modal-close {
+		border: none;
+		background: rgba(148, 168, 255, 0.1);
+		color: #fff;
+		border-radius: 10px;
+		padding: 6px;
+		display: grid;
+		place-items: center;
+		cursor: pointer;
+		transition: background 150ms ease, color 150ms ease;
+	}
+
+	.mi-modal-close :global(svg) {
+		transition: transform 200ms ease;
+	}
+
+	.mi-modal-close:hover :global(svg) {
+		transform: rotate(90deg);
+	}
+
+	.mi-modal-close:hover {
+		background: rgba(148, 168, 255, 0.2);
+		color: #fff;
+	}
+
+	.mi-modal-links {
+		display: grid;
+		gap: 10px;
+	}
+
+	.mi-modal-link {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 10px;
+		border-radius: 4px;
+		background: rgba(148, 168, 255, 0.05);
+		color: #cfcfcf;
+		font-size: 0.9rem;
+		text-decoration: none;
+		transition: border 150ms ease, background 150ms ease, color 150ms ease;
+	}
+
+	.mi-modal-link:hover {
+		background: rgba(148, 168, 255, 0.1);
+		color: #fff;
 	}
 </style>
