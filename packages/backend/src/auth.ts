@@ -29,7 +29,6 @@ export const auth = betterAuth({
 		user: {
 			create: {
 				before: (user) => {
-					console.info(`Better Auth: ${JSON.stringify(user)}`);
 					if (!isExternalId(user)) {
 						return Promise.resolve();
 					}
