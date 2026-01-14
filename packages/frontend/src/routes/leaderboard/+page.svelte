@@ -204,10 +204,4 @@ function handleSortChange(criteria: string): void {
 		justify-content: center;
 		padding: 28px;
 	}
-
-	@media (max-width: 768px) {
-		.leaderboard-page-title {
-			font-size: 1.5rem;
-		}
-	}
 </style>

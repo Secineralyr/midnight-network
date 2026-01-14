@@ -110,13 +110,7 @@ function handleRowClick(username: string): void {
 		<span class="table-header-cell">pt</span>
 		<span class="table-header-cell">ランク</span>
 	</div>
-	{#if isLoading}
-		<div class="table-skeleton">
-			{#each Array(10) as _, i (i)}
-				<div class="table-skeleton-row"></div>
-			{/each}
-		</div>
-	{:else}
+	{#if !isLoading}
 		{#if myRanking}
 			<div class="table-highlight">
 				<button
@@ -247,32 +241,5 @@ function handleRowClick(username: string): void {
 
 	.table-rank :global(.rank-icon) {
 		width: 32px;
-	}
-
-	.table-skeleton {
-		display: flex;
-		flex-direction: column;
-		gap: 10px;
-	}
-
-	.table-skeleton-row {
-		height: 52px;
-		border-radius: 12px;
-		background: #2f2d4a;
-	}
-
-	@media (max-width: 768px) {
-		.table-header {
-			display: none;
-		}
-
-		.table-row {
-			grid-template-columns: 40px 40px 32px 1fr 60px 40px;
-		}
-
-		.table-cell:nth-child(5),
-		.table-cell:nth-child(6) {
-			display: none;
-		}
 	}
 </style>

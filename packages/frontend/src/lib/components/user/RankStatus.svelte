@@ -41,13 +41,7 @@ const statusItems = $derived([
 </script>
 
 <div class="status" bind:this={containerElement}>
-	{#if isLoading}
-		<div class="status-skeleton">
-			{#each Array(6) as _, i (i)}
-				<div class="status-skeleton-item"></div>
-			{/each}
-		</div>
-	{:else}
+	{#if !isLoading}
 		<h3 class="status-title">ランクステータス</h3>
 		<div class="status-list">
 			{#each statusItems as item (item.label)}
@@ -110,17 +104,5 @@ const statusItems = $derived([
 
 	.status-gauge {
 		width: 100%;
-	}
-
-	.status-skeleton {
-		display: flex;
-		flex-direction: column;
-		gap: 10px;
-	}
-
-	.status-skeleton-item {
-		height: 25px;
-		border-radius: 10px;
-		background: #2f2d4a;
 	}
 </style>

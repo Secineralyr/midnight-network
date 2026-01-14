@@ -35,12 +35,7 @@ const isRankDown = $derived(result.rankShift === RankShiftType.RankDown);
 </script>
 
 <div class="result" bind:this={containerElement}>
-	{#if isLoading}
-		<div class="result-skeleton">
-			<div class="result-skeleton-title"></div>
-			<div class="result-skeleton-content"></div>
-		</div>
-	{:else}
+	{#if !isLoading}
 		<div class="result-header">
 			<h3 class="result-title">前回のリザルト</h3>
 			<span class="result-date">({formatDate(result.targetDate)})</span>
@@ -170,36 +165,5 @@ const isRankDown = $derived(result.rankShift === RankShiftType.RankDown);
 
 	.result-rank :global(.rank-icon) {
 		width: 80px;
-	}
-
-	.result-skeleton {
-		display: flex;
-		flex-direction: column;
-		gap: 16px;
-	}
-
-	.result-skeleton-title {
-		width: 200px;
-		height: 28px;
-		border-radius: 10px;
-		background: #2f2d4a;
-	}
-
-	.result-skeleton-content {
-		width: 100%;
-		height: 140px;
-		border-radius: 12px;
-		background: #2f2d4a;
-	}
-
-	@media (max-width: 768px) {
-		.result-content {
-			flex-direction: column;
-			align-items: flex-start;
-		}
-
-		.result-rank {
-			align-self: center;
-		}
 	}
 </style>

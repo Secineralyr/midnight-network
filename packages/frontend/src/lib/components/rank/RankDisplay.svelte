@@ -55,12 +55,7 @@ const progressPercent = $derived(() => {
 </script>
 
 <div class="rank-display" bind:this={containerElement}>
-	{#if isLoading}
-		<div class="rank-display-skeleton">
-			<div class="rank-display-skeleton-icon"></div>
-			<div class="rank-display-skeleton-bar"></div>
-		</div>
-	{:else}
+	{#if !isLoading}
 		<h3 class="rank-display-title">現在ランク</h3>
 		<div class="rank-display-icon">
 			<RankIcon rank={rankValue} />
@@ -125,14 +120,5 @@ const progressPercent = $derived(() => {
 	.rank-display-count {
 		font-size: 1rem;
 		font-weight: 600;
-	}
-
-	@keyframes skeleton-loading {
-		0% {
-			background-position: 200% 0;
-		}
-		100% {
-			background-position: -200% 0;
-		}
 	}
 </style>

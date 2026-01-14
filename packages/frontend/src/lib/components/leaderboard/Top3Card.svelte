@@ -65,14 +65,7 @@ const valueText = $derived(type === 'time' && time !== undefined ? formatTimeDif
 	onclick={handleClick}
 	disabled={isLoading}
 >
-	{#if isLoading}
-		<div class="top-card-skeleton">
-			<div class="skeleton-place"></div>
-			<div class="skeleton-avatar"></div>
-			<div class="skeleton-info"></div>
-			<div class="skeleton-rank"></div>
-		</div>
-	{:else}
+	{#if !isLoading}
 		<span class="place">{formatPlace(place)}</span>
 		<div class="avatar">
 			<UserAvatar {userId} alt={username} />

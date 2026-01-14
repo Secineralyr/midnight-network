@@ -45,13 +45,7 @@ const lowerStats = $derived([
 </script>
 
 <div class="stats" bind:this={containerElement}>
-	{#if isLoading}
-		<div class="stats-skeleton">
-			{#each Array(10) as _, i (i)}
-				<div class="stats-skeleton-item"></div>
-			{/each}
-		</div>
-	{:else}
+	{#if !isLoading}
 		<h3 class="stats-title">統計データ</h3>
 		<div class="stats-row">
 			{#each upperStats as stat (stat.label)}
@@ -113,37 +107,5 @@ const lowerStats = $derived([
 		font-size: 1rem;
 		font-weight: 600;
 		letter-spacing: 0.01em;
-	}
-
-	.stats-skeleton {
-		display: grid;
-		grid-template-columns: repeat(5, 1fr);
-		gap: 20px;
-	}
-
-	.stats-skeleton-item {
-		height: 3.43rem;
-		border-radius: 4px;
-		background: #2f2d4a;
-	}
-
-	@media (max-width: 54.86rem) {
-		.stats-row {
-			grid-template-columns: repeat(3, 1fr);
-		}
-
-		.stats-skeleton {
-			grid-template-columns: repeat(3, 1fr);
-		}
-	}
-
-	@media (max-width: 34.29rem) {
-		.stats-row {
-			grid-template-columns: repeat(2, 1fr);
-		}
-
-		.stats-skeleton {
-			grid-template-columns: repeat(2, 1fr);
-		}
 	}
 </style>

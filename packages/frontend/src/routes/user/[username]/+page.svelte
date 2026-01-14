@@ -429,40 +429,4 @@ function handleSaveSettings(settings: Partial<SettingTypeT>): void {
 		min-height: 200px;
 		color: #c6c9df;
 	}
-
-	@media (max-width: 73.14rem) {
-		.user-grid {
-			grid-template-columns: 1fr;
-		}
-
-		.user-sidebar {
-			flex-direction: row;
-			flex-wrap: wrap;
-		}
-
-		.user-sidebar :global(.rank-display),
-		.user-sidebar :global(.status) {
-			flex: 1;
-			min-width: 14.29rem;
-		}
-	}
-
-	@media (max-width: 54.86rem) {
-		.user-header {
-			padding: 2.14rem 0 20px;
-		}
-
-		.user-settings {
-			position: static;
-			margin-top: 0.71rem;
-		}
-
-		.user-sidebar {
-			flex-direction: column;
-		}
-
-		.user-charts-row {
-			grid-template-columns: 1fr;
-		}
-	}
 </style>
