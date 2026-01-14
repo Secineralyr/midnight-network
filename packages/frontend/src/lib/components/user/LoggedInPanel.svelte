@@ -3,6 +3,7 @@ import type { UserInfoResponseT } from '@midnight-network/shared/rpc/me/models';
 import RankIcon from '../rank/RankIcon.svelte';
 import { fly } from 'svelte/transition';
 import { IconLogout, IconUser } from '@tabler/icons-svelte';
+import { goto } from '$app/navigation';
 
 /**
  * ログインユーザーパネルコンポーネント
@@ -23,7 +24,7 @@ const { user, onClose }: Props = $props();
  */
 function goToMyPage(): void {
 	onClose();
-	window.location.href = `/user/${user.username}`;
+	goto(`/user/${user.username}`);
 }
 
 /**
@@ -31,7 +32,7 @@ function goToMyPage(): void {
  */
 function handleLogout(): void {
 	onClose();
-	window.location.href = '/logout';
+	goto('/logout');
 }
 
 /**
