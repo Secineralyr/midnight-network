@@ -32,6 +32,7 @@ export const auth = betterAuth({
 					if (!isExternalId(user)) {
 						return Promise.resolve();
 					}
+					console.info('Better Auth: Before Action. contain external id');
 					return Promise.resolve({ data: { id: user.externalId } });
 				},
 			},

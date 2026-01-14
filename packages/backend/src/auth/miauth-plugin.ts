@@ -131,7 +131,7 @@ export const miauthPlugin = () => {
 								name: misskeyUser.username,
 								email: `${misskeyUser.username}@${host}`,
 								emailVerified: false,
-								externalId: '',
+								externalId: misskeyUser.id,
 							} satisfies WithExternalId<Omit<BAUser, 'id' | 'createdAt' | 'updatedAt'>> as Omit<
 								BAUser,
 								'id' | 'createdAt' | 'updatedAt'
