@@ -43,24 +43,68 @@ const grade = $derived(getRankGrade(rank));
 		object-fit: contain;
 	}
 
-	.rank-icon--tachyon:hover .rank-icon-image {
-		filter: drop-shadow(0 0 10px #00CDE860)
-			drop-shadow(0 0 20px #B160EB60);
+	@keyframes rank-glow-pulse {
+		0%,
+		100% {
+			filter: drop-shadow(0 0 var(--glow-size-min) var(--glow-color-primary))
+				drop-shadow(0 0 var(--glow-size-outer-min, 0px) var(--glow-color-secondary, transparent));
+		}
+		50% {
+			filter: drop-shadow(0 0 var(--glow-size-max) var(--glow-color-primary))
+				drop-shadow(0 0 var(--glow-size-outer-max, 0px) var(--glow-color-secondary, transparent));
+		}
 	}
 
-	.rank-icon--luminal:hover .rank-icon-image {
-		filter: drop-shadow(0 0 10px #fff6);
+	.rank-icon--tachyon {
+		--glow-color-primary: #00CDE860;
+		--glow-color-secondary: #B160EB60;
+		--glow-size-min: 4px;
+		--glow-size-max: 10px;
+		--glow-size-outer-min: 8px;
+		--glow-size-outer-max: 20px;
 	}
 
-	.rank-icon--gold:hover .rank-icon-image {
-		filter: drop-shadow(0 0 10px #FFD50060);
+	.rank-icon--tachyon .rank-icon-image {
+		animation: rank-glow-pulse 4s ease-in-out infinite;
 	}
 
-	.rank-icon--silver:hover .rank-icon-image {
-		filter: drop-shadow(0 0 10px #CCCCCC60);
+	.rank-icon--luminal {
+		--glow-color-primary: #fff6;
+		--glow-size-min: 4px;
+		--glow-size-max: 10px;
 	}
 
-	.rank-icon--bronze:hover .rank-icon-image {
-		filter: drop-shadow(0 0 10px #E6964560);
+	.rank-icon--luminal .rank-icon-image {
+		animation: rank-glow-pulse 4.5s ease-in-out infinite;
+	}
+
+	.rank-icon--gold {
+		--glow-color-primary: #FFD50060;
+		--glow-size-min: 4px;
+		--glow-size-max: 10px;
+	}
+
+	.rank-icon--gold .rank-icon-image {
+		animation: rank-glow-pulse 5s ease-in-out infinite;
+	}
+
+	.rank-icon--silver {
+		--glow-color-primary: #CCCCCC60;
+		--glow-size-min: 4px;
+		--glow-size-max: 10px;
+	}
+
+	.rank-icon--silver .rank-icon-image {
+		animation: rank-glow-pulse 5.5s ease-in-out infinite;
+	}
+
+	.rank-icon--bronze {
+		--glow-color-primary: #E6964560;
+		--glow-size-min: 4px;
+		--glow-size-max: 10px;
+	}
+
+	.rank-icon--bronze .rank-icon-image {
+		animation: rank-glow-pulse 5.5s ease-in-out infinite;
 	}
 </style>
