@@ -1,6 +1,6 @@
 <script lang="ts">
 import type { StatisticsT } from '@midnight-network/shared/rpc/user/models';
-import { animate } from 'motion';
+import { fly } from 'svelte/transition';
 import { formatAvgTime, formatWinRate } from '$lib/utils/format';
 
 /**
@@ -16,14 +16,6 @@ interface Props {
 }
 
 const { statistics, isLoading = false }: Props = $props();
-
-let containerElement: HTMLDivElement | undefined = $state();
-
-$effect(() => {
-	if (containerElement && !isLoading) {
-		animate(containerElement, { opacity: [0, 1], y: [10, 0] }, { duration: 0.3 });
-	}
-});
 
 /** 統計項目（上段） */
 const upperStats = $derived([
@@ -44,8 +36,8 @@ const lowerStats = $derived([
 ]);
 </script>
 
-<div class="stats" bind:this={containerElement}>
-	{#if !isLoading}
+{#if !isLoading}
+	<div class="stats" in:fly={{ y: 10, duration: 300 }}>
 		<h3 class="stats-title">統計データ</h3>
 		<div class="stats-row">
 			{#each upperStats as stat (stat.label)}
@@ -63,8 +55,8 @@ const lowerStats = $derived([
 				</div>
 			{/each}
 		</div>
-	{/if}
-</div>
+	</div>
+{/if}
 
 <style>
 	.stats {

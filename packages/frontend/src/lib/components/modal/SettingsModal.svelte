@@ -1,7 +1,7 @@
 <script lang="ts">
 import type { SettingTypeT } from '@midnight-network/shared/rpc/me/models';
 import { IconX } from '@tabler/icons-svelte';
-import { animate } from 'motion';
+import { fade, scale } from 'svelte/transition';
 import Button from '../ui/Button.svelte';
 
 /**
@@ -23,18 +23,9 @@ interface Props {
 const { settings, isOpen, onClose, onSave }: Props = $props();
 
 let localSettings = $state<SettingTypeT>({ ...settings });
-let modalElement: HTMLDivElement | undefined = $state();
-let backdropElement: HTMLDivElement | undefined = $state();
 
 $effect(() => {
 	localSettings = { ...settings };
-});
-
-$effect(() => {
-	if (modalElement && backdropElement && isOpen) {
-		animate(backdropElement, { opacity: [0, 1] }, { duration: 0.2 });
-		animate(modalElement, { opacity: [0, 1], scale: [0.95, 1] }, { duration: 0.2 });
-	}
 });
 
 /**
@@ -51,19 +42,6 @@ function handleToggle(key: keyof SettingTypeT, value: boolean): void {
  */
 function handleSave(): void {
 	onSave(localSettings);
-	handleClose();
-}
-
-/**
- * 閉じるハンドラ（アニメーション付き）
- */
-async function handleClose(): Promise<void> {
-	if (modalElement && backdropElement) {
-		await Promise.all([
-			animate(backdropElement, { opacity: [1, 0] }, { duration: 0.15 }).finished,
-			animate(modalElement, { opacity: [1, 0], scale: [1, 0.95] }, { duration: 0.15 }).finished,
-		]);
-	}
 	onClose();
 }
 
@@ -73,7 +51,7 @@ async function handleClose(): Promise<void> {
  */
 function handleBackdropClick(event: MouseEvent): void {
 	if (event.target === event.currentTarget) {
-		handleClose();
+		onClose();
 	}
 }
 
@@ -88,11 +66,15 @@ const settingItems: { key: keyof SettingTypeT; label: string }[] = [
 
 {#if isOpen}
 	<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-	<div class="modal-backdrop" bind:this={backdropElement} onclick={handleBackdropClick}>
-		<div class="modal" bind:this={modalElement}>
+	<div
+		class="modal-backdrop"
+		onclick={handleBackdropClick}
+		transition:fade={{ duration: 150 }}
+	>
+		<div class="modal" transition:scale={{ duration: 150, start: 0.95 }}>
 			<div class="modal-header">
 				<h2 class="modal-title">ユーザー設定</h2>
-				<button type="button" class="modal-close" onclick={handleClose}>
+				<button type="button" class="modal-close" onclick={onClose}>
 					<IconX size={24} />
 				</button>
 			</div>

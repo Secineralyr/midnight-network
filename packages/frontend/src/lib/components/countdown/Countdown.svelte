@@ -1,6 +1,6 @@
 <script lang="ts">
-import { animate } from 'motion';
 import { onMount } from 'svelte';
+import { fly } from 'svelte/transition';
 import { formatTime } from '$lib/utils/format';
 
 /**
@@ -16,13 +16,6 @@ interface Props {
 const { targetTime }: Props = $props();
 
 let remainingSeconds = $state(0);
-let containerElement: HTMLDivElement | undefined = $state();
-
-$effect(() => {
-	if (containerElement) {
-		animate(containerElement, { opacity: [0, 1], y: [10, 0] }, { duration: 0.4 });
-	}
-});
 
 onMount(() => {
 	function updateCountdown(): void {
@@ -43,7 +36,7 @@ onMount(() => {
 const formattedTime = $derived(formatTime(remainingSeconds));
 </script>
 
-<div class="root" bind:this={containerElement}>
+<div class="root" in:fly={{ y: 10, duration: 400 }}>
 	<h2>次の集計</h2>
 	<p>残り時間</p>
 	<div>{formattedTime}</div>

@@ -1,6 +1,6 @@
 <script lang="ts">
 import type { RankStatusT } from '@midnight-network/shared/rpc/user/models';
-import { animate } from 'motion';
+import { fly } from 'svelte/transition';
 import GaugeBar from '$lib/components/ui/GaugeBar.svelte';
 
 /**
@@ -17,14 +17,6 @@ interface Props {
 
 const { rankStatus, isLoading = false }: Props = $props();
 
-let containerElement: HTMLDivElement | undefined = $state();
-
-$effect(() => {
-	if (containerElement && !isLoading) {
-		animate(containerElement, { opacity: [0, 1], y: [10, 0] }, { duration: 0.3 });
-	}
-});
-
 /** ステータス項目 */
 const statusItems = $derived([
 	{ label: '累計ポイント', value: `${rankStatus.totalPt.toLocaleString()}pt` },
@@ -40,8 +32,8 @@ const statusItems = $derived([
 ]);
 </script>
 
-<div class="status" bind:this={containerElement}>
-	{#if !isLoading}
+{#if !isLoading}
+	<div class="status" in:fly={{ y: 10, duration: 300 }}>
 		<h3 class="status-title">ランクステータス</h3>
 		<div class="status-list">
 			{#each statusItems as item (item.label)}
@@ -57,8 +49,8 @@ const statusItems = $derived([
 				</div>
 			{/each}
 		</div>
-	{/if}
-</div>
+	</div>
+{/if}
 
 <style>
 	.status {

@@ -2,7 +2,7 @@
 import type { LastResultResponseT } from '@midnight-network/shared/rpc/me/models';
 import { RankShiftType } from '@midnight-network/shared/rpc/me/models';
 import { IconArrowBadgeDown, IconArrowBadgeUp } from '@tabler/icons-svelte';
-import { animate } from 'motion';
+import { fly } from 'svelte/transition';
 import { formatDate, formatPlace, formatPt, formatTimeDiff } from '$lib/utils/format';
 import RankIcon from '../rank/RankIcon.svelte';
 
@@ -20,14 +20,6 @@ interface Props {
 
 const { result, isLoading = false }: Props = $props();
 
-let containerElement: HTMLDivElement | undefined = $state();
-
-$effect(() => {
-	if (containerElement && !isLoading) {
-		animate(containerElement, { opacity: [0, 1], y: [20, 0] }, { duration: 0.4 });
-	}
-});
-
 /** ランクアップ判定 */
 const isRankUp = $derived(result.rankShift === RankShiftType.RankUp);
 
@@ -35,8 +27,8 @@ const isRankUp = $derived(result.rankShift === RankShiftType.RankUp);
 const isRankDown = $derived(result.rankShift === RankShiftType.RankDown);
 </script>
 
-<div class="result" bind:this={containerElement}>
-	{#if !isLoading}
+{#if !isLoading}
+	<div class="result" in:fly={{ y: 20, duration: 400 }}>
 		<div class="result-header">
 			<h3 class="result-title">前回のリザルト</h3>
 			<span class="result-date">({formatDate(result.targetDate)})</span>
@@ -68,8 +60,8 @@ const isRankDown = $derived(result.rankShift === RankShiftType.RankDown);
 				<RankIcon rank={result.latestRank} />
 			</div>
 		</div>
-	{/if}
-</div>
+	</div>
+{/if}
 
 <style>
 	.result {

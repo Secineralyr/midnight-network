@@ -1,7 +1,7 @@
 <script lang="ts">
 import { RankType } from '@midnight-network/shared/rank';
 import type { CurrentRankT } from '@midnight-network/shared/rpc/user/models';
-import { animate } from 'motion';
+import { fly } from 'svelte/transition';
 import GaugeBar from '$lib/components/ui/GaugeBar.svelte';
 import { formatPt } from '$lib/utils/format';
 import RankIcon from './RankIcon.svelte';
@@ -19,14 +19,6 @@ interface Props {
 }
 
 const { currentRank, isLoading = false }: Props = $props();
-
-let containerElement: HTMLDivElement | undefined = $state();
-
-$effect(() => {
-	if (containerElement && !isLoading) {
-		animate(containerElement, { opacity: [0, 1], y: [10, 0] }, { duration: 0.3 });
-	}
-});
 
 /** ランク数値を取得 */
 const rankValue = $derived(currentRank.rank);
@@ -54,8 +46,8 @@ const progressPercent = $derived(() => {
 });
 </script>
 
-<div class="rank-display" bind:this={containerElement}>
-	{#if !isLoading}
+{#if !isLoading}
+	<div class="rank-display" in:fly={{ y: 10, duration: 300 }}>
 		<h3 class="rank-display-title">現在ランク</h3>
 		<div class="rank-display-icon">
 			<RankIcon rank={rankValue} />
@@ -71,8 +63,8 @@ const progressPercent = $derived(() => {
 				<span class="rank-display-count">{currentRank.remainingParticipationCount}回</span>
 			</div>
 		{/if}
-	{/if}
-</div>
+	</div>
+{/if}
 
 <style>
 	.rank-display {

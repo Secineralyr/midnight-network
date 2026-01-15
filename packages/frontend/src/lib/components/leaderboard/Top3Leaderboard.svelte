@@ -1,6 +1,6 @@
 <script lang="ts">
 import type { RankTopResponseT, TodayTopResponseT } from '@midnight-network/shared/rpc/models';
-import { animate } from 'motion';
+import { fade } from 'svelte/transition';
 import Top3Card from './Top3Card.svelte';
 
 /**
@@ -28,14 +28,6 @@ interface Props {
 
 const { title, type, todayData, rankPtData, isLoading = false, onUserSelect }: Props = $props();
 
-let containerElement: HTMLDivElement | undefined = $state();
-
-$effect(() => {
-	if (containerElement && !isLoading) {
-		animate(containerElement, { opacity: [0, 1] }, { duration: 0.3 });
-	}
-});
-
 /**
  * ユーザーカードをクリック
  * @param username - ユーザー名
@@ -45,7 +37,7 @@ function handleUserClick(username: string): void {
 }
 </script>
 
-<div class="top-panel" bind:this={containerElement}>
+<div class="top-panel">
 	<h3 class="top-title">{title}</h3>
 	<div class="top-list">
 		{#if isLoading}
@@ -59,29 +51,33 @@ function handleUserClick(username: string): void {
 				/>
 			{/each}
 		{:else if type === 'today' && todayData}
-			{#each todayData as item (item.user.userId)}
-				<Top3Card
-					place={item.place}
-					userId={item.user.userId}
-					username={item.user.username}
-					rank={item.rank}
-					time={item.time}
-					type="time"
-					onclick={() => handleUserClick(item.user.username)}
-				/>
-			{/each}
+			<div class="top-cards" in:fade={{ duration: 300 }}>
+				{#each todayData as item (item.user.userId)}
+					<Top3Card
+						place={item.place}
+						userId={item.user.userId}
+						username={item.user.username}
+						rank={item.rank}
+						time={item.time}
+						type="time"
+						onclick={() => handleUserClick(item.user.username)}
+					/>
+				{/each}
+			</div>
 		{:else if type === 'rankPt' && rankPtData}
-			{#each rankPtData as item (item.user.userId)}
-				<Top3Card
-					place={item.place}
-					userId={item.user.userId}
-					username={item.user.username}
-					rank={item.rank}
-					pt={item.pt}
-					type="pt"
-					onclick={() => handleUserClick(item.user.username)}
-				/>
-			{/each}
+			<div class="top-cards" in:fade={{ duration: 300 }}>
+				{#each rankPtData as item (item.user.userId)}
+					<Top3Card
+						place={item.place}
+						userId={item.user.userId}
+						username={item.user.username}
+						rank={item.rank}
+						pt={item.pt}
+						type="pt"
+						onclick={() => handleUserClick(item.user.username)}
+					/>
+				{/each}
+			</div>
 		{/if}
 	</div>
 </div>
@@ -104,6 +100,12 @@ function handleUserClick(username: string): void {
 	}
 
 	.top-list {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+	}
+
+	.top-cards {
 		display: flex;
 		flex-direction: column;
 		gap: 10px;

@@ -2,7 +2,7 @@
 import type { BasicTableResponseDataT } from '@midnight-network/shared/rpc/leaderboard/models';
 import type { ColumnDef } from '@tanstack/svelte-table';
 import { createTable, getCoreRowModel } from '@tanstack/svelte-table';
-import { animate } from 'motion';
+import { fade } from 'svelte/transition';
 import { formatAvgTime, formatPlace, formatPlaceChange, formatPt, formatWinRate } from '$lib/utils/format';
 import RankIcon from '../rank/RankIcon.svelte';
 import UserAvatar from '../user/UserAvatar.svelte';
@@ -24,14 +24,6 @@ interface Props {
 }
 
 const { data, myRanking, isLoading = false, onRowClick }: Props = $props();
-
-let tableElement: HTMLTableElement | undefined = $state();
-
-$effect(() => {
-	if (tableElement && !isLoading) {
-		animate(tableElement, { opacity: [0, 1] }, { duration: 0.3 });
-	}
-});
 
 /** カラム定義 */
 const columns: ColumnDef<BasicTableResponseDataT>[] = [
@@ -111,51 +103,53 @@ function handleRowClick(username: string): void {
 		<span class="table-header-cell">ランク</span>
 	</div>
 	{#if !isLoading}
-		{#if myRanking}
-			<div class="table-highlight">
-				<button
-					type="button"
-					class="table-row"
-					class:highlighted={true}
-					onclick={() => handleRowClick(myRanking.user.username)}
-				>
-					<span class="table-cell">{formatPlace(myRanking.place)}</span>
-					<span class="table-cell">{formatPlaceChange(myRanking.place, myRanking.previousPlace)}</span>
-					<div class="avatar">
-						<UserAvatar userId={myRanking.user.userId} alt={myRanking.user.username} />
-					</div>
-					<span class="table-cell name">@{myRanking.user.username}</span>
-					<span class="table-cell">{formatWinRate(myRanking.wr)}</span>
-					<span class="table-cell">{formatAvgTime(myRanking.averageTime)}</span>
-					<span class="table-cell">{formatPt(myRanking.totalPt)}</span>
-					<div class="table-rank">
-						<RankIcon rank={myRanking.rank} />
-					</div>
-				</button>
+		<div in:fade={{ duration: 300 }}>
+			{#if myRanking}
+				<div class="table-highlight">
+					<button
+						type="button"
+						class="table-row"
+						class:highlighted={true}
+						onclick={() => handleRowClick(myRanking.user.username)}
+					>
+						<span class="table-cell">{formatPlace(myRanking.place)}</span>
+						<span class="table-cell">{formatPlaceChange(myRanking.place, myRanking.previousPlace)}</span>
+						<div class="avatar">
+							<UserAvatar userId={myRanking.user.userId} alt={myRanking.user.username} />
+						</div>
+						<span class="table-cell name">@{myRanking.user.username}</span>
+						<span class="table-cell">{formatWinRate(myRanking.wr)}</span>
+						<span class="table-cell">{formatAvgTime(myRanking.averageTime)}</span>
+						<span class="table-cell">{formatPt(myRanking.totalPt)}</span>
+						<div class="table-rank">
+							<RankIcon rank={myRanking.rank} />
+						</div>
+					</button>
+				</div>
+			{/if}
+			<div class="table-list">
+				{#each table.getRowModel().rows as row (row.id)}
+					{@const rowData = row.original}
+					<button
+						type="button"
+						class="table-row"
+						onclick={() => handleRowClick(rowData.user.username)}
+					>
+						<span class="table-cell">{formatPlace(rowData.place)}</span>
+						<span class="table-cell">{formatPlaceChange(rowData.place, rowData.previousPlace)}</span>
+						<div class="avatar">
+							<UserAvatar userId={rowData.user.userId} alt={rowData.user.username} />
+						</div>
+						<span class="table-cell name">@{rowData.user.username}</span>
+						<span class="table-cell">{formatWinRate(rowData.wr)}</span>
+						<span class="table-cell">{formatAvgTime(rowData.averageTime)}</span>
+						<span class="table-cell">{formatPt(rowData.totalPt)}</span>
+						<div class="table-rank">
+							<RankIcon rank={rowData.rank} />
+						</div>
+					</button>
+				{/each}
 			</div>
-		{/if}
-		<div class="table-list">
-			{#each table.getRowModel().rows as row (row.id)}
-				{@const rowData = row.original}
-				<button
-					type="button"
-					class="table-row"
-					onclick={() => handleRowClick(rowData.user.username)}
-				>
-					<span class="table-cell">{formatPlace(rowData.place)}</span>
-					<span class="table-cell">{formatPlaceChange(rowData.place, rowData.previousPlace)}</span>
-					<div class="avatar">
-						<UserAvatar userId={rowData.user.userId} alt={rowData.user.username} />
-					</div>
-					<span class="table-cell name">@{rowData.user.username}</span>
-					<span class="table-cell">{formatWinRate(rowData.wr)}</span>
-					<span class="table-cell">{formatAvgTime(rowData.averageTime)}</span>
-					<span class="table-cell">{formatPt(rowData.totalPt)}</span>
-					<div class="table-rank">
-						<RankIcon rank={rowData.rank} />
-					</div>
-				</button>
-			{/each}
 		</div>
 	{/if}
 </div>
