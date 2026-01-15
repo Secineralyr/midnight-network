@@ -29,6 +29,16 @@ const isRankUp = $derived(result.rankShift === RankShiftType.RankUp);
 /** ランクダウン判定 */
 const isRankDown = $derived(result.rankShift === RankShiftType.RankDown);
 
+/** 順位に応じた色 */
+const placeColor = $derived.by(() => {
+	switch (result.place) {
+		case 1: return '#FEB369';
+		case 2: return '#CCCCCC';
+		case 3: return '#C26330';
+		default: return '#fff';
+	}
+});
+
 /** DOM参照 */
 let statsContainer: HTMLElement = $state();
 let rankContainer: HTMLElement = $state();
@@ -73,7 +83,7 @@ $effect(() => {
 			<div class="result-stats" bind:this={statsContainer}>
 				<div class="result-stat">
 					<span class="result-label">順位</span>
-					<span class="result-value result-place">{Math.round(placeTween.current)}</span>
+					<span class="result-value result-place" style:color={placeColor}>{Math.round(placeTween.current)}</span>
 				</div>
 				<div class="result-stat">
 					<span class="result-label">タイム</span>
@@ -161,10 +171,6 @@ $effect(() => {
 		font-size: 1.4rem;
 		font-weight: 400;
 		font-family: 'Michroma', sans-serif;
-	}
-
-	.result-place {
-		color: #f2c35b;
 	}
 
 	.result-total {
