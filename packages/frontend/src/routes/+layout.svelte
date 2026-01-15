@@ -6,10 +6,10 @@ import Footer from '$lib/components/layout/Footer.svelte';
 import Header from '$lib/components/layout/Header.svelte';
 import { createQueryClient } from '$lib/data/query-client';
 import '$lib/styles/global.css';
-import type { User } from 'better-auth';
 import { fly } from 'svelte/transition';
 import { page } from '$app/state';
 import { createAuthClient } from '$lib/auth/auth-client';
+import { setSessionState } from '$lib/stores/session';
 
 /**
  * ルートレイアウト
@@ -25,13 +25,14 @@ const { children }: Props = $props();
 const queryClient = createQueryClient();
 
 /** 現在のユーザー情報 */
-let currentUser = $state<User | null>(null);
 
 onMount(async () => {
 	const authClient = createAuthClient();
-	const session = await authClient.getSession();
-	if (session.data) {
-		currentUser = session.data.user;
+	try {
+		const session = await authClient.getSession();
+		setSessionState({ user: session.data?.user ?? null, ready: true });
+	} catch {
+		setSessionState({ user: null, ready: true });
 	}
 });
 </script>
@@ -43,7 +44,7 @@ onMount(async () => {
 <QueryClientProvider client={queryClient}>
 	<div class="app" data-sveltekit-preload-code="viewport" data-sveltekit-preload-data="hover">
 		<HeroBg />
-		<Header user={currentUser} showSearchButton={page.url.pathname !== '/'} />
+		<Header showSearchButton={page.url.pathname !== '/'} />
 		{#key page.url.pathname}
 		<main class="main" in:fly={{ duration: 300, delay: 300, x: 10 }} out:fly={{ duration: 300, x: -10 }}>
 			{#if children}

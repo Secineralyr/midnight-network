@@ -1,6 +1,7 @@
 <script lang="ts">
 import type { LastResultResponseT } from '@midnight-network/shared/rpc/me/models';
 import { RankShiftType } from '@midnight-network/shared/rpc/me/models';
+import { IconArrowBadgeDown, IconArrowBadgeUp } from '@tabler/icons-svelte';
 import { animate } from 'motion';
 import { formatDate, formatPlace, formatPt, formatTimeDiff } from '$lib/utils/format';
 import RankIcon from '../rank/RankIcon.svelte';
@@ -57,9 +58,9 @@ const isRankDown = $derived(result.rankShift === RankShiftType.RankDown);
 				<div class="result-total">
 					<span class="result-total-value">= {formatPt(result.latestTotalPt)}</span>
 					{#if isRankUp}
-						<span class="result-shift up">Rank up!</span>
+						<span class="result-shift up"><span class="result-shift-left"><IconArrowBadgeUp /></span>Rank up!<span class="result-shift-right"><IconArrowBadgeUp /></span></span>
 					{:else if isRankDown}
-						<span class="result-shift down">Rank down</span>
+						<span class="result-shift down"><span class="result-shift-left"><IconArrowBadgeDown /></span>Rank down<span class="result-shift-right"><IconArrowBadgeDown /></span></span>
 					{/if}
 				</div>
 			</div>
@@ -72,58 +73,58 @@ const isRankDown = $derived(result.rankShift === RankShiftType.RankDown);
 
 <style>
 	.result {
-		padding: 24px 28px;
-		background: #23213a;
-		border-radius: 18px;
-		color: #ffffff;
-		box-shadow: 0 18px 30px rgba(7, 6, 16, 0.4);
+		padding: 20px;
+		background: #201E3A;
+		border-radius: 5px;
+		color: #fff;
 	}
 
 	.result-header {
 		display: flex;
 		align-items: baseline;
 		gap: 10px;
-		margin-bottom: 20px;
 	}
 
 	.result-title {
-		font-size: 20px;
+		font-size: 1.3rem;
 		font-weight: 600;
 	}
 
 	.result-date {
-		font-size: 14px;
-		color: #c6c9df;
+		font-size: 0.9rem;
+		color: #fff;
 	}
 
 	.result-content {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		gap: 24px;
+		gap: 20px;
+		padding: 20px;
 	}
 
 	.result-stats {
 		display: flex;
 		flex-direction: column;
-		gap: 12px;
+		gap: 10px;
 	}
 
 	.result-stat {
 		display: flex;
 		align-items: baseline;
-		gap: 16px;
+		gap: 10px;
 	}
 
 	.result-label {
-		font-size: 15px;
-		color: #c6c9df;
+		font-size: 1rem;
+		color: #fff;
 		min-width: 60px;
 	}
 
 	.result-value {
-		font-size: 22px;
-		font-weight: 600;
+		font-size: 1.4rem;
+		font-weight: 400;
+		font-family: 'Michroma', sans-serif;
 	}
 
 	.result-place {
@@ -131,39 +132,56 @@ const isRankDown = $derived(result.rankShift === RankShiftType.RankDown);
 	}
 
 	.result-total {
+		position: relative;
 		display: flex;
 		align-items: center;
-		gap: 12px;
-		margin-top: 6px;
+		gap: 10px;
+		margin-left: 70px;
 	}
 
 	.result-total-value {
-		font-size: 32px;
-		font-weight: 700;
+		font-size: 1.7rem;
+		font-weight: 400;
+		font-family: 'Michroma', sans-serif;
 	}
 
 	.result-shift {
-		font-size: 16px;
+		position: absolute;
+		right: -30px;
+		bottom: -1rem;
+		font-size: 1.1rem;
 		font-weight: 600;
 		display: inline-flex;
 		align-items: center;
-		gap: 6px;
 	}
 
 	.result-shift.up {
-		color: #7cf17a;
+		color: #89FF7E;
 	}
 
 	.result-shift.down {
-		color: #ff6b6b;
+		color: #ff7e84;
+	}
+
+	.result-shift-left {
+		position: relative;
+		top: 10px;
+		left: 5px;
+		display: flex;
+	}
+
+	.result-shift-right {
+		position: relative;
+		bottom: 5px;
+		right: 5px;
+		display: flex;
 	}
 
 	.result-rank {
 		flex-shrink: 0;
-		filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.35));
 	}
 
-	.result-rank :global(.rank-icon) {
-		width: 80px;
+	.result-rank {
+		height: 150px;
 	}
 </style>

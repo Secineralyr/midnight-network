@@ -98,7 +98,16 @@ const chartOptions: EChartsOption = $derived({
 			data: data.map((d) => ({
 				value: logScale ? Math.min(Math.max(d.value, -logScaleMin), logScaleMax) : d.value,
 				itemStyle: {
-					color: d.value === 0 ? '#fff' : isOutOfRange(d.value) ? d.value < 0 ? '#F47D86' : '#7E78E4' : d.value < 0 ? '#FDBCC1' : '#A7B1F6',
+					color:
+						d.value === 0
+							? '#fff'
+							: isOutOfRange(d.value)
+								? d.value < 0
+									? '#F47D86'
+									: '#7E78E4'
+								: d.value < 0
+									? '#FDBCC1'
+									: '#A7B1F6',
 				},
 			})),
 			barWidth: '60%',

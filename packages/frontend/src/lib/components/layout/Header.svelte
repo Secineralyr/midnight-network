@@ -2,11 +2,11 @@
 import type { ApiSimpleUserInfoT } from '@midnight-network/shared/rpc/models';
 import { IconSearch } from '@tabler/icons-svelte';
 import { createQuery, useQueryClient } from '@tanstack/svelte-query';
-import type { User } from 'better-auth';
-import { afterNavigate, goto } from '$app/navigation';
 import { blur, fade } from 'svelte/transition';
+import { afterNavigate, goto } from '$app/navigation';
 import { primeMisskeyUsers } from '$lib/data/misskey-users';
 import { orpc } from '$lib/orpc';
+import { sessionReady, sessionUser } from '$lib/stores/session';
 import RankBadge from '../rank/RankBadge.svelte';
 import UserSearch from '../search/UserSearch.svelte';
 import LoggedInPanel from '../user/LoggedInPanel.svelte';
@@ -19,21 +19,24 @@ import UserAvatar from '../user/UserAvatar.svelte';
 
 interface Props {
 	/** 現在のユーザー情報 */
-	user?: User | null;
 	/** 検索ボタン表示フラグ（リーダーボードページ用） */
 	showSearchButton?: boolean;
 	/** 検索クリックハンドラ */
 	onSearchClick?: () => void;
 }
 
-const { user = null, showSearchButton = false, onSearchClick }: Props = $props();
+const { showSearchButton = false, onSearchClick }: Props = $props();
 
 const queryClient = useQueryClient();
 
+const currentUser = $derived($sessionUser);
+const isSessionReady = $derived($sessionReady);
+
 /** ログインデータ取得 */
 const userInfoQuery = createQuery(() => ({
-	queryKey: ['userInfo', user?.id],
-	queryFn: () => (user ? orpc.me.userInfo() : null),
+	queryKey: ['userInfo', currentUser?.id],
+	queryFn: () => orpc.me.userInfo(),
+	enabled: Boolean(currentUser),
 }));
 
 $effect(() => {
@@ -120,7 +123,8 @@ function handleSearchKeydown(event: KeyboardEvent): void {
 					<IconSearch size={20} />
 				</button>
 			{/if}
-			{#if user && userInfoQuery.data}
+			{#if currentUser}
+				{#if userInfoQuery.data}
 				<div class="logged-user">
 					<button class="user-icon-button" type="button" onclick={handleUserClick}>
 						<div class="icon">
@@ -136,7 +140,8 @@ function handleSearchKeydown(event: KeyboardEvent): void {
 						</div>
 					{/if}
 				</div>
-			{:else}
+				{/if}
+			{:else if isSessionReady}
 				<a href="/login">ログイン</a>
 			{/if}
 		</div>

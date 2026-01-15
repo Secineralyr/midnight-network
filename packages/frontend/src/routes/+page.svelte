@@ -8,8 +8,11 @@ import LastResult from '$lib/components/result/LastResult.svelte';
 import UserSearch from '$lib/components/search/UserSearch.svelte';
 import { primeMisskeyUsers } from '$lib/data/misskey-users';
 import { orpc } from '$lib/orpc';
+import { sessionUser } from '$lib/stores/session';
 
 const queryClient = useQueryClient();
+
+const currentUser = $derived($sessionUser);
 
 /**
  * トップページ
@@ -42,9 +45,9 @@ $effect(() => {
 
 /** 前回のリザルト（ログインユーザーのみ） */
 const lastResultQuery = createQuery(() => ({
-	queryKey: ['lastResult'],
+	queryKey: ['lastResult', currentUser?.id],
 	queryFn: () => orpc.me.lastResult(),
-	enabled: false,
+	enabled: Boolean(currentUser),
 }));
 
 function getTargetTime() {
@@ -182,8 +185,8 @@ function handleUserCardClick(username: string): void {
 
 	.result-section {
 		width: 100%;
-		max-width: 1200px;
+		max-width: 500px;
 		margin: 0 auto;
-		padding: 0 20px;
+		margin-top: 80px;
 	}
 </style>

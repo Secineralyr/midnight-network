@@ -1,7 +1,7 @@
 <script lang="ts">
-import MiIcon from '$lib/assets/MiIcon.svelte';
-import { IconBrandGithub, IconX, IconChevronRight } from '@tabler/icons-svelte';
+import { IconBrandGithub, IconChevronRight, IconX } from '@tabler/icons-svelte';
 import { blur, fade } from 'svelte/transition';
+import MiIcon from '$lib/assets/MiIcon.svelte';
 
 const miLinks = [
 	{ href: 'https://misskey.io/@sangatsu_tsuitachi', label: 'ランカーBot' },
@@ -23,7 +23,6 @@ function handleModalKeydown(event: KeyboardEvent): void {
 		closeMiModal();
 	}
 }
-
 </script>
 
 <svelte:window onkeydown={handleModalKeydown} />

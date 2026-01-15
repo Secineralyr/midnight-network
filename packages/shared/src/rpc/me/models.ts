@@ -31,7 +31,7 @@ export const LastResultParams = z.void();
 export type LastResultParamsT = z.infer<typeof LastResultParams>;
 
 export const RankShiftType = {
-	RankUp: 0,
+	RankUp: 1,
 	None: 0,
 	RankDown: -1,
 } as const;
