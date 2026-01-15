@@ -14,7 +14,7 @@ import type { UserInfoParamsT } from '../../../../shared/src/rpc/me/models';
 import { prisma } from '../../db';
 import type { AuthContext } from '../../rpc';
 import { withCache } from '../helpers/cache';
-import { calculateTimeDifferenceSeconds, getLatestMatchDate } from '../helpers/match';
+import { calculateTimeDifferenceSeconds } from '../helpers/match';
 import { calculateRankFromPoints, rankNumberToRankTypeValue } from '../helpers/rank';
 import { makeCurrentRank } from '../helpers/stats';
 
@@ -32,20 +32,18 @@ export async function lastResult(ctx: AuthContext, _input: LastResultParamsT): P
 	}
 
 	return await withCache(`lastResult:${userId}`, null, async () => {
-		const latestMatch = await getLatestMatchDate();
-		if (!latestMatch) {
-			console.info('rpc.me.lastResult.noLatestMatch', userId);
-			return undefined;
-		}
-
+		// ユーザーの最新のリザルトを取得（最新の試合ではなく、ユーザーが参加した直近の試合）
 		const record = await prisma.record.findFirst({
 			where: {
 				userId,
-				matchDateId: latestMatch.id,
+			},
+			orderBy: {
+				matchDate: { date: 'desc' },
 			},
 			select: {
 				place: true,
 				postedAt: true,
+				matchDateId: true,
 				matchDate: {
 					select: { date: true },
 				},
@@ -60,7 +58,7 @@ export async function lastResult(ctx: AuthContext, _input: LastResultParamsT): P
 		const rankHistory = await prisma.userRankHistory.findFirst({
 			where: {
 				userId,
-				matchId: latestMatch.id,
+				matchId: record.matchDateId,
 			},
 			select: {
 				pt: true,
@@ -93,7 +91,7 @@ export async function lastResult(ctx: AuthContext, _input: LastResultParamsT): P
 			where: {
 				userId,
 				matchId: {
-					not: latestMatch.id,
+					not: record.matchDateId,
 				},
 			},
 			orderBy: {
