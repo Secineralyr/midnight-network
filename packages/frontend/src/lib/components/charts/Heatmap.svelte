@@ -22,6 +22,10 @@ const { title, data, isLoading = false }: Props = $props();
 
 /** 7列 x N行のグリッドデータを生成 */
 const gridData = $derived.by(() => {
+	if (!data || data.length === 0) {
+		return { data: [], rows: 0 };
+	}
+
 	const result: [number, number, number][] = [];
 	const cols = 7;
 	const rows = Math.ceil(data.length / cols);

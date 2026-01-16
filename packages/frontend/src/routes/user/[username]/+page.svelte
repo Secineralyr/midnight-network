@@ -243,73 +243,63 @@ function handleSaveSettings(settings: Partial<SettingTypeT>): void {
 					{/if}
 
 					<div class="user-charts">
-						{#if totalPtQuery.data}
-							<LineChart
-								title="累計pt推移"
-								data={totalPtQuery.data.map((d) => ({
-									label: d.label,
-									value: d.value,
-								}))}
-								spanOptions={spanOptions}
-								currentSpan={String(totalPtSpan)}
-								onSpanChange={handleTotalPtSpanChange}
-								isLoading={totalPtQuery.isLoading}
-								height="10rem"
-								showRankBadge
-							/>
-						{/if}
+						<LineChart
+							title="累計pt推移"
+							data={totalPtQuery.data?.map((d) => ({
+								label: d.label,
+								value: d.value,
+							})) ?? []}
+							spanOptions={spanOptions}
+							currentSpan={String(totalPtSpan)}
+							onSpanChange={handleTotalPtSpanChange}
+							isLoading={totalPtQuery.isLoading}
+							height="10rem"
+							showRankBadge
+						/>
 
-						{#if earnedPtQuery.data}
-							<BarChart
-								title="獲得pt推移"
-								data={earnedPtQuery.data.map((d) => ({
-									label: d.label,
-									value: d.value,
-								}))}
-								spanOptions={spanOptions}
-								currentSpan={String(earnedPtSpan)}
-								onSpanChange={handleEarnedPtSpanChange}
-								isLoading={earnedPtQuery.isLoading}
-								height="10rem"
-								unit="獲得pt"
-							/>
-						{/if}
+						<BarChart
+							title="獲得pt推移"
+							data={earnedPtQuery.data?.map((d) => ({
+								label: d.label,
+								value: d.value,
+							})) ?? []}
+							spanOptions={spanOptions}
+							currentSpan={String(earnedPtSpan)}
+							onSpanChange={handleEarnedPtSpanChange}
+							isLoading={earnedPtQuery.isLoading}
+							height="10rem"
+							unit="獲得pt"
+						/>
 
-						{#if postTimeQuery.data}
-							<BarChart
-								title="投稿タイム推移"
-								data={postTimeQuery.data.map((d) => ({
-									label: d.label,
-									value: d.value,
-								}))}
-								spanOptions={spanOptions}
-								currentSpan={String(postTimeSpan)}
-								onSpanChange={handlePostTimeSpanChange}
-								isLoading={postTimeQuery.isLoading}
-								height="10rem"
-								unit="dt(秒)"
-								logScale={true}
-								logScaleMin={1}
-								logScaleMax={1}
-							/>
-						{/if}
+						<BarChart
+							title="投稿タイム推移"
+							data={postTimeQuery.data?.map((d) => ({
+								label: d.label,
+								value: d.value,
+							})) ?? []}
+							spanOptions={spanOptions}
+							currentSpan={String(postTimeSpan)}
+							onSpanChange={handlePostTimeSpanChange}
+							isLoading={postTimeQuery.isLoading}
+							height="10rem"
+							unit="dt(秒)"
+							logScale={true}
+							logScaleMin={1}
+							logScaleMax={1}
+						/>
 
 						<div class="user-charts-row">
-							{#if radarQuery.data}
-								<RadarChart
-									title="チャート"
-									data={radarQuery.data}
-									isLoading={radarQuery.isLoading}
-								/>
-							{/if}
+							<RadarChart
+								title="チャート"
+								data={radarQuery.data}
+								isLoading={radarQuery.isLoading}
+							/>
 
-							{#if heatmapQuery.data}
-								<Heatmap
-									title="ビートマップ"
-									data={heatmapQuery.data}
-									isLoading={heatmapQuery.isLoading}
-								/>
-							{/if}
+							<Heatmap
+								title="ビートマップ"
+								data={heatmapQuery.data}
+								isLoading={heatmapQuery.isLoading}
+							/>
 						</div>
 					</div>
 				</main>

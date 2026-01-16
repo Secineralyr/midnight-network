@@ -123,15 +123,13 @@ function handleSortChange(criteria: string): void {
 				<Select options={sortOptions} value={sortCriteria} onchange={handleSortChange} />
 			</div>
 			<section class="histogram-section">
-				{#if rankHistQuery.data}
-					<RankHistogram
-						data={rankHistQuery.data}
-						sortBy={sortCriteria}
-						onSortChange={handleSortChange}
-						isLoading={rankHistQuery.isLoading}
-						height={'300px'}
-					/>
-				{/if}
+				<RankHistogram
+					data={rankHistQuery.data ?? []}
+					sortBy={sortCriteria}
+					onSortChange={handleSortChange}
+					isLoading={rankHistQuery.isLoading}
+					height={'300px'}
+				/>
 			</section>
 		</div>
 

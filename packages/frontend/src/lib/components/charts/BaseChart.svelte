@@ -79,22 +79,14 @@ $effect(() => {
 	}
 });
 
-$effect(() => {
-	if (chartInstance) {
-		if (isLoading) {
-			chartInstance.showLoading({
-				text: '',
-				color: '#c5c9e6',
-				maskColor: 'rgba(20, 18, 32, 0.7)',
-			});
-		} else {
-			chartInstance.hideLoading();
-		}
-	}
-});
 </script>
 
-<div class="base-chart" style="height: {height};" bind:this={chartElement}></div>
+<div
+	class="base-chart"
+	class:skeleton={isLoading}
+	style="height: {height};"
+	bind:this={chartElement}
+></div>
 
 <style>
 	.base-chart {
