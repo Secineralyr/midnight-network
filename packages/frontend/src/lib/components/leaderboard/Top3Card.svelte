@@ -65,19 +65,23 @@ const valueText = $derived(type === 'time' && time !== undefined ? formatTimeDif
 	onclick={handleClick}
 	disabled={isLoading}
 >
-	{#if !isLoading}
-		<span class="place">{formatPlace(place)}</span>
-		<div class="avatar">
-			<UserAvatar {userId} alt={username} />
-		</div>
-		<div class="info">
-			<span class="name">@{username}</span>
-			<span class="value">{valueText}</span>
-		</div>
-		<div class="rank">
-			<RankIcon {rank} />
-		</div>
-	{/if}
+	<span class="place" class:skeleton={isLoading}>
+		{#if !isLoading}{formatPlace(place)}{/if}
+	</span>
+	<div class="avatar" class:skeleton={isLoading}>
+		{#if !isLoading}<UserAvatar {userId} alt={username} />{/if}
+	</div>
+	<div class="info">
+		<span class="name" class:skeleton={isLoading}>
+			{#if !isLoading}@{username}{/if}
+		</span>
+		<span class="value" class:skeleton={isLoading}>
+			{#if !isLoading}{valueText}{/if}
+		</span>
+	</div>
+	<div class="rank" class:skeleton={isLoading}>
+		{#if !isLoading}<RankIcon {rank} />{/if}
+	</div>
 </button>
 
 <style>
@@ -99,7 +103,6 @@ const valueText = $derived(type === 'time' && time !== undefined ? formatTimeDif
 
 	.top-card:disabled {
 		cursor: default;
-		opacity: 0.7;
 	}
 
 	.place {

@@ -102,7 +102,22 @@ function handleRowClick(username: string): void {
 		<span class="table-header-cell">pt</span>
 		<span class="table-header-cell">ランク</span>
 	</div>
-	{#if !isLoading}
+	{#if isLoading}
+		<div class="table-list">
+			{#each Array(10) as _, i (i)}
+				<div class="table-row skeleton-row">
+					<span class="table-cell skeleton">&nbsp;</span>
+					<span class="table-cell skeleton">&nbsp;</span>
+					<div class="avatar skeleton"></div>
+					<span class="table-cell name skeleton">&nbsp;</span>
+					<span class="table-cell skeleton">&nbsp;</span>
+					<span class="table-cell skeleton">&nbsp;</span>
+					<span class="table-cell skeleton">&nbsp;</span>
+					<div class="table-rank skeleton"></div>
+				</div>
+			{/each}
+		</div>
+	{:else}
 		<div in:fade={{ duration: 300 }}>
 			{#if myRanking}
 				<div class="table-highlight">
@@ -235,5 +250,13 @@ function handleRowClick(username: string): void {
 
 	.table-rank :global(.rank-icon) {
 		width: 32px;
+	}
+
+	.skeleton-row {
+		pointer-events: none;
+	}
+
+	.skeleton-row:hover {
+		background: #201E3A;
 	}
 </style>

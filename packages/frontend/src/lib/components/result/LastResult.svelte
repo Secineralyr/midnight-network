@@ -73,49 +73,65 @@ $effect(() => {
 });
 </script>
 
-{#if !isLoading}
-	<div class="result" in:fly={{ y: 20, duration: 400 }}>
-		<div class="result-header">
-			<h3 class="result-title">前回のリザルト</h3>
-			<span class="result-date">({formatDate(result.targetDate)})</span>
+<div class="result" in:fly={{ y: 20, duration: 400 }}>
+	<div class="result-header">
+		<h3 class="result-title" class:skeleton={isLoading}>
+			{#if !isLoading}前回のリザルト{/if}
+		</h3>
+		<span class="result-date" class:skeleton={isLoading}>
+			{#if !isLoading}({formatDate(result.targetDate)}){/if}
+		</span>
+	</div>
+	<div class="result-content">
+		<div class="result-stats" bind:this={statsContainer}>
+			<div class="result-stat">
+				<span class="result-label" class:skeleton={isLoading}>
+					{#if !isLoading}順位{/if}
+				</span>
+				<span class="result-value result-place" class:skeleton={isLoading} style:color={isLoading ? undefined : placeColor}>
+					{#if !isLoading}{Math.round(placeTween.current)}{/if}
+				</span>
+			</div>
+			<div class="result-stat">
+				<span class="result-label" class:skeleton={isLoading}>
+					{#if !isLoading}タイム{/if}
+				</span>
+				<span class="result-value" class:skeleton={isLoading}>
+					{#if !isLoading}{formatTimeDiff(timeTween.current)}{/if}
+				</span>
+			</div>
+			<div class="result-stat">
+				<span class="result-label" class:skeleton={isLoading}>
+					{#if !isLoading}獲得pt{/if}
+				</span>
+				<span class="result-value" class:skeleton={isLoading}>
+					{#if !isLoading}{Math.round(earnedPtTween.current) >= 0 ? '+' : ''}{Math.round(earnedPtTween.current)}{/if}
+				</span>
+			</div>
+			<div class="result-total">
+				<span class="result-total-value" class:skeleton={isLoading}>
+					{#if !isLoading}= {formatPt(Math.round(totalPtTween.current))}{/if}
+				</span>
+				{#if !isLoading && isRankUp}
+					<span class="result-shift up" in:fade={{ delay: 1000, duration: 300 }}>
+						<span class="result-shift-left"><IconArrowBadgeUp /></span>
+						Rank up!
+						<span class="result-shift-right"><IconArrowBadgeUp /></span>
+					</span>
+				{:else if !isLoading && isRankDown}
+					<span class="result-shift down" in:fade={{ delay: 1000, duration: 300 }}>
+						<span class="result-shift-left"><IconArrowBadgeDown /></span>
+						Rank down
+						<span class="result-shift-right"><IconArrowBadgeDown /></span>
+					</span>
+				{/if}
+			</div>
 		</div>
-		<div class="result-content">
-			<div class="result-stats" bind:this={statsContainer}>
-				<div class="result-stat">
-					<span class="result-label">順位</span>
-					<span class="result-value result-place" style:color={placeColor}>{Math.round(placeTween.current)}</span>
-				</div>
-				<div class="result-stat">
-					<span class="result-label">タイム</span>
-					<span class="result-value">{formatTimeDiff(timeTween.current)}</span>
-				</div>
-				<div class="result-stat">
-					<span class="result-label">獲得pt</span>
-					<span class="result-value">{Math.round(earnedPtTween.current) >= 0 ? '+' : ''}{Math.round(earnedPtTween.current)}</span>
-				</div>
-				<div class="result-total">
-					<span class="result-total-value">= {formatPt(Math.round(totalPtTween.current))}</span>
-					{#if isRankUp}
-						<span class="result-shift up" in:fade={{ delay: 1000, duration: 300 }}>
-							<span class="result-shift-left"><IconArrowBadgeUp /></span>
-							Rank up!
-							<span class="result-shift-right"><IconArrowBadgeUp /></span>
-						</span>
-					{:else if isRankDown}
-						<span class="result-shift down" in:fade={{ delay: 1000, duration: 300 }}>
-							<span class="result-shift-left"><IconArrowBadgeDown /></span>
-							Rank down
-							<span class="result-shift-right"><IconArrowBadgeDown /></span>
-						</span>
-					{/if}
-				</div>
-			</div>
-			<div class="result-rank" bind:this={rankContainer}>
-				<RankIcon rank={result.latestRank} />
-			</div>
+		<div class="result-rank" class:skeleton={isLoading} bind:this={rankContainer}>
+			{#if !isLoading}<RankIcon rank={result.latestRank} />{/if}
 		</div>
 	</div>
-{/if}
+</div>
 
 <style>
 	.result {

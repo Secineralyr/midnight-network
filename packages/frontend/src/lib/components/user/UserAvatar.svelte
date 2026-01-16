@@ -26,7 +26,9 @@ const avatarUrl = $derived(userQuery.data?.avatarUrl ?? null);
 const resolvedAlt = $derived(alt || userQuery.data?.username || userId || '');
 </script>
 
-{#if avatarUrl}
+{#if userQuery.isLoading}
+	<div class="avatar-placeholder skeleton" aria-hidden="true"></div>
+{:else if avatarUrl}
 	<img class="avatar-image" src={avatarUrl} alt={resolvedAlt} {loading} {decoding} />
 {:else}
 	<div class="avatar-placeholder" aria-hidden="true"></div>

@@ -46,25 +46,30 @@ const progressPercent = $derived(() => {
 });
 </script>
 
-{#if !isLoading}
-	<div class="rank-display" in:fly={{ y: 10, duration: 300 }}>
-		<h3 class="rank-display-title">現在ランク</h3>
-		<div class="rank-display-icon">
-			<RankIcon rank={rankValue} />
-		</div>
-		{#if !isNoRank && 'nextRankPt' in currentRank}
-			<div class="rank-display-progress">
-				<span class="rank-display-label">次のランクまで</span>
-				<GaugeBar value={progressPercent()} text={nextRankPtText()} />
-			</div>
-		{:else if isNoRank && 'remainingParticipationCount' in currentRank}
-			<div class="rank-display-norank">
-				<span class="rank-display-label">ランク取得まで残り</span>
-				<span class="rank-display-count">{currentRank.remainingParticipationCount}回</span>
-			</div>
-		{/if}
+<div class="rank-display" in:fly={{ y: 10, duration: 300 }}>
+	<h3 class="rank-display-title" class:skeleton={isLoading}>
+		{#if !isLoading}現在ランク{/if}
+	</h3>
+	<div class="rank-display-icon" class:skeleton={isLoading}>
+		{#if !isLoading}<RankIcon rank={rankValue} />{/if}
 	</div>
-{/if}
+	{#if isLoading}
+		<div class="rank-display-progress">
+			<span class="rank-display-label skeleton">&nbsp;</span>
+			<div class="rank-display-gauge skeleton"></div>
+		</div>
+	{:else if !isNoRank && 'nextRankPt' in currentRank}
+		<div class="rank-display-progress">
+			<span class="rank-display-label">次のランクまで</span>
+			<GaugeBar value={progressPercent()} text={nextRankPtText()} />
+		</div>
+	{:else if isNoRank && 'remainingParticipationCount' in currentRank}
+		<div class="rank-display-norank">
+			<span class="rank-display-label">ランク取得まで残り</span>
+			<span class="rank-display-count">{currentRank.remainingParticipationCount}回</span>
+		</div>
+	{/if}
+</div>
 
 <style>
 	.rank-display {
@@ -112,5 +117,10 @@ const progressPercent = $derived(() => {
 	.rank-display-count {
 		font-size: 1rem;
 		font-weight: 600;
+	}
+
+	.rank-display-gauge {
+		height: 28px;
+		border-radius: 5px;
 	}
 </style>

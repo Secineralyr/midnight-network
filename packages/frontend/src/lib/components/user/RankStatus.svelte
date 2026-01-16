@@ -32,10 +32,23 @@ const statusItems = $derived([
 ]);
 </script>
 
-{#if !isLoading}
-	<div class="status" in:fly={{ y: 10, duration: 300 }}>
-		<h3 class="status-title">ランクステータス</h3>
-		<div class="status-list">
+<div class="status" in:fly={{ y: 10, duration: 300 }}>
+	<h3 class="status-title" class:skeleton={isLoading}>
+		{#if !isLoading}ランクステータス{/if}
+	</h3>
+	<div class="status-list">
+		{#if isLoading}
+			{#each Array(5) as _, i (i)}
+				<div class="status-item">
+					<span class="status-label skeleton">&nbsp;</span>
+					<span class="status-value skeleton">&nbsp;</span>
+				</div>
+			{/each}
+			<div class="status-item status-item-gauge">
+				<span class="status-label skeleton">&nbsp;</span>
+				<div class="status-gauge skeleton"></div>
+			</div>
+		{:else}
 			{#each statusItems as item (item.label)}
 				<div class="status-item" class:status-item-gauge={item.isGauge}>
 					<span class="status-label">{item.label}</span>
@@ -48,9 +61,9 @@ const statusItems = $derived([
 					{/if}
 				</div>
 			{/each}
-		</div>
+		{/if}
 	</div>
-{/if}
+</div>
 
 <style>
 	.status {

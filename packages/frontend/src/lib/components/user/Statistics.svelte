@@ -36,27 +36,35 @@ const lowerStats = $derived([
 ]);
 </script>
 
-{#if !isLoading}
-	<div class="stats" in:fly={{ y: 10, duration: 300 }}>
-		<h3 class="stats-title">統計データ</h3>
-		<div class="stats-row">
-			{#each upperStats as stat (stat.label)}
-				<div class="stats-item">
-					<span class="stats-label">{stat.label}</span>
-					<span class="stats-value">{stat.value}</span>
-				</div>
-			{/each}
-		</div>
-		<div class="stats-row">
-			{#each lowerStats as stat (stat.label)}
-				<div class="stats-item">
-					<span class="stats-label">{stat.label}</span>
-					<span class="stats-value">{stat.value}</span>
-				</div>
-			{/each}
-		</div>
+<div class="stats" in:fly={{ y: 10, duration: 300 }}>
+	<h3 class="stats-title" class:skeleton={isLoading}>
+		{#if !isLoading}統計データ{/if}
+	</h3>
+	<div class="stats-row">
+		{#each isLoading ? Array(5) : upperStats as stat, i (isLoading ? i : stat.label)}
+			<div class="stats-item">
+				<span class="stats-label" class:skeleton={isLoading}>
+					{#if !isLoading}{stat.label}{/if}
+				</span>
+				<span class="stats-value" class:skeleton={isLoading}>
+					{#if !isLoading}{stat.value}{/if}
+				</span>
+			</div>
+		{/each}
 	</div>
-{/if}
+	<div class="stats-row">
+		{#each isLoading ? Array(5) : lowerStats as stat, i (isLoading ? i : stat.label)}
+			<div class="stats-item">
+				<span class="stats-label" class:skeleton={isLoading}>
+					{#if !isLoading}{stat.label}{/if}
+				</span>
+				<span class="stats-value" class:skeleton={isLoading}>
+					{#if !isLoading}{stat.value}{/if}
+				</span>
+			</div>
+		{/each}
+	</div>
+</div>
 
 <style>
 	.stats {
