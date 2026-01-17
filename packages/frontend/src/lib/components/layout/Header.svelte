@@ -276,6 +276,40 @@ function handleSearchKeydown(event: KeyboardEvent): void {
 		color: #000;
 	}
 
+	/* デスクトップ表示 (900px - 1149px) */
+	@media (max-width: 1149px) {
+		header {
+			width: 100%;
+			background: rgba(17, 12, 26, 0.75);
+		}
+	}
+
+	/* モバイル表示 (300px - 899px) */
+	@media (max-width: 899px) {
+		header {
+			padding: 0 10px;
+		}
+		header > div {
+			padding: 10px;
+		}
+		header > div > .left-side {
+			gap: 20px;
+		}
+		nav a {
+			font-size: 0.85rem;
+		}
+		header > div > .right-side > .logged-user > .user-icon-button {
+			height: 45px;
+			width: 45px;
+			top: 0;
+		}
+		header > div > .right-side > .search-button {
+			height: 36px;
+			width: 36px;
+			top: 0;
+		}
+	}
+
 	.search-modal-backdrop {
 		position: fixed;
 		inset: 0;

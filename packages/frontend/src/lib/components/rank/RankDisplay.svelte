@@ -90,10 +90,7 @@ const progressPercent = $derived(() => {
 		justify-content: center;
 		margin-bottom: 20px;
 		margin-top: 20px;
-	}
-
-	.rank-display-icon :global(.rank-icon) {
-		width: 80px;
+		padding: 0 40px;
 	}
 
 	.rank-display-progress {
@@ -122,5 +119,24 @@ const progressPercent = $derived(() => {
 	.rank-display-gauge {
 		height: 28px;
 		border-radius: 5px;
+	}
+
+	/* モバイル表示 */
+	@media (max-width: 899px) {
+		.rank-display-title {
+			font-size: 0.9rem;
+		}
+		.rank-display-icon {
+			margin-bottom: 15px;
+			margin-top: 15px;
+			height: 150px;
+			padding: 0;
+		}
+		.rank-display-label {
+			font-size: 0.8rem;
+		}
+		.rank-display-count {
+			font-size: 0.9rem;
+		}
 	}
 </style>

@@ -110,4 +110,21 @@ function handleUserClick(username: string): void {
 		flex-direction: column;
 		gap: 10px;
 	}
+
+	/* モバイル表示 */
+	@media (max-width: 899px) {
+		.top-panel {
+			padding: 15px;
+			gap: 15px;
+		}
+		.top-title {
+			font-size: 1rem;
+		}
+		.top-list {
+			gap: 8px;
+		}
+		.top-cards {
+			gap: 8px;
+		}
+	}
 </style>

@@ -300,4 +300,54 @@ $effect(() => {
 	.result-rank {
 		height: 150px;
 	}
+
+	/* モバイル表示 */
+	@media (max-width: 899px) {
+		.result {
+			padding: 15px;
+		}
+		.result-header {
+			flex-direction: column;
+			gap: 5px;
+			align-items: flex-start;
+		}
+		.result-title {
+			font-size: 1.1rem;
+		}
+		.result-date {
+			font-size: 0.8rem;
+		}
+		.result-content {
+			gap: 20px;
+			padding: 15px 10px;
+			align-items: center;
+		}
+		.result-label {
+			font-size: 0.9rem;
+			min-width: 50px;
+		}
+		.result-value {
+			font-size: 1.2rem;
+		}
+		.result-total {
+			justify-content: center;
+			flex-direction: column;
+			align-items: center;
+		}
+		.result-total-value {
+			font-size: 1.4rem;
+		}
+		.result-shift {
+			font-size: 1rem;
+		}
+	}
+
+	@media (max-width: 449px) {
+		.result-content {
+			flex-direction: column;
+		}
+		.result-rank {
+			margin-top: 20px;
+		}
+	}
 </style>

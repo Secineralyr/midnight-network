@@ -189,4 +189,43 @@ function handleUserCardClick(username: string): void {
 		margin: 0 auto;
 		margin-top: 80px;
 	}
+
+	/* モバイル表示 */
+	@media (max-width: 899px) {
+		.hero {
+			margin-top: 60px;
+		}
+		.title {
+			font-size: 1.8rem;
+		}
+		.logo-image {
+			width: 48px;
+			height: 48px;
+		}
+		.search {
+			margin-top: 40px;
+		}
+		.countdown {
+			margin-top: 40px;
+		}
+		.result-section {
+			margin-top: 40px;
+		}
+		.leaderboards {
+			flex-direction: column;
+			margin: 0 40px;
+			margin-top: 40px;
+			gap: 20px;
+		}
+		.leaderboards__panel {
+			width: 100%;
+		}
+	}
+
+	@media (max-width: 649px) {
+		.leaderboards {
+			margin: unset;
+			margin-top: 40px;
+		}
+	}
 </style>

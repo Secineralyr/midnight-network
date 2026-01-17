@@ -98,9 +98,28 @@ function handleModalKeydown(event: KeyboardEvent): void {
 <style>
 	footer {
 		padding: 20px 40px;
-		width: 840px;
+		width: 100%;
+		max-width: 840px;
 		height: 80px;
 		margin: 0 auto;
+	}
+
+	/* モバイル表示 */
+	@media (max-width: 899px) {
+		footer {
+			padding: 20px;
+		}
+		.inner {
+			gap: 15px;
+		}
+		.left {
+			flex-direction: column;
+			gap: 15px;
+			align-items: center;
+		}
+		.logo {
+			height: 30px;
+		}
 	}
 
 	.inner {

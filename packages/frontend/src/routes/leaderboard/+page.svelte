@@ -202,4 +202,28 @@ function handleSortChange(criteria: string): void {
 		justify-content: center;
 		padding: 28px;
 	}
+
+	/* モバイル表示 */
+	@media (max-width: 899px) {
+		.leaderboard-page-hero {
+			margin-top: 40px;
+			margin-bottom: 30px;
+			padding: 15px;
+		}
+		.leaderboard-page-title {
+			font-size: 1.75rem;
+		}
+		.leaderboard-page-content {
+			padding: 0 10px;
+			gap: 20px;
+		}
+		.histogram-section-header {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 10px;
+		}
+		.pagination-section {
+			padding: 20px;
+		}
+	}
 </style>

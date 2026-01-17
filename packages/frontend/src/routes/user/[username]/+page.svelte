@@ -419,4 +419,51 @@ function handleSaveSettings(settings: Partial<SettingTypeT>): void {
 		min-height: 200px;
 		color: #c6c9df;
 	}
+
+	/* モバイル表示 */
+	@media (max-width: 899px) {
+		.user-header {
+			padding: 20px;
+		}
+		.user-avatar {
+			width: 60px;
+			height: 60px;
+		}
+		.user-username {
+			font-size: 1.1rem;
+		}
+		.user-content {
+			padding: 0 10px;
+		}
+		.user-grid {
+			grid-template-columns: 1fr;
+			gap: 15px;
+		}
+		.user-sidebar {
+			display: grid;
+			flex-direction: unset;
+			grid-template-columns: 1fr 1fr;
+			gap: 15px;
+		}
+		.user-main {
+			gap: 15px;
+		}
+		.user-charts {
+			gap: 15px;
+		}
+		.user-charts-row {
+			gap: 15px;
+		}
+	}
+
+	@media (max-width: 549px) {
+		.user-sidebar {
+			display: flex;
+			flex-direction: column;
+		}
+		.user-charts-row {
+			grid-template-columns: unset;
+			grid-template-rows: repeat(2, 1fr);
+		}
+	}
 </style>

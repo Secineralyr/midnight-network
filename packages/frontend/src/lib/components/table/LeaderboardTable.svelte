@@ -259,4 +259,40 @@ function handleRowClick(username: string): void {
 	.skeleton-row:hover {
 		background: #201E3A;
 	}
+
+	/* モバイル表示 - 横スクロール対応 */
+	@media (max-width: 899px) {
+		.table-root {
+			overflow-x: auto;
+			-webkit-overflow-scrolling: touch;
+		}
+		.table-header,
+		.table-row {
+			min-width: 600px;
+		}
+		.table-header {
+			font-size: 0.75rem;
+			padding: 8px 10px;
+			grid-template-columns: 40px 60px 35px 1fr 60px 60px 60px 35px;
+			gap: 5px;
+		}
+		.table-row {
+			padding: 8px 10px;
+			grid-template-columns: 40px 60px 35px 1fr 60px 60px 60px 35px;
+			gap: 5px;
+		}
+		.table-cell {
+			font-size: 0.8rem;
+		}
+		.table-cell.name {
+			font-size: 0.85rem;
+		}
+		.avatar {
+			width: 28px;
+			height: 28px;
+		}
+		.table-rank :global(.rank-icon) {
+			width: 28px;
+		}
+	}
 </style>

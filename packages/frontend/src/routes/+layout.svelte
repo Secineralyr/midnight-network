@@ -63,4 +63,13 @@ onMount(async () => {
 		margin: 0 auto;
 		margin-bottom: 80px;
 	}
+
+	/* モバイル表示 */
+	@media (max-width: 899px) {
+		.main {
+			padding-left: 15px;
+			padding-right: 15px;
+			margin-bottom: 60px;
+		}
+	}
 </style>

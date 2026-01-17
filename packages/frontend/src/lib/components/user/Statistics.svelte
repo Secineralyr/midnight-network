@@ -108,4 +108,34 @@ const lowerStats = $derived([
 		font-weight: 600;
 		letter-spacing: 0.01em;
 	}
+
+	/* モバイル表示 */
+	@media (max-width: 899px) {
+		.stats {
+			padding: 15px;
+		}
+		.stats-title {
+			font-size: 0.9rem;
+		}
+		.stats-row {
+			grid-template-columns: repeat(3, 1fr);
+			gap: 15px;
+		}
+		.stats-row + .stats-row {
+			margin-top: 15px;
+		}
+		.stats-label {
+			font-size: 0.75rem;
+		}
+		.stats-value {
+			font-size: 0.85rem;
+		}
+	}
+
+	/* 狭い幅（500px未満） */
+	@media (max-width: 499px) {
+		.stats-row {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
 </style>

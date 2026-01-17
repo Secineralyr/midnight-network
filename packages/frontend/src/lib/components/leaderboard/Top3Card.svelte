@@ -141,4 +141,25 @@ const valueText = $derived(type === 'time' && time !== undefined ? formatTimeDif
 	.rank {
 		height: 55px;
 	}
+
+	/* モバイル表示 */
+	@media (max-width: 899px) {
+		.top-card {
+			padding: 8px;
+			gap: 8px;
+		}
+		.avatar {
+			width: 45px;
+			height: 45px;
+		}
+		.name {
+			font-size: 0.9rem;
+		}
+		.value {
+			font-size: 0.75rem;
+		}
+		.rank {
+			height: 45px;
+		}
+	}
 </style>
