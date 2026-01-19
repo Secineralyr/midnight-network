@@ -6,7 +6,7 @@ type Action<T = void> = (() => T) | (() => Promise<T>);
 export function createRetryTask<T = void>(f: Action<T>) {
 	return pRetry(f, {
 		onFailedAttempt(context) {
-			console.error(context);
+			console.error(`retry error: ${JSON.stringify(context)}`);
 		},
 		retries: 20,
 		minTimeout: 5000,

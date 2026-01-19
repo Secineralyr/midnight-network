@@ -50,6 +50,7 @@ async function getNotes() {
 
 	const mkApi = createRetryMisskeyApiClientFetcher();
 	let untilId: string | null = null;
+	console.info('cron.mainProcess: start get notes');
 	while (true) {
 		let paramUntil: Record<string, string | number>;
 		if (untilId === null) {
@@ -67,6 +68,7 @@ async function getNotes() {
 			...paramUntil,
 		};
 		const res = await mkApi('notes/hybrid-timeline', params);
+		console.info(`cron.mainProcess: get length ${res.length}`);
 		if (res.length === 0) {
 			break;
 		}
@@ -75,6 +77,7 @@ async function getNotes() {
 		notes = notes.concat(addend);
 	}
 
+	console.info(`cron.mainProcess: total note length ${notes.length}`);
 	return notes;
 }
 
@@ -154,6 +157,7 @@ async function upsertMatchResultData(
 		eventData = { eventId: eventMatch.id };
 	}
 
+	console.info('cron.mainProcess: insert matchDate');
 	const matchDate = await prisma.matchDate.upsert({
 		where: {
 			date: targetTimeDate,
@@ -185,12 +189,14 @@ async function upsertMatchResultData(
 			mustCreateSettings.push({ id: uid });
 		}
 	}
+	console.info('cron.mainProcess: insert new user');
 	await prisma.$transaction(async (tx) => {
 		await tx.user.createMany({ data: mustCreateUsers });
 		await tx.userRankStatus.createMany({ data: mustCreateStatus });
 		await tx.userSettings.createMany({ data: mustCreateSettings });
 	});
 
+	console.info('cron.mainProcess: insert record');
 	await prisma.$transaction(async (tx) => {
 		for (const rec of [...validRecords, ...flyingRecords]) {
 			await tx.record.upsert({
@@ -214,6 +220,7 @@ async function upsertMatchResultData(
 		}
 	});
 
+	console.info('cron.mainProcess: record process ok');
 	return {
 		records: Object.fromEntries([...validRecords, ...flyingRecords].map((rec) => [rec.uid, rec])),
 		eventMatch,
@@ -329,6 +336,7 @@ async function upsertRankResultData(
 		});
 	}
 
+	console.info('cron.mainProcess: update rank status');
 	await prisma.$transaction(async (tx) => {
 		await tx.userRankHistory.createMany({ data: createRankHistories });
 		await Promise.all(updateRankStatusData.map((v) => tx.userRankStatus.update(v)));
@@ -336,7 +344,7 @@ async function upsertRankResultData(
 }
 
 export async function processCronMain() {
-	console.info('start remind');
+	console.info('start main process');
 	const targetTime = getTargetTime();
 
 	const notes = await getNotes();
@@ -366,13 +374,16 @@ export async function processCronMain() {
 	const flyingCount = [...Object.values(records)].length - validCount;
 
 	// 結果をノートする
+	console.info('cron.mainProcess: post note ranking');
 	await postRankingNote(validRecords, users, flyingCount);
 
 	// DBデータ全般更新
+	console.info('cron.mainProcess: create record to db');
 	const processedData = await upsertMatchResultData(validRecords, flyingRecords, users);
 	records = processedData.records;
 	const { eventMatch, matchDate } = processedData;
 
+	console.info('cron.mainProcess: start update rank');
 	// ランク計算
 	await upsertRankResultData(records, validRecords, eventMatch, matchDate);
 }
