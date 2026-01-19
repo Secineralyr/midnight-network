@@ -191,9 +191,15 @@ async function upsertMatchResultData(
 	}
 	console.info('cron.mainProcess: insert new user');
 	await prisma.$transaction(async (tx) => {
-		await tx.user.createMany({ data: mustCreateUsers });
-		await tx.userRankStatus.createMany({ data: mustCreateStatus });
-		await tx.userSettings.createMany({ data: mustCreateSettings });
+		if (mustCreateUsers.length > 0) {
+			await tx.user.createMany({ data: mustCreateUsers });
+		}
+		if (mustCreateStatus.length > 0) {
+			await tx.userRankStatus.createMany({ data: mustCreateStatus });
+		}
+		if (mustCreateSettings.length > 0) {
+			await tx.userSettings.createMany({ data: mustCreateSettings });
+		}
 	});
 
 	console.info('cron.mainProcess: insert record');
@@ -338,7 +344,9 @@ async function upsertRankResultData(
 
 	console.info('cron.mainProcess: update rank status');
 	await prisma.$transaction(async (tx) => {
-		await tx.userRankHistory.createMany({ data: createRankHistories });
+		if (createRankHistories.length > 0) {
+			await tx.userRankHistory.createMany({ data: createRankHistories });
+		}
 		await Promise.all(updateRankStatusData.map((v) => tx.userRankStatus.update(v)));
 	});
 }
