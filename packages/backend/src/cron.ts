@@ -191,51 +191,45 @@ async function upsertMatchResultData(
 		}
 	}
 
-	const queryTasks: PrismaPromise<unknown>[] = [];
 	console.info('cron.mainProcess: insert new user');
 	if (mustCreateUsers.length > 0) {
 		console.info(`cron.mainProcess: new user length ${mustCreateUsers.length}`);
-		queryTasks.push(prisma.user.createMany({ data: mustCreateUsers }));
+		await prisma.user.createMany({ data: mustCreateUsers });
 	}
 
 	console.info('cron.mainProcess: insert new user status');
 	if (mustCreateStatus.length > 0) {
 		console.info(`cron.mainProcess: new user status length ${mustCreateUsers.length}`);
-		queryTasks.push(prisma.userRankStatus.createMany({ data: mustCreateStatus }));
+		await prisma.userRankStatus.createMany({ data: mustCreateStatus });
 	}
 
 	console.info('cron.mainProcess: insert new user settings');
 	if (mustCreateSettings.length > 0) {
 		console.info(`cron.mainProcess: new user settings length ${mustCreateUsers.length}`);
-		queryTasks.push(prisma.userSettings.createMany({ data: mustCreateSettings }));
+		await prisma.userSettings.createMany({ data: mustCreateSettings });
 	}
 
 	console.info('cron.mainProcess: insert record');
 	for (const rec of [...validRecords, ...flyingRecords]) {
-		queryTasks.push(
-			prisma.record.upsert({
-				where: {
-					noteId: rec.nid,
-				},
-				update: {
-					postedAt: rec.postedAt,
-					userId: rec.uid,
-					place: rec.place,
-					matchDateId: matchDate.id,
-				},
-				create: {
-					noteId: rec.nid,
-					postedAt: rec.postedAt,
-					userId: rec.uid,
-					place: rec.place,
-					matchDateId: matchDate.id,
-				},
-			}),
-		);
+		await prisma.record.upsert({
+			where: {
+				noteId: rec.nid,
+			},
+			update: {
+				postedAt: rec.postedAt,
+				userId: rec.uid,
+				place: rec.place,
+				matchDateId: matchDate.id,
+			},
+			create: {
+				noteId: rec.nid,
+				postedAt: rec.postedAt,
+				userId: rec.uid,
+				place: rec.place,
+				matchDateId: matchDate.id,
+			},
+		});
 	}
-
-	console.info('cron.mainProcess: record transaction execute');
-	await prisma.$transaction(queryTasks);
 
 	console.info('cron.mainProcess: record process ok');
 	return {
@@ -357,18 +351,15 @@ async function upsertRankResultData(
 		});
 	}
 
-	const queryTasks: PrismaPromise<unknown>[] = [];
-	console.info('cron.mainProcess: create histories');
 	// 再集計時の重複を防ぐため、同じmatchIdの既存履歴を削除してから作成
-	queryTasks.push(prisma.userRankHistory.deleteMany({ where: { matchId: matchDate.id } }));
+	console.info('cron.mainProcess: delete histories');
+	await prisma.userRankHistory.deleteMany({ where: { matchId: matchDate.id } });
+	console.info('cron.mainProcess: create histories');
 	if (createRankHistories.length > 0) {
-		queryTasks.push(prisma.userRankHistory.createMany({ data: createRankHistories }));
+		await prisma.userRankHistory.createMany({ data: createRankHistories });
 	}
 	console.info('cron.mainProcess: update rank status');
-	queryTasks.push(...updateRankStatusData.map((v) => prisma.userRankStatus.update(v)));
-
-	console.info('cron.mainProcess: rank transaction execute');
-	await prisma.$transaction(queryTasks);
+	await updateRankStatusData.map((v) => prisma.userRankStatus.update(v));
 }
 
 export async function processCronMain() {
