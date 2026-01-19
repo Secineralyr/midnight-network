@@ -17,6 +17,13 @@ import { prisma } from './db';
 import type { EventMatch, MatchDate } from './generated/prisma/client';
 import { createRetryMisskeyApiClientFetcher } from './misskey';
 import { getTargetTime } from './util';
+import type {
+	UserCreateManyInput,
+	UserRankHistoryCreateManyInput,
+	UserRankStatusCreateManyInput,
+	UserRankStatusUpdateArgs,
+	UserSettingsCreateManyInput,
+} from './generated/prisma/models';
 
 function getTargetTimeRange(): [number, number] {
 	const targetTime = getTargetTime();
@@ -161,43 +168,51 @@ async function upsertMatchResultData(
 		},
 	});
 
+	const mustCreateUsers: UserCreateManyInput[] = [];
+	const mustCreateStatus: UserRankStatusCreateManyInput[] = [];
+	const mustCreateSettings: UserSettingsCreateManyInput[] = [];
 	for (const uid in users) {
 		const username = users[uid];
 		if (username !== undefined) {
-			const user = await prisma.user.findUnique({ where: { id: uid } });
-			if (user === null) {
-				await prisma.user.create({
-					data: {
-						id: uid,
-						userName: username,
-					},
-				});
-				await prisma.userRankStatus.create({ data: { id: uid } });
-				await prisma.userSettings.create({ data: { id: uid } });
+			if ((await prisma.user.count({ where: { id: uid } })) > 0) {
+				continue;
 			}
+			mustCreateUsers.push({
+				id: uid,
+				userName: username,
+			});
+			mustCreateStatus.push({ id: uid });
+			mustCreateSettings.push({ id: uid });
 		}
 	}
+	await prisma.$transaction(async (tx) => {
+		await tx.user.createMany({ data: mustCreateUsers });
+		await tx.userRankStatus.createMany({ data: mustCreateStatus });
+		await tx.userSettings.createMany({ data: mustCreateSettings });
+	});
 
-	for (const rec of [...validRecords, ...flyingRecords]) {
-		await prisma.record.upsert({
-			where: {
-				noteId: rec.nid,
-			},
-			update: {
-				postedAt: rec.postedAt,
-				userId: rec.uid,
-				place: rec.place,
-				matchDateId: matchDate.id,
-			},
-			create: {
-				noteId: rec.nid,
-				postedAt: rec.postedAt,
-				userId: rec.uid,
-				place: rec.place,
-				matchDateId: matchDate.id,
-			},
-		});
-	}
+	await prisma.$transaction(async (tx) => {
+		for (const rec of [...validRecords, ...flyingRecords]) {
+			await tx.record.upsert({
+				where: {
+					noteId: rec.nid,
+				},
+				update: {
+					postedAt: rec.postedAt,
+					userId: rec.uid,
+					place: rec.place,
+					matchDateId: matchDate.id,
+				},
+				create: {
+					noteId: rec.nid,
+					postedAt: rec.postedAt,
+					userId: rec.uid,
+					place: rec.place,
+					matchDateId: matchDate.id,
+				},
+			});
+		}
+	});
 
 	return {
 		records: Object.fromEntries([...validRecords, ...flyingRecords].map((rec) => [rec.uid, rec])),
@@ -225,14 +240,7 @@ async function upsertRankResultData(
 		withinTopUserRankStatuses.map((rec) => [rec.id, rec]),
 	);
 	const allTotalParticipationCounts = Object.fromEntries(
-		(
-			await prisma.record.groupBy({
-				by: ['userId'],
-				_count: {
-					_all: true,
-				},
-			})
-		).map((rec) => [rec.userId, rec._count._all]),
+		(await prisma.userParticipantsCount.findMany()).map((rec) => [rec.userId, rec.participantsCount]),
 	);
 	const withinZoneParticipants: WithinZoneRankSnapshot[] = validRecords
 		.filter((rec) => rec.place <= 10)
@@ -243,10 +251,14 @@ async function upsertRankResultData(
 				allTotalParticipationCounts[rec.uid] ?? 0,
 			).rankNumber,
 		}));
+
+	const createRankHistories: UserRankHistoryCreateManyInput[] = [];
+	const updateRankStatusData: UserRankStatusUpdateArgs[] = [];
 	for (const user of allUsers) {
 		const uid = user.id;
 		let userRankStatus = await prisma.userRankStatus.findUnique({ where: { id: uid } });
 		if (userRankStatus === null) {
+			// 基本的に発生し得ないが、予防処理
 			userRankStatus = await prisma.userRankStatus.create({ data: { id: uid } });
 		}
 
@@ -295,15 +307,16 @@ async function upsertRankResultData(
 		}
 
 		const result = calculateRankUpdate(currentState, event);
-		await prisma.userRankHistory.create({
-			data: {
+		if (!(event.kind === 'absent' && result.pointDelta === 0)) {
+			createRankHistories.push({
 				userId: uid,
 				pt: result.nextTotalPoints,
 				earnedPt: result.pointDelta,
 				matchId: matchDate.id,
-			},
-		});
-		await prisma.userRankStatus.update({
+			});
+		}
+
+		updateRankStatusData.push({
 			where: { id: uid },
 			data: {
 				pt: result.nextTotalPoints,
@@ -315,6 +328,11 @@ async function upsertRankResultData(
 			},
 		});
 	}
+
+	await prisma.$transaction(async (tx) => {
+		await tx.userRankHistory.createMany({ data: createRankHistories });
+		await Promise.all(updateRankStatusData.map((v) => tx.userRankStatus.update(v)));
+	});
 }
 
 export async function processCronMain() {
