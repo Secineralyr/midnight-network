@@ -189,17 +189,22 @@ async function upsertMatchResultData(
 			mustCreateSettings.push({ id: uid });
 		}
 	}
+
 	console.info('cron.mainProcess: insert new user');
 	if (mustCreateUsers.length > 0) {
+		console.info(`cron.mainProcess: new user length ${mustCreateUsers.length}`);
 		await prisma.user.createMany({ data: mustCreateUsers });
 	}
-	console.info('cron.mainProcess: insert new user status');
 
+	console.info('cron.mainProcess: insert new user status');
 	if (mustCreateStatus.length > 0) {
+		console.info(`cron.mainProcess: new user status length ${mustCreateUsers.length}`);
 		await prisma.userRankStatus.createMany({ data: mustCreateStatus });
 	}
+
 	console.info('cron.mainProcess: insert new user settings');
 	if (mustCreateSettings.length > 0) {
+		console.info(`cron.mainProcess: new user settings length ${mustCreateUsers.length}`);
 		await prisma.userSettings.createMany({ data: mustCreateSettings });
 	}
 
