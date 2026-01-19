@@ -8,6 +8,7 @@ import { Elysia, t } from 'elysia';
 import { CloudflareAdapter } from 'elysia/adapter/cloudflare-worker';
 import { auth } from './auth';
 import { processCronMain, processCronRemind } from './cron';
+import { checkRateLimit, createRateLimitResponse } from './rate-limit';
 import { router } from './rpc';
 import { mkWebhookTypes, processWebhook } from './webhook';
 
@@ -60,6 +61,11 @@ const app = new Elysia({
 	.all(
 		'/api*',
 		async ({ request }) => {
+			const allowed = await checkRateLimit(request);
+			if (!allowed) {
+				return createRateLimitResponse();
+			}
+
 			const { response } = await rpc.handle(request, {
 				prefix: '/api',
 				context: {
