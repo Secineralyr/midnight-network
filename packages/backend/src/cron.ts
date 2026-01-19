@@ -279,8 +279,7 @@ async function upsertRankResultData(
 			).rankNumber,
 		}));
 
-	const userIds = allUsers.map((v) => v.id);
-	const userRankStatuses = userIds.length > 0 ? await prisma.userRankStatus.findMany({ where: { id: { in: userIds } } }) : [];
+	const userRankStatuses = await prisma.userRankStatus.findMany();
 	const createRankHistories: UserRankHistoryCreateManyInput[] = [];
 	const updateRankStatusData: UserRankStatusUpdateArgs[] = [];
 	for (const user of allUsers) {
