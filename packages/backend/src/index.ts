@@ -31,27 +31,6 @@ const app = new Elysia({
 			allowedHeaders: ['Content-Type', 'Authorization'],
 		}),
 	)
-	.get('/', () => {
-		// IndieAuth用のメタデータHTML
-		// MisskeyがclientIdのURLをフェッチしてredirect_uriを検証する
-		const html = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>MidNight Network API</title>
-  <link rel="redirect_uri" href="/api/auth/oauth2/callback/misskey">
-</head>
-<body>
-  <div class="h-app">
-    <p class="p-name">MidNight Network</p>
-    <a href="${createHostToOrigin(env.WEB_HOST)}" class="u-url">MidNight Network</a>
-  </div>
-</body>
-</html>`;
-		return new Response(html, {
-			headers: { 'Content-Type': 'text/html; charset=utf-8' },
-		});
-	})
 	.post(
 		'/webhook',
 		async ({ body }) => {
