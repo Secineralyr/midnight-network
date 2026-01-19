@@ -255,11 +255,14 @@ async function upsertRankResultData(
 
 	const allUsers = await prisma.user.findMany();
 	const withinTopUids = validRecords.filter((rec) => rec.place <= 10);
-	const withinTopUserRankStatuses = await prisma.userRankStatus.findMany({
-		where: {
-			OR: withinTopUids.map((rec) => ({ id: rec.uid })),
-		},
-	});
+	const withinTopUserRankStatuses =
+		withinTopUids.length > 0
+			? await prisma.userRankStatus.findMany({
+					where: {
+						OR: withinTopUids.map((rec) => ({ id: rec.uid })),
+					},
+				})
+			: [];
 	const withinTopUserRankStatusesMap: Record<string, (typeof withinTopUserRankStatuses)[number]> = Object.fromEntries(
 		withinTopUserRankStatuses.map((rec) => [rec.id, rec]),
 	);
@@ -276,7 +279,8 @@ async function upsertRankResultData(
 			).rankNumber,
 		}));
 
-	const userRankStatuses = await prisma.userRankStatus.findMany({ where: { id: { in: allUsers.map((v) => v.id) } } });
+	const userIds = allUsers.map((v) => v.id);
+	const userRankStatuses = userIds.length > 0 ? await prisma.userRankStatus.findMany({ where: { id: { in: userIds } } }) : [];
 	const createRankHistories: UserRankHistoryCreateManyInput[] = [];
 	const updateRankStatusData: UserRankStatusUpdateArgs[] = [];
 	for (const user of allUsers) {
@@ -356,6 +360,8 @@ async function upsertRankResultData(
 
 	const queryTasks: PrismaPromise<unknown>[] = [];
 	console.info('cron.mainProcess: create histories');
+	// 再集計時の重複を防ぐため、同じmatchIdの既存履歴を削除してから作成
+	queryTasks.push(prisma.userRankHistory.deleteMany({ where: { matchId: matchDate.id } }));
 	if (createRankHistories.length > 0) {
 		queryTasks.push(prisma.userRankHistory.createMany({ data: createRankHistories }));
 	}
