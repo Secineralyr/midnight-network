@@ -28,7 +28,7 @@ export const auth = betterAuth({
 	databaseHooks: {
 		user: {
 			create: {
-				before: (user) => {
+				before: (user: unknown) => {
 					if (!isExternalId(user)) {
 						return Promise.resolve();
 					}
