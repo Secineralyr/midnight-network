@@ -190,41 +190,40 @@ async function upsertMatchResultData(
 		}
 	}
 	console.info('cron.mainProcess: insert new user');
-	await prisma.$transaction(async (tx) => {
-		if (mustCreateUsers.length > 0) {
-			await tx.user.createMany({ data: mustCreateUsers });
-		}
-		if (mustCreateStatus.length > 0) {
-			await tx.userRankStatus.createMany({ data: mustCreateStatus });
-		}
-		if (mustCreateSettings.length > 0) {
-			await tx.userSettings.createMany({ data: mustCreateSettings });
-		}
-	});
+	if (mustCreateUsers.length > 0) {
+		await prisma.user.createMany({ data: mustCreateUsers });
+	}
+	console.info('cron.mainProcess: insert new user status');
+
+	if (mustCreateStatus.length > 0) {
+		await prisma.userRankStatus.createMany({ data: mustCreateStatus });
+	}
+	console.info('cron.mainProcess: insert new user settings');
+	if (mustCreateSettings.length > 0) {
+		await prisma.userSettings.createMany({ data: mustCreateSettings });
+	}
 
 	console.info('cron.mainProcess: insert record');
-	await prisma.$transaction(async (tx) => {
-		for (const rec of [...validRecords, ...flyingRecords]) {
-			await tx.record.upsert({
-				where: {
-					noteId: rec.nid,
-				},
-				update: {
-					postedAt: rec.postedAt,
-					userId: rec.uid,
-					place: rec.place,
-					matchDateId: matchDate.id,
-				},
-				create: {
-					noteId: rec.nid,
-					postedAt: rec.postedAt,
-					userId: rec.uid,
-					place: rec.place,
-					matchDateId: matchDate.id,
-				},
-			});
-		}
-	});
+	for (const rec of [...validRecords, ...flyingRecords]) {
+		await prisma.record.upsert({
+			where: {
+				noteId: rec.nid,
+			},
+			update: {
+				postedAt: rec.postedAt,
+				userId: rec.uid,
+				place: rec.place,
+				matchDateId: matchDate.id,
+			},
+			create: {
+				noteId: rec.nid,
+				postedAt: rec.postedAt,
+				userId: rec.uid,
+				place: rec.place,
+				matchDateId: matchDate.id,
+			},
+		});
+	}
 
 	console.info('cron.mainProcess: record process ok');
 	return {
@@ -342,13 +341,12 @@ async function upsertRankResultData(
 		});
 	}
 
+	console.info('cron.mainProcess: create histories');
+	if (createRankHistories.length > 0) {
+		await prisma.userRankHistory.createMany({ data: createRankHistories });
+	}
 	console.info('cron.mainProcess: update rank status');
-	await prisma.$transaction(async (tx) => {
-		if (createRankHistories.length > 0) {
-			await tx.userRankHistory.createMany({ data: createRankHistories });
-		}
-		await Promise.all(updateRankStatusData.map((v) => tx.userRankStatus.update(v)));
-	});
+	await Promise.all(updateRankStatusData.map((v) => prisma.userRankStatus.update(v)));
 }
 
 export async function processCronMain() {
