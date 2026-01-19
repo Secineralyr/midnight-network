@@ -1,4 +1,3 @@
-import { env } from 'cloudflare:workers';
 import { prisma } from '../../db';
 
 /**
@@ -47,20 +46,6 @@ export async function getLatestMatchDate(): Promise<{
 		},
 	});
 	return matchDate;
-}
-
-/**
- * 指定した日付のターゲットマッチ時刻を取得する。
- * @param date 日付
- * @returns ターゲットマッチ時刻
- */
-export function getTargetMatchTimeForDate(date: Date): Date {
-	const targetHour = env.TARGET_MATCH_HOUR;
-	const targetMinutes = env.TARGET_MATCH_MINUTES;
-
-	const result = new Date(date);
-	result.setUTCHours(targetHour, targetMinutes, 0, 0);
-	return result;
 }
 
 /**
