@@ -2,6 +2,10 @@ name = "midnight-network-backend"
 main = "src/index.ts"
 compatibility_date = "2025-11-17"
 compatibility_flags = ["nodejs_compat"]
+routes = [
+	{ pattern = "<host>/api/*", zone_name = "<host>" },
+	{ pattern = "<host>/webhook", zone_name = "<host>" },
+]
 
 [observability]
 enabled = false
