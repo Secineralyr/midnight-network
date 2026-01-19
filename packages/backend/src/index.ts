@@ -44,6 +44,7 @@ const app = new Elysia({
 			headers: t.Object({
 				'user-agent': t.Literal('Misskey-Hooks'),
 				'x-misskey-host': t.Literal(env.MK_HOST),
+				'x-misskey-hook-secret': t.Literal(env.WEBHOOK_SECRET),
 				'content-type': t.Literal('application/json'),
 			}),
 			body: t.Object({
