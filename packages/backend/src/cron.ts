@@ -16,7 +16,7 @@ import { placeEmojis } from './consts';
 import { prisma } from './db';
 import type { EventMatch, MatchDate } from './generated/prisma/client';
 import { createRetryMisskeyApiClientFetcher } from './misskey';
-import { getTargetTime } from './util';
+import { getTargetTime, wait } from './util';
 import type {
 	UserCreateManyInput,
 	UserRankHistoryCreateManyInput,
@@ -24,7 +24,6 @@ import type {
 	UserRankStatusUpdateArgs,
 	UserSettingsCreateManyInput,
 } from './generated/prisma/models';
-import type { PrismaPromise } from './generated/prisma/internal/prismaNamespace';
 
 function getTargetTimeRange(): [number, number] {
 	const targetTime = getTargetTime();
@@ -76,6 +75,8 @@ async function getNotes() {
 		untilId = res.at(-1)?.id ?? null;
 		const addend = res.filter((note) => note.text && targetPattern.test(note.text) && !note.user.isBot);
 		notes = notes.concat(addend);
+
+		await wait(1000);
 	}
 
 	console.info(`cron.mainProcess: total note length ${notes.length}`);

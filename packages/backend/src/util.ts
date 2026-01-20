@@ -3,6 +3,10 @@ import pRetry from 'p-retry';
 
 type Action<T = void> = (() => T) | (() => Promise<T>);
 
+export function wait(ms: number) {
+	return new Promise((r) => setTimeout(r, ms));
+}
+
 export function createRetryTask<T = void>(f: Action<T>) {
 	return pRetry(f, {
 		onFailedAttempt(context) {
