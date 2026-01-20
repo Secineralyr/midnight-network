@@ -243,6 +243,15 @@ function handleRowClick(username: string): void {
 		overflow: hidden;
 	}
 
+	/*
+	 * :global(.skeleton) を使用する理由:
+	 * グローバルの.skeletonスタイルよりスコープスタイルの詳細度が高いため、
+	 * border-colorを上書きするにはコンポーネント内で明示的に指定する必要がある
+	 */
+	.avatar:global(.skeleton) {
+		border-color: transparent;
+	}
+
 	.table-rank {
 		display: flex;
 		justify-content: center;

@@ -2,10 +2,10 @@
 import type { LastResultResponseT } from '@midnight-network/shared/rpc/me/models';
 import { RankShiftType } from '@midnight-network/shared/rpc/me/models';
 import { IconArrowBadgeDown, IconArrowBadgeUp } from '@tabler/icons-svelte';
-import { fly, fade } from 'svelte/transition';
-import { Tween } from 'svelte/motion';
-import { cubicOut } from 'svelte/easing';
 import { animate, stagger } from 'motion';
+import { cubicOut } from 'svelte/easing';
+import { Tween } from 'svelte/motion';
+import { fade, fly } from 'svelte/transition';
 import { formatDate, formatPlace, formatPt, formatTimeDiff } from '$lib/utils/format';
 import RankIcon from '../rank/RankIcon.svelte';
 
@@ -32,10 +32,14 @@ const isRankDown = $derived(result.rankShift === RankShiftType.RankDown);
 /** 順位に応じた色 */
 const placeColor = $derived.by(() => {
 	switch (result.place) {
-		case 1: return '#FEB369';
-		case 2: return '#CCCCCC';
-		case 3: return '#C26330';
-		default: return '#fff';
+		case 1:
+			return '#FEB369';
+		case 2:
+			return '#CCCCCC';
+		case 3:
+			return '#C26330';
+		default:
+			return '#fff';
 	}
 });
 
@@ -62,13 +66,9 @@ $effect(() => {
 		animate(
 			statsContainer.querySelectorAll('.result-stat, .result-total, .result-shift'),
 			{ opacity: [0, 1], y: [10, 0] },
-			{ duration: 0.4, delay: stagger(0.4, { startDelay: 0.6 }) }
+			{ duration: 0.4, delay: stagger(0.4, { startDelay: 0.6 }) },
 		);
-		animate(
-			rankContainer,
-			{ opacity: [0, 1] },
-			{ duration: 0.4, delay: 2.2 }
-		);
+		animate(rankContainer, { opacity: [0, 1] }, { duration: 0.4, delay: 2.2 });
 	}
 });
 </script>

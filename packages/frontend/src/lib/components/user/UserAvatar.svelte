@@ -50,4 +50,13 @@ const resolvedAlt = $derived(alt || userQuery.data?.username || userId || '');
 	.avatar-placeholder {
 		background: #fff;
 	}
+
+	/*
+	 * :global(.skeleton) を使用する理由:
+	 * グローバルの.skeletonスタイルよりスコープスタイルの詳細度が高いため、
+	 * background-colorを上書きするにはコンポーネント内で明示的に指定する必要がある
+	 */
+	.avatar-placeholder:global(.skeleton) {
+		background-color: #201e3a;
+	}
 </style>

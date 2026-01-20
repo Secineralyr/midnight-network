@@ -15,8 +15,6 @@ import { calculateRankStatusFromTotalPoints } from '../../rank-calc/src/rank-num
 import { placeEmojis } from './consts';
 import { prisma } from './db';
 import type { EventMatch, MatchDate } from './generated/prisma/client';
-import { createRetryMisskeyApiClientFetcher } from './misskey';
-import { getTargetTime, wait } from './util';
 import type {
 	UserCreateManyInput,
 	UserRankHistoryCreateManyInput,
@@ -24,6 +22,8 @@ import type {
 	UserRankStatusUpdateArgs,
 	UserSettingsCreateManyInput,
 } from './generated/prisma/models';
+import { createRetryMisskeyApiClientFetcher } from './misskey';
+import { getTargetTime, wait } from './util';
 
 function getTargetTimeRange(): [number, number] {
 	const targetTime = getTargetTime();
@@ -90,7 +90,6 @@ type MatchRecordData = {
 	dt: number;
 	place: number;
 };
-
 
 function calculatePlaces(validRecords: MatchRecordData[]) {
 	const dts = [...new Set<number>(validRecords.map((r) => r.dt))];

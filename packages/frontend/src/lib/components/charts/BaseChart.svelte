@@ -78,7 +78,6 @@ $effect(() => {
 		chartInstance.setOption(options, true);
 	}
 });
-
 </script>
 
 <div
