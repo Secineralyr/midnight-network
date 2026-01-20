@@ -90,6 +90,19 @@ type MatchRecordData = {
 	place: number;
 };
 
+
+function calculatePlaces(validRecords: MatchRecordData[]) {
+	const dts = [...new Set<number>(validRecords.map((r) => r.dt))];
+	dts.sort((a, b) => a - b);
+	for (let i = 0; i < dts.length; i++) {
+		validRecords
+			.filter((r) => r.dt === dts[i])
+			.forEach((r) => {
+				r.place = i + 1;
+			});
+	}
+}
+
 async function postRankingNote(validRecords: MatchRecordData[], users: Record<string, string>, flyingCount: number) {
 	if (env.DISABLE_POST_MATCH_RESULT) {
 		return;
@@ -102,22 +115,16 @@ async function postRankingNote(validRecords: MatchRecordData[], users: Record<st
 	const noteUrl = env.POST_MATCH_RESULT_URL.replace('{host}', host);
 
 	const ranking: string[] = [];
-	const dts = [...new Set<number>(validRecords.map((r) => r.dt))];
-	dts.sort((a, b) => a - b);
-	for (let i = 0; i < dts.length; i++) {
-		validRecords
-			.filter((r) => r.dt === dts[i])
-			.forEach((r) => {
-				r.place = i + 1;
-				if (i < 10) {
-					let mention = '';
-					if (users[r.uid]) {
-						mention = `@${users[r.uid]}`;
-					}
-					ranking.push(`${placeEmojis[i + 1]} ${mention} +${(r.dt / 1000).toFixed(3)}s`);
-				}
-			});
-	}
+	validRecords
+		.filter((r) => r.place <= 10)
+		.sort((a, b) => a.place - b.place || a.dt - b.dt)
+		.forEach((r) => {
+			let mention = '';
+			if (users[r.uid]) {
+				mention = `@${users[r.uid]}`;
+			}
+			ranking.push(`${placeEmojis[r.place]} ${mention} +${(r.dt / 1000).toFixed(3)}s`);
+		});
 	const rankText = ranking.join('\n');
 
 	const resultText = env.POST_MATCH_RESULT_TEMPLATE.replace('{title}', noteTitle)
@@ -391,6 +398,9 @@ export async function processCronMain() {
 
 	const validCount = validRecords.length;
 	const flyingCount = [...Object.values(records)].length - validCount;
+
+	// 順位計算
+	calculatePlaces(validRecords);
 
 	// 結果をノートする
 	console.info('cron.mainProcess: post note ranking');
