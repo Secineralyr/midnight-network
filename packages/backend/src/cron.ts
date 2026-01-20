@@ -180,13 +180,14 @@ async function upsertMatchResultData(
 		},
 	});
 
+	const existsUsers = await prisma.user.findMany({ where: { id: { in: Object.keys(users) } }, select: { id: true } });
 	const mustCreateUsers: UserCreateManyInput[] = [];
 	const mustCreateStatus: UserRankStatusCreateManyInput[] = [];
 	const mustCreateSettings: UserSettingsCreateManyInput[] = [];
 	for (const uid in users) {
 		const username = users[uid];
 		if (username !== undefined) {
-			if ((await prisma.user.count({ where: { id: uid } })) > 0) {
+			if (existsUsers.findIndex(({ id }) => uid === id) >= 0) {
 				continue;
 			}
 			mustCreateUsers.push({
