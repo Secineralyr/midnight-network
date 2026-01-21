@@ -14,6 +14,7 @@ import type { Note } from 'misskey-js/entities.js';
 import { calculateRankStatusFromTotalPoints } from '../../rank-calc/src/rank-number';
 import { placeEmojis } from './consts';
 import { prisma } from './db';
+import { upsertMany } from './db/upsert-many';
 import type { EventMatch, MatchDate } from './generated/prisma/client';
 import type {
 	UserCreateManyInput,
@@ -218,24 +219,18 @@ async function upsertMatchResultData(
 	}
 
 	console.info('cron.mainProcess: insert record');
-	for (const rec of [...validRecords, ...flyingRecords]) {
-		await prisma.record.upsert({
-			where: {
-				noteId: rec.nid,
-			},
-			update: {
-				postedAt: rec.postedAt,
-				userId: rec.uid,
-				place: rec.place,
-				matchDateId: matchDate.id,
-			},
-			create: {
+	const allRecords = [...validRecords, ...flyingRecords];
+	if (allRecords.length > 0) {
+		await upsertMany(prisma, prisma.record, {
+			conflictKeys: ['noteId'],
+			updateKeys: ['postedAt', 'userId', 'place', 'matchDateId'],
+			data: allRecords.map((rec) => ({
 				noteId: rec.nid,
 				postedAt: rec.postedAt,
 				userId: rec.uid,
 				place: rec.place,
 				matchDateId: matchDate.id,
-			},
+			})),
 		});
 	}
 
