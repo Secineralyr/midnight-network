@@ -296,7 +296,7 @@ function handleSaveSettings(settings: Partial<SettingTypeT>): void {
 							/>
 
 							<Heatmap
-								title="ビートマップ"
+								title="ヒートマップ"
 								data={heatmapQuery.data}
 								isLoading={heatmapQuery.isLoading}
 							/>
