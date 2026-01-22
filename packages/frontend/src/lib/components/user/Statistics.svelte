@@ -2,6 +2,14 @@
 import type { StatisticsT } from '@midnight-network/shared/rpc/user/models';
 import { fly } from 'svelte/transition';
 import { formatAvgTime, formatWinRate } from '$lib/utils/format';
+import Tooltip from '$lib/components/ui/Tooltip.svelte';
+
+/** 統計項目の型 */
+type StatItem = {
+	label: string;
+	value: string;
+	tooltip: string;
+};
 
 /**
  * 統計コンポーネント
@@ -19,20 +27,20 @@ const { statistics, isLoading = false }: Props = $props();
 
 /** 統計項目（上段） */
 const upperStats = $derived([
-	{ label: '総参加回数', value: `${statistics.totalParticipationCount}回` },
-	{ label: '平均順位', value: `${statistics.averagePlace.toFixed(1)}位` },
-	{ label: '最高順位', value: `${statistics.maxPlace}位` },
-	{ label: '1位獲得回数', value: `${statistics.winCount}回` },
-	{ label: 'ランクイン回数', value: `${statistics.withinCount}回` },
+	{ label: '総参加回数', value: `${statistics.totalParticipationCount}回`, tooltip: '試合に何回参加したか' },
+	{ label: '平均順位', value: `${statistics.averagePlace.toFixed(1)}位`, tooltip: 'フライングではない場合の平均順位' },
+	{ label: '最高順位', value: `${statistics.maxPlace}位`, tooltip: '過去に取った最高順位' },
+	{ label: '1位獲得回数', value: `${statistics.winCount}回`, tooltip: '試合で1位を獲得した回数' },
+	{ label: 'ランクイン回数', value: `${statistics.withinCount}回`, tooltip: '1～10位を獲得した回数' },
 ]);
 
 /** 統計項目（下段） */
 const lowerStats = $derived([
-	{ label: '平均タイム', value: formatAvgTime(statistics.averageTime) },
-	{ label: 'WR', value: formatWinRate(statistics.wr) },
-	{ label: '最遅タイム', value: `${(statistics.lateTime / 1000).toFixed(3)}s` },
-	{ label: '最早タイム', value: `${(statistics.earlyTime / 1000).toFixed(3)}s` },
-	{ label: 'フライング回数', value: `${statistics.flyingCount}回` },
+	{ label: '平均タイム', value: formatAvgTime(statistics.averageTime), tooltip: 'フライングを含まない過去投稿時間の平均' },
+	{ label: 'WR', value: formatWinRate(statistics.wr), tooltip: '1位獲得レート' },
+	{ label: '最遅タイム', value: `${(statistics.lateTime / 1000).toFixed(3)}s`, tooltip: '過去で一番遅い投稿時間' },
+	{ label: '最早タイム', value: `${(statistics.earlyTime / 1000).toFixed(3)}s`, tooltip: '過去で一番早い投稿時間' },
+	{ label: 'フライング回数', value: `${statistics.flyingCount}回`, tooltip: '過去何回フライングしたか' },
 ]);
 </script>
 
@@ -42,26 +50,30 @@ const lowerStats = $derived([
 	</h3>
 	<div class="stats-row">
 		{#each isLoading ? Array(5) : upperStats as stat, i (isLoading ? i : stat.label)}
-			<div class="stats-item">
-				<span class="stats-label" class:skeleton={isLoading}>
-					{#if !isLoading}{stat.label}{/if}
-				</span>
-				<span class="stats-value" class:skeleton={isLoading}>
-					{#if !isLoading}{stat.value}{/if}
-				</span>
-			</div>
+			<Tooltip text={isLoading ? '' : (stat as StatItem).tooltip}>
+				<div class="stats-item">
+					<span class="stats-label" class:skeleton={isLoading}>
+						{#if !isLoading}{(stat as StatItem).label}{/if}
+					</span>
+					<span class="stats-value" class:skeleton={isLoading}>
+						{#if !isLoading}{(stat as StatItem).value}{/if}
+					</span>
+				</div>
+			</Tooltip>
 		{/each}
 	</div>
 	<div class="stats-row">
 		{#each isLoading ? Array(5) : lowerStats as stat, i (isLoading ? i : stat.label)}
-			<div class="stats-item">
-				<span class="stats-label" class:skeleton={isLoading}>
-					{#if !isLoading}{stat.label}{/if}
-				</span>
-				<span class="stats-value" class:skeleton={isLoading}>
-					{#if !isLoading}{stat.value}{/if}
-				</span>
-			</div>
+			<Tooltip text={isLoading ? '' : (stat as StatItem).tooltip}>
+				<div class="stats-item">
+					<span class="stats-label" class:skeleton={isLoading}>
+						{#if !isLoading}{(stat as StatItem).label}{/if}
+					</span>
+					<span class="stats-value" class:skeleton={isLoading}>
+						{#if !isLoading}{(stat as StatItem).value}{/if}
+					</span>
+				</div>
+			</Tooltip>
 		{/each}
 	</div>
 </div>
