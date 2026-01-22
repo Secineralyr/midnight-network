@@ -93,20 +93,6 @@ export type UpsertManyArgs<
 };
 
 /**
- * デリゲートからモデル名を取得（ランタイム）
- */
-function getModelNameFromDelegate(delegate: PrismaDelegate): string {
-	const symbols = Object.getOwnPropertySymbols(delegate);
-	for (const sym of symbols) {
-		const value = (delegate as Record<symbol, { meta?: { name?: string } }>)[sym];
-		if (value?.meta?.name) {
-			return value.meta.name;
-		}
-	}
-	throw new Error('upsertMany: Could not extract model name from delegate');
-}
-
-/**
  * バッチサイズ（SQLiteの変数制限を考慮）
  */
 const BATCH_SIZE = 500;
@@ -130,11 +116,16 @@ function formatValue(value: SqlValue): Prisma.Sql {
 
 /**
  * SQLite用のupsertMany実装
- * デリゲートから自動的にモデル名と型を推論
+ * デリゲートから型を推論し、モデル名は明示的に指定
+ *
+ * @param prisma - PrismaClientインスタンス
+ * @param modelName - テーブル名（CamelCase、例: 'Record', 'User'）
+ * @param _delegate - Prismaデリゲート（型推論用、ランタイムでは未使用）
+ * @param args - upsertMany引数（conflictKeys, updateKeys, data）
  *
  * @example
  * ```typescript
- * await upsertMany(prisma, prisma.record, {
+ * await upsertMany(prisma, 'Record', prisma.record, {
  *   conflictKeys: ['noteId'],
  *   updateKeys: ['postedAt', 'userId', 'place', 'matchDateId'],
  *   data: [
@@ -156,15 +147,17 @@ export async function upsertMany<
 	TDelegate extends PrismaDelegate,
 	TConflictKey extends keyof ExtractUpsertCreate<TDelegate> & string,
 	TUpdateKey extends keyof ExtractUpsertCreate<TDelegate> & string,
->(prisma: PrismaClient, delegate: TDelegate, args: UpsertManyArgs<TDelegate, TConflictKey, TUpdateKey>): Promise<number> {
+>(
+	prisma: PrismaClient,
+	modelName: string,
+	_delegate: TDelegate,
+	args: UpsertManyArgs<TDelegate, TConflictKey, TUpdateKey>,
+): Promise<number> {
 	const { conflictKeys, updateKeys, data } = args;
 
 	if (data.length === 0) {
 		return 0;
 	}
-
-	// デリゲートからモデル名を取得
-	const modelName = getModelNameFromDelegate(delegate);
 
 	// バッチに分割して処理
 	const batches: (ExtractUpsertCreate<TDelegate> & SqlFields)[][] = [];

@@ -221,7 +221,7 @@ async function upsertMatchResultData(
 	console.info('cron.mainProcess: insert record');
 	const allRecords = [...validRecords, ...flyingRecords];
 	if (allRecords.length > 0) {
-		await upsertMany(prisma, prisma.record, {
+		await upsertMany(prisma, 'Record', prisma.record, {
 			conflictKeys: ['noteId'],
 			updateKeys: ['postedAt', 'userId', 'place', 'matchDateId'],
 			data: allRecords.map((rec) => ({
