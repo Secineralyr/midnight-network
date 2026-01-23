@@ -15,3 +15,10 @@ pnpm install
 pnpm check
 pnpm typecheck
 ```
+
+## Dev Container (VS Code)
+
+- VS Code の Dev Containers 拡張を有効化して "Reopen in Container" を実行
+- 初回起動時に `pnpm install` が走ります
+- backend を動かす場合は `packages/backend/.dev.vars.template` を元に `packages/backend/.dev.vars` を作成して値を設定
+- 開発起動: `pnpm front:dev` / `pnpm back:dev`

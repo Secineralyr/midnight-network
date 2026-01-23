@@ -60,3 +60,9 @@ DISABLE_WEBHOOK_AFTER_TARGET_MATCH = 60000
 [vars.crons]
 CRON_DAILY = "1 15 * * *"
 CRON_DAILY_REMIND = "59 14 * * *"
+
+[dev]
+host = "localhost"
+ip = "0.0.0.0"
+port = 8787
+local_protocol = "http"
