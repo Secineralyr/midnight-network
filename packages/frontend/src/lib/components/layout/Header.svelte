@@ -49,6 +49,7 @@ $effect(() => {
 
 let isPanelOpen = $state(false);
 let isSearchOpen = $state(false);
+let userMenuContainer: HTMLDivElement;
 
 afterNavigate(() => {
 	if (isSearchOpen) {
@@ -90,9 +91,18 @@ function handleSearchKeydown(event: KeyboardEvent): void {
 		closeSearch();
 	}
 }
+
+/**
+ * ウィンドウクリック時のハンドラ（パネル外クリックで閉じる）
+ */
+function handleWindowClick(event: MouseEvent): void {
+	if (isPanelOpen && userMenuContainer && !userMenuContainer.contains(event.target as Node)) {
+		isPanelOpen = false;
+	}
+}
 </script>
 
-<svelte:window onkeydown={handleSearchKeydown} />
+<svelte:window onkeydown={handleSearchKeydown} onclick={handleWindowClick} />
 
 <header>
 	<div>
@@ -125,7 +135,7 @@ function handleSearchKeydown(event: KeyboardEvent): void {
 			{/if}
 			{#if currentUser}
 				{#if userInfoQuery.data}
-				<div class="logged-user">
+				<div class="logged-user" bind:this={userMenuContainer}>
 					<button class="user-icon-button" type="button" onclick={handleUserClick}>
 						<div class="icon">
 							<UserAvatar userId={userInfoQuery.data.id} alt={userInfoQuery.data.username} />
