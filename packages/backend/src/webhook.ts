@@ -1,6 +1,6 @@
 import { env } from 'cloudflare:workers';
 import type { Note } from 'misskey-js/entities.js';
-import { processCronMain } from './cron';
+import { processCronMainRerun } from './cron';
 import { prisma } from './db';
 import { createRetryMisskeyApiClientFetcher } from './misskey';
 import { getTargetTime, numberBetween } from './util';
@@ -42,7 +42,7 @@ async function routeBotCommand(note: Note) {
 	}
 
 	if (note.user.username === env.ADMIN_USER_NAME && commands.adminRerun.test(note.text)) {
-		await processCronMain();
+		await processCronMainRerun();
 		await mkApi('notes/reactions/create', { noteId: note.id, reaction: '✅' });
 	} else if (commands.follow.test(note.text)) {
 		console.info('execute follow command');

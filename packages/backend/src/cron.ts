@@ -92,6 +92,199 @@ type MatchRecordData = {
 	place: number;
 };
 
+type RerunBaseStatus = {
+	pt: number;
+	streakParticipationAt: number;
+	streakAbsenceAt: number;
+	streakWithinTopAt: number;
+	streakFlyingAt: number;
+	protectCoolTime: number;
+};
+
+/**
+ * rerun 用に集計前の status をユーザーごとに構築する。
+ */
+async function buildRerunBaseStatusMap(matchDate: MatchDate): Promise<Record<string, RerunBaseStatus>> {
+	const users = await prisma.user.findMany({ select: { id: true } });
+	// そのuserの最後に変動した試合
+	const latestHistoryKeys = await prisma.userRankHistory.groupBy({
+		by: ['userId'],
+		where: {
+			matchDate: {
+				date: {
+					lt: matchDate.date,
+				},
+			},
+		},
+		_max: { matchId: true },
+	});
+
+	const historyPairs = latestHistoryKeys.map((record) => {
+		const matchId = record._max.matchId;
+		if (matchId === null) {
+			return undefined;
+		}
+		return { userId: record.userId, matchId };
+	})
+		.filter((v): v is NonNullable<typeof v> => v !== undefined);
+
+	const histories =
+		historyPairs.length > 0
+			? await prisma.userRankHistory.findMany({
+					where: {
+						OR: historyPairs,
+					},
+					select: {
+						userId: true,
+						pt: true,
+						streakParticipationAt: true,
+						streakAbsenceAt: true,
+						streakWithinTopAt: true,
+						streakFlyingAt: true,
+						protectCoolTime: true,
+						matchDate: {
+							select: { date: true },
+						},
+					},
+				})
+			: [];
+
+	const latestHistoryMap = new Map<string, (typeof histories)[number]>();
+	for (const history of histories) {
+		if (!latestHistoryMap.has(history.userId)) {
+			latestHistoryMap.set(history.userId, history);
+		}
+	}
+
+	const uniqueLastDates = new Set<number>();
+	for (const history of latestHistoryMap.values()) {
+		uniqueLastDates.add(history.matchDate.date.getTime());
+	}
+
+	// ユーザーの持つ最新履歴の試合から何試合行われてきたか
+	const gapEntries = await Promise.all(
+		[...uniqueLastDates].map(async (lastDateTime) => {
+			const gap = await prisma.matchDate.count({
+				where: {
+					date: {
+						gt: new Date(lastDateTime),
+						lt: matchDate.date,
+					},
+				},
+			});
+			return [lastDateTime, gap] as const;
+		}),
+	);
+	const gapCountMap = new Map<number, number>(gapEntries);
+
+	const baseStatusMap: Record<string, RerunBaseStatus> = {};
+	for (const user of users) {
+		const history = latestHistoryMap.get(user.id);
+		// そもそも存在しないユーザーは参加していないので全て0であるはずである。
+		if (!history) {
+			baseStatusMap[user.id] = {
+				pt: 0,
+				streakParticipationAt: 0,
+				streakAbsenceAt: 0,
+				streakWithinTopAt: 0,
+				streakFlyingAt: 0,
+				protectCoolTime: 0,
+			};
+			continue;
+		}
+
+		const lastDateTime = history.matchDate.date.getTime();
+		const gap = gapCountMap.get(lastDateTime) ?? 0;
+		const hasGap = gap > 0;
+
+		// 最後の変動からどれだけ経過したかをgapとし、
+		// そのgapが0以上であれば変動してないかつ未参加である。
+		// なので連続参加系の値は基本的に0となる
+		baseStatusMap[user.id] = {
+			pt: history.pt,
+			streakParticipationAt: hasGap ? 0 : history.streakParticipationAt,
+			streakAbsenceAt: history.streakAbsenceAt + gap,
+			streakWithinTopAt: hasGap ? 0 : history.streakWithinTopAt,
+			streakFlyingAt: hasGap ? 0 : history.streakFlyingAt,
+			protectCoolTime: history.protectCoolTime,
+		};
+	}
+
+	return baseStatusMap;
+}
+
+/**
+ * baseStatusMap の内容で UserRankStatus を巻き戻す。
+ */
+async function resetRankStatusFromBaseStatusMap(baseStatusMap: Record<string, RerunBaseStatus>): Promise<void> {
+	const userIds = Object.keys(baseStatusMap);
+	if (userIds.length === 0) {
+		return;
+	}
+
+	const resetStatusData = userIds.map((userId) => {
+		const baseStatus = baseStatusMap[userId];
+		if (!baseStatus) {
+			return undefined;
+		}
+		return {
+				id: userId,
+				pt: baseStatus.pt,
+				streakParticipationAt: baseStatus.streakParticipationAt,
+				streakAbsenceAt: baseStatus.streakAbsenceAt,
+				streakWithinTopAt: baseStatus.streakWithinTopAt,
+				streakFlyingAt: baseStatus.streakFlyingAt,
+				protectCoolTime: baseStatus.protectCoolTime,
+			};
+	}).filter((v): v is NonNullable<typeof v> => v !== undefined);
+
+	if (resetStatusData.length === 0) {
+		console.info('cron.mainProcess: no reset rank status');
+		return;
+	}
+
+	console.info('cron.mainProcess: reset rank status for rerun');
+	await upsertMany(prisma, 'UserRankStatus', prisma.userRankStatus, {
+		conflictKeys: ['id'],
+		updateKeys: [
+			'pt',
+			'streakParticipationAt',
+			'streakAbsenceAt',
+			'streakWithinTopAt',
+			'streakFlyingAt',
+			'protectCoolTime',
+		],
+		data: resetStatusData,
+	});
+}
+
+/**
+ * rerun 実行前の復元と削除をまとめて行う。
+ */
+async function prepareRerunState(): Promise<void> {
+	const targetTimeDate = new Date(getTargetTime());
+
+	console.info('cron.mainProcess: find latest matchDate (rerun)');
+	const matchDate = await prisma.matchDate.findFirst({
+		where: {
+			date: targetTimeDate,
+		},
+	});
+
+	if (matchDate === null) {
+		console.info('cron.mainProcess: no matchDate data. exit rerun prepare');
+		return;
+	}
+
+	const baseStatusMap = await buildRerunBaseStatusMap(matchDate);
+	await resetRankStatusFromBaseStatusMap(baseStatusMap);
+
+	console.info('cron.mainProcess: delete records for rerun');
+	await prisma.record.deleteMany({ where: { matchDateId: matchDate.id } });
+	console.info('cron.mainProcess: delete histories for rerun');
+	await prisma.userRankHistory.deleteMany({ where: { matchId: matchDate.id } });
+}
+
 function calculatePlaces(validRecords: MatchRecordData[]) {
 	const dts = [...new Set<number>(validRecords.map((r) => r.dt))];
 	dts.sort((a, b) => a - b);
@@ -337,6 +530,11 @@ async function upsertRankResultData(
 				userId: uid,
 				pt: result.nextTotalPoints,
 				earnedPt: result.pointDelta,
+				streakParticipationAt: result.nextStreak.consecutiveParticipationDays,
+				streakAbsenceAt: result.nextStreak.consecutiveAbsenceDays,
+				streakWithinTopAt: result.nextStreak.consecutiveWithinZoneDays,
+				streakFlyingAt: result.nextStreak.consecutiveFlyingCount,
+				protectCoolTime: result.nextBorderProtection.cooldownDays,
 				matchId: matchDate.id,
 			});
 		}
@@ -411,6 +609,15 @@ export async function processCronMain() {
 	console.info('cron.mainProcess: start update rank');
 	// ランク計算
 	await upsertRankResultData(records, validRecords, eventMatch, matchDate);
+}
+
+/**
+ * rerun 用の事前復元を行ってから通常集計を実行する。
+ */
+
+export async function processCronMainRerun() {
+	await prepareRerunState();
+	await processCronMain();
 }
 
 export async function processCronRemind() {
