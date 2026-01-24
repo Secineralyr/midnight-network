@@ -129,26 +129,33 @@ async function buildRerunBaseStatusMap(matchDate: MatchDate): Promise<Record<str
 		})
 		.filter((v): v is NonNullable<typeof v> => v !== undefined);
 
-	const histories =
-		historyPairs.length > 0
-			? await prisma.userRankHistory.findMany({
-					where: {
-						OR: historyPairs,
-					},
-					select: {
-						userId: true,
-						pt: true,
-						streakParticipationAt: true,
-						streakAbsenceAt: true,
-						streakWithinTopAt: true,
-						streakFlyingAt: true,
-						protectCoolTime: true,
-						matchDate: {
-							select: { date: true },
-						},
-					},
-				})
-			: [];
+	// D1のパラメータ上限対策: 各ペアは2パラメータ(userId, matchId)を使うため50件ずつ分割
+	const BATCH_SIZE = 50;
+	const selectFields = {
+		userId: true,
+		pt: true,
+		streakParticipationAt: true,
+		streakAbsenceAt: true,
+		streakWithinTopAt: true,
+		streakFlyingAt: true,
+		protectCoolTime: true,
+		matchDate: {
+			select: { date: true },
+		},
+	} as const;
+	const historiesTask: ReturnType<typeof prisma.userRankHistory.findMany<{ select: typeof selectFields }>>[] = [];
+	for (let i = 0; i < historyPairs.length; i += BATCH_SIZE) {
+		const batch = historyPairs.slice(i, i + BATCH_SIZE);
+		const batchResults = prisma.userRankHistory.findMany({
+			where: {
+				OR: batch,
+			},
+			select: selectFields,
+		});
+		historiesTask.push(batchResults);
+	}
+	type HistoryRecord = Awaited<ReturnType<typeof prisma.userRankHistory.findMany<{ select: typeof selectFields }>>>[number];
+	const histories: HistoryRecord[] = (await Promise.all(historiesTask)).flat();
 
 	const latestHistoryMap = new Map<string, (typeof histories)[number]>();
 	for (const history of histories) {
