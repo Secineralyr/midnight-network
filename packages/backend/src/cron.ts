@@ -129,8 +129,8 @@ async function buildRerunBaseStatusMap(matchDate: MatchDate): Promise<Record<str
 		})
 		.filter((v): v is NonNullable<typeof v> => v !== undefined);
 
-	// D1のパラメータ上限対策: 各ペアは2パラメータ(userId, matchId)を使うため50件ずつ分割
-	const BATCH_SIZE = 50;
+	// D1のパラメータ上限対策: Prismaのクエリ生成オーバーヘッドも考慮して20件ずつ分割
+	const BATCH_SIZE = 20;
 	const selectFields = {
 		userId: true,
 		pt: true,
