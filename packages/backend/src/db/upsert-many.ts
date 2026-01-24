@@ -93,9 +93,9 @@ export type UpsertManyArgs<
 };
 
 /**
- * バッチサイズ（SQLiteの変数制限を考慮）
+ * D1のSQL変数制限
  */
-const BATCH_SIZE = 500;
+const D1_MAX_VARIABLES = 100;
 
 /**
  * 値をSQL用にフォーマット
@@ -159,10 +159,18 @@ export async function upsertMany<
 		return 0;
 	}
 
+	// カラム数に基づいてバッチサイズを動的に計算
+	const firstItem = data[0];
+	if (firstItem === undefined) {
+		return 0;
+	}
+	const columnCount = Object.keys(firstItem).length;
+	const batchSize = Math.max(1, Math.floor(D1_MAX_VARIABLES / columnCount));
+
 	// バッチに分割して処理
 	const batches: (ExtractUpsertCreate<TDelegate> & SqlFields)[][] = [];
-	for (let i = 0; i < data.length; i += BATCH_SIZE) {
-		batches.push(data.slice(i, i + BATCH_SIZE));
+	for (let i = 0; i < data.length; i += batchSize) {
+		batches.push(data.slice(i, i + batchSize));
 	}
 
 	let totalAffected = 0;
