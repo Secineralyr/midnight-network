@@ -119,13 +119,14 @@ async function buildRerunBaseStatusMap(matchDate: MatchDate): Promise<Record<str
 		_max: { matchId: true },
 	});
 
-	const historyPairs = latestHistoryKeys.map((record) => {
-		const matchId = record._max.matchId;
-		if (matchId === null) {
-			return undefined;
-		}
-		return { userId: record.userId, matchId };
-	})
+	const historyPairs = latestHistoryKeys
+		.map((record) => {
+			const matchId = record._max.matchId;
+			if (matchId === null) {
+				return undefined;
+			}
+			return { userId: record.userId, matchId };
+		})
 		.filter((v): v is NonNullable<typeof v> => v !== undefined);
 
 	const histories =
@@ -222,12 +223,13 @@ async function resetRankStatusFromBaseStatusMap(baseStatusMap: Record<string, Re
 		return;
 	}
 
-	const resetStatusData = userIds.map((userId) => {
-		const baseStatus = baseStatusMap[userId];
-		if (!baseStatus) {
-			return undefined;
-		}
-		return {
+	const resetStatusData = userIds
+		.map((userId) => {
+			const baseStatus = baseStatusMap[userId];
+			if (!baseStatus) {
+				return undefined;
+			}
+			return {
 				id: userId,
 				pt: baseStatus.pt,
 				streakParticipationAt: baseStatus.streakParticipationAt,
@@ -236,7 +238,8 @@ async function resetRankStatusFromBaseStatusMap(baseStatusMap: Record<string, Re
 				streakFlyingAt: baseStatus.streakFlyingAt,
 				protectCoolTime: baseStatus.protectCoolTime,
 			};
-	}).filter((v): v is NonNullable<typeof v> => v !== undefined);
+		})
+		.filter((v): v is NonNullable<typeof v> => v !== undefined);
 
 	if (resetStatusData.length === 0) {
 		console.info('cron.mainProcess: no reset rank status');

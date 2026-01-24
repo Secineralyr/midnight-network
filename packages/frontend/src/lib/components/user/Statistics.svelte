@@ -1,8 +1,8 @@
 <script lang="ts">
 import type { StatisticsT } from '@midnight-network/shared/rpc/user/models';
 import { fly } from 'svelte/transition';
-import { formatAvgTime, formatWinRate } from '$lib/utils/format';
 import Tooltip from '$lib/components/ui/Tooltip.svelte';
+import { formatAvgTime, formatWinRate } from '$lib/utils/format';
 
 /** 統計項目の型 */
 type StatItem = {

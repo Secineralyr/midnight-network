@@ -16,12 +16,7 @@
   },
   "customizations": {
     "vscode": {
-      "extensions": [
-        "svelte.svelte-vscode",
-        "ardenivanov.svelte-intellisense",
-        "biomejs.biome",
-        "prisma.prisma"
-      ],
+      "extensions": ["svelte.svelte-vscode", "ardenivanov.svelte-intellisense", "biomejs.biome", "prisma.prisma"],
       "settings": {
         "biome.configurationPath": "./biome.json",
         "editor.codeActionsOnSave": {
@@ -51,14 +46,8 @@
     }
   },
   "postCreateCommand": "corepack enable && pnpm install && pnpm approve-builds",
-  "forwardPorts": [
-    5173,
-    8787
-  ],
-  "appPort": [
-    5173,
-    8787
-  ],
+  "forwardPorts": [5173, 8787],
+  "appPort": [5173, 8787],
   "portsAttributes": {
     "5173": {
       "label": "main port (frontend/backend)"
