@@ -129,8 +129,6 @@ async function buildRerunBaseStatusMap(matchDate: MatchDate): Promise<Record<str
 		})
 		.filter((v): v is NonNullable<typeof v> => v !== undefined);
 
-	// D1のパラメータ上限対策: Prismaのクエリ生成オーバーヘッドも考慮して20件ずつ分割
-	const BATCH_SIZE = 20;
 	const selectFields = {
 		userId: true,
 		pt: true,
@@ -143,19 +141,14 @@ async function buildRerunBaseStatusMap(matchDate: MatchDate): Promise<Record<str
 			select: { date: true },
 		},
 	} as const;
-	const historiesTask: ReturnType<typeof prisma.userRankHistory.findMany<{ select: typeof selectFields }>>[] = [];
-	for (let i = 0; i < historyPairs.length; i += BATCH_SIZE) {
-		const batch = historyPairs.slice(i, i + BATCH_SIZE);
-		const batchResults = prisma.userRankHistory.findMany({
-			where: {
-				OR: batch,
-			},
+	// 何故かいっぺんに取得できない
+	const historiesTask = historyPairs.map((v) =>
+		prisma.userRankHistory.findFirst({
+			where: v,
 			select: selectFields,
-		});
-		historiesTask.push(batchResults);
-	}
-	type HistoryRecord = Awaited<ReturnType<typeof prisma.userRankHistory.findMany<{ select: typeof selectFields }>>>[number];
-	const histories: HistoryRecord[] = (await Promise.all(historiesTask)).flat();
+		}),
+	);
+	const histories = (await Promise.all(historiesTask)).flat().filter((v): v is NonNullable<typeof v> => v !== null);
 
 	const latestHistoryMap = new Map<string, (typeof histories)[number]>();
 	for (const history of histories) {
