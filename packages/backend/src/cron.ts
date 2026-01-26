@@ -248,6 +248,7 @@ async function resetRankStatusFromBaseStatusMap(baseStatusMap: Record<string, Re
 
 	console.info('cron.mainProcess: reset rank status for rerun');
 	await upsertMany(prisma, 'UserRankStatus', prisma.userRankStatus, {
+		autoTimestamps: true,
 		conflictKeys: ['id'],
 		updateKeys: [
 			'pt',
@@ -418,6 +419,7 @@ async function upsertMatchResultData(
 	const allRecords = [...validRecords, ...flyingRecords];
 	if (allRecords.length > 0) {
 		await upsertMany(prisma, 'Record', prisma.record, {
+			autoTimestamps: true,
 			conflictKeys: ['noteId'],
 			updateKeys: ['postedAt', 'userId', 'place', 'matchDateId'],
 			data: allRecords.map((rec) => ({

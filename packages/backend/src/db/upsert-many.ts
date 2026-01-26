@@ -90,12 +90,28 @@ export type UpsertManyArgs<
 	 * ExtractUpsertCreate<TDelegate>で型補完を提供し、SqlFieldsでSQL値のみを許可
 	 */
 	data: (ExtractUpsertCreate<TDelegate> & SqlFields)[];
+	/**
+	 * Prismaの自動タイムスタンプ（createdAt/updatedAt）を自動設定するかどうか
+	 * - true（デフォルト）: createdAt/updatedAtを自動設定
+	 * - false: タイムスタンプの自動設定を無効化（createdAt/updatedAtカラムがないモデル用）
+	 */
+	autoTimestamps?: boolean;
 };
 
 /**
  * D1のSQL変数制限
  */
 const D1_MAX_VARIABLES = 100;
+
+/**
+ * Prismaの自動タイムスタンプフィールド
+ * - createdAt: @default(now()) に対応、INSERTのみ
+ * - updatedAt: @updatedAt に対応、INSERT/UPDATE両方
+ */
+const TIMESTAMP_FIELDS = {
+	createdAt: 'createdAt',
+	updatedAt: 'updatedAt',
+} as const;
 
 /**
  * 値をSQL用にフォーマット
@@ -153,14 +169,32 @@ export async function upsertMany<
 	_delegate: TDelegate,
 	args: UpsertManyArgs<TDelegate, TConflictKey, TUpdateKey>,
 ): Promise<number> {
-	const { conflictKeys, updateKeys, data } = args;
+	const { conflictKeys, updateKeys, data, autoTimestamps = true } = args;
 
 	if (data.length === 0) {
 		return 0;
 	}
 
+	// Prismaの自動タイムスタンプを模倣: createdAt/updatedAtを自動設定
+	let processedData: (ExtractUpsertCreate<TDelegate> & SqlFields)[];
+	if (autoTimestamps) {
+		const now = new Date();
+		processedData = data.map((item) => {
+			const result = { ...item };
+			// createdAt: データに含まれていない場合のみ現在時刻を設定（@default(now())相当）
+			if (!(TIMESTAMP_FIELDS.createdAt in result)) {
+				(result as SqlFields)[TIMESTAMP_FIELDS.createdAt] = now;
+			}
+			// updatedAt: 常に現在時刻を設定（@updatedAt相当）
+			(result as SqlFields)[TIMESTAMP_FIELDS.updatedAt] = now;
+			return result;
+		});
+	} else {
+		processedData = data;
+	}
+
 	// カラム数に基づいてバッチサイズを動的に計算
-	const firstItem = data[0];
+	const firstItem = processedData[0];
 	if (firstItem === undefined) {
 		return 0;
 	}
@@ -169,8 +203,8 @@ export async function upsertMany<
 
 	// バッチに分割して処理
 	const batches: (ExtractUpsertCreate<TDelegate> & SqlFields)[][] = [];
-	for (let i = 0; i < data.length; i += batchSize) {
-		batches.push(data.slice(i, i + batchSize));
+	for (let i = 0; i < processedData.length; i += batchSize) {
+		batches.push(processedData.slice(i, i + batchSize));
 	}
 
 	let totalAffected = 0;
@@ -220,7 +254,15 @@ async function executeBatch<TDelegate extends PrismaDelegate>(
 	const conflictColumnList = conflictKeys.map((col) => `"${col}"`).join(', ');
 
 	// DO UPDATE SET部分を構築
-	const updateSetParts = updateKeys.map((col) => `"${col}" = excluded."${col}"`);
+	// updatedAtがデータに含まれている場合、自動的にupdateKeysに追加
+	const effectiveUpdateKeys = [...updateKeys];
+	if (
+		TIMESTAMP_FIELDS.updatedAt in firstItem &&
+		!effectiveUpdateKeys.includes(TIMESTAMP_FIELDS.updatedAt)
+	) {
+		effectiveUpdateKeys.push(TIMESTAMP_FIELDS.updatedAt);
+	}
+	const updateSetParts = effectiveUpdateKeys.map((col) => `"${col}" = excluded."${col}"`);
 	const updateSetSql = updateSetParts.join(', ');
 
 	// クエリ全体を構築
