@@ -32,6 +32,8 @@ const isRankDown = $derived(result.rankShift === RankShiftType.RankDown);
 /** 順位に応じた色 */
 const placeColor = $derived.by(() => {
 	switch (result.place) {
+		case -1:
+			return '#FF7E84';
 		case 1:
 			return '#FEB369';
 		case 2:
@@ -89,7 +91,13 @@ $effect(() => {
 					{#if !isLoading}順位{/if}
 				</span>
 				<span class="result-value result-place" class:skeleton={isLoading} style:color={isLoading ? undefined : placeColor}>
-					{#if !isLoading}{Math.round(placeTween.current)}{/if}
+					{#if !isLoading}
+						{#if result.place !== -1}
+							{Math.round(placeTween.current)}
+						{:else}
+							フライング
+						{/if}
+					{/if}
 				</span>
 			</div>
 			<div class="result-stat">
@@ -186,7 +194,7 @@ $effect(() => {
 	.result-value {
 		font-size: 1.4rem;
 		font-weight: 400;
-		font-family: 'Michroma', sans-serif;
+		font-family: 'Michroma', 'M PLUS 2', sans-serif;
 	}
 
 	.result-total {
