@@ -59,6 +59,10 @@ async function loadPushStatus() {
 	}
 }
 
+let swRegistration: ServiceWorkerRegistration | null = null;
+navigator.serviceWorker.ready.then(reg => {
+  swRegistration = reg;
+});
 async function handlePushToggle() {
 	if (pushLoading) {
 		return;
@@ -79,16 +83,19 @@ async function handlePushToggle() {
 			pushEnabled = false;
 		} else {
 			// Enable push
+			const vapidKey = urlBase64ToUint8Array(import.meta.env.VITE_VAPID_PUBLIC_KEY);
+
 			const permission = await Notification.requestPermission();
 			if (permission !== 'granted') {
 				pushLoading = false;
 				return;
 			}
-
-			const registration = await navigator.serviceWorker.ready;
-			const vapidKey = urlBase64ToUint8Array(import.meta.env.VITE_VAPID_PUBLIC_KEY);
+			if (!swRegistration) {
+				alert('SW not ready');
+				return;
+			}
 			const subscription = await Promise.race([
-				registration.pushManager.subscribe({
+				swRegistration.pushManager.subscribe({
 					userVisibleOnly: true,
 					applicationServerKey: vapidKey.slice(),
 				}),
