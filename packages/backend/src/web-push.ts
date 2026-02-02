@@ -85,7 +85,7 @@ async function createVapidHeaders(endpoint: string): Promise<{
 		signingInput.buffer as ArrayBuffer,
 	);
 
-	const sig = derToRaw(new Uint8Array(signatureRaw));
+	const sig = new Uint8Array(signatureRaw);
 	const jwt = `${headerPart}.${payloadPart}.${base64UrlEncode(sig)}`;
 
 	return {
@@ -199,21 +199,3 @@ async function hkdfExpand(prk: Uint8Array, info: Uint8Array, length: number): Pr
 	return output.slice(0, length);
 }
 
-function derToRaw(der: Uint8Array): Uint8Array {
-	const raw = new Uint8Array(64);
-	let offset = 2;
-	// r
-	const rLen = der[offset + 1] ?? 0;
-	offset += 2;
-	const rStart = rLen > 32 ? offset + (rLen - 32) : offset;
-	const rDest = rLen < 32 ? 32 - rLen : 0;
-	raw.set(der.slice(rStart, rStart + Math.min(rLen, 32)), rDest);
-	offset += rLen;
-	// s
-	const sLen = der[offset + 1] ?? 0;
-	offset += 2;
-	const sStart = sLen > 32 ? offset + (sLen - 32) : offset;
-	const sDest = sLen < 32 ? 64 - sLen : 32;
-	raw.set(der.slice(sStart, sStart + Math.min(sLen, 32)), sDest);
-	return raw;
-}

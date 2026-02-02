@@ -360,5 +360,8 @@ export async function testPush(ctx: AuthContext, _input: TestPushParamsT): Promi
 		rank: 'gold',
 	});
 
-	await Promise.all(subs.map((sub) => sendPushNotification(sub, payload)));
+	const results = await Promise.all(subs.map((sub) => sendPushNotification(sub, payload)));
+	for (const res of results) {
+		console.info(`rpc.me.testPush: statusCode=${res.statusCode}, success=${res.success}, gone=${res.gone}`);
+	}
 }
