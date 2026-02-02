@@ -84,6 +84,11 @@ export const GetPushStatusResponse = z.object({
 
 export type GetPushStatusResponseT = z.infer<typeof GetPushStatusResponse>;
 
+export const TestPushParams = z.void();
+export type TestPushParamsT = z.infer<typeof TestPushParams>;
+export const TestPushResponse = z.void();
+export type TestPushResponseT = z.infer<typeof TestPushResponse>;
+
 export const UserInfoParams = z.void();
 
 export type UserInfoParamsT = z.infer<typeof UserInfoParams>;

@@ -23,6 +23,8 @@ import {
 	SetSettingsResponse,
 	SubscribePushParams,
 	SubscribePushResponse,
+	TestPushParams,
+	TestPushResponse,
 	UnsubscribePushParams,
 	UnsubscribePushResponse,
 	UserInfoParams,
@@ -59,6 +61,7 @@ export const meContract = {
 	subscribePush: oc.input(SubscribePushParams).output(SubscribePushResponse),
 	unsubscribePush: oc.input(UnsubscribePushParams).output(UnsubscribePushResponse),
 	getPushStatus: oc.input(GetPushStatusParams).output(GetPushStatusResponse),
+	testPush: oc.input(TestPushParams).output(TestPushResponse),
 } as const;
 
 export const userContract = {

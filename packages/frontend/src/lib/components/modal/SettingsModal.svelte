@@ -87,10 +87,13 @@ async function handlePushToggle() {
 
 			const registration = await navigator.serviceWorker.ready;
 			const vapidKey = urlBase64ToUint8Array(import.meta.env.VITE_VAPID_PUBLIC_KEY);
-			const subscription = await registration.pushManager.subscribe({
-				userVisibleOnly: true,
-				applicationServerKey: vapidKey.buffer as ArrayBuffer,
-			});
+			const subscription = await Promise.race([
+				registration.pushManager.subscribe({
+					userVisibleOnly: true,
+					applicationServerKey: vapidKey.slice(),
+				}),
+				new Promise<never>((_, rej) => setTimeout(() => rej(new Error('timeout')), 5000)),
+			]);
 
 			const json = subscription.toJSON();
 			const keys = json.keys ?? {};
@@ -104,6 +107,7 @@ async function handlePushToggle() {
 		}
 	} catch (e) {
 		console.error('Push toggle failed:', e);
+		alert(`'Push toggle failed:', ${e}`);
 	} finally {
 		pushLoading = false;
 	}
@@ -135,6 +139,10 @@ function handleToggle(key: keyof SettingTypeT, value: boolean): void {
 function handleSave(): void {
 	handleSaveSettings(localSettings);
 	closeSettings();
+}
+
+async function handleNotification() {
+	await orpc.me.testPush();
 }
 
 /** 設定項目の定義 */
@@ -207,6 +215,7 @@ const settingItems: { key: keyof SettingTypeT; label: string }[] = [
 				{/if}
 			</div>
 			<div class="modal-footer">
+				<Button variant="secondary" onclick={handleNotification}>Test</Button>
 				<Button variant="secondary" onclick={handleSave}>保存</Button>
 			</div>
 		</div>

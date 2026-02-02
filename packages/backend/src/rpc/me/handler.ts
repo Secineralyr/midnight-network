@@ -10,6 +10,8 @@ import type {
 	SetSettingsResponseT,
 	SubscribePushParamsT,
 	SubscribePushResponseT,
+	TestPushParamsT,
+	TestPushResponseT,
 	UnsubscribePushParamsT,
 	UnsubscribePushResponseT,
 	UserInfoResponseT,
@@ -22,6 +24,7 @@ import type { AuthContext } from '../../rpc';
 import { withCache } from '../helpers/cache';
 import { calculateTimeDifferenceSeconds } from '../helpers/match';
 import { parsePushSubscriptions } from '../helpers/push';
+import { sendPushNotification } from '../../web-push';
 import { calculateRankFromPoints, rankNumberToRankTypeValue } from '../helpers/rank';
 import { makeCurrentRank } from '../helpers/stats';
 
@@ -326,4 +329,36 @@ export async function getPushStatus(ctx: AuthContext, _input: GetPushStatusParam
 		enabled: subs.length > 0,
 		endpoints: subs.map((s) => s.endpoint),
 	};
+}
+
+/**
+ * テスト用Push通知を送信する。
+ */
+export async function testPush(ctx: AuthContext, _input: TestPushParamsT): Promise<TestPushResponseT> {
+	const userId = ctx.user?.id;
+	if (!userId) {
+		throw new ORPCError('UNAUTHORIZED');
+	}
+
+	const authUser = await prisma.authUser.findUnique({
+		where: { id: userId },
+		select: { pushSubscriptions: true },
+	});
+
+	const subs = parsePushSubscriptions(authUser?.pushSubscriptions);
+	if (subs.length === 0) {
+		throw new ORPCError('BAD_REQUEST', { message: 'No push subscriptions registered' });
+	}
+
+	const payload = JSON.stringify({
+		type: 'match_result',
+		place: 1,
+		time: '+12.345',
+		earnedPt: 100,
+		totalPt: 1500,
+		rankUp: true,
+		rank: 'gold',
+	});
+
+	await Promise.all(subs.map((sub) => sendPushNotification(sub, payload)));
 }
