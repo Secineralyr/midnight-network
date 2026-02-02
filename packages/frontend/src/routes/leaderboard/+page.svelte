@@ -7,6 +7,16 @@ import Pagination from '$lib/components/table/Pagination.svelte';
 import Select from '$lib/components/ui/Select.svelte';
 import { primeMisskeyUsers } from '$lib/data/misskey-users';
 import { orpc } from '$lib/orpc';
+import { sessionUser, sessionReady } from '$lib/stores/session';
+
+const currentUser = $derived($sessionUser);
+const isReady = $derived($sessionReady);
+
+$effect(() => {
+	if (isReady && !currentUser) {
+		goto('/login');
+	}
+});
 
 /**
  * リーダーボードページ

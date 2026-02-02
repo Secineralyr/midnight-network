@@ -3,6 +3,7 @@ import type { ApiSimpleUserInfoT } from '@midnight-network/shared/rpc/models';
 import { IconSearch } from '@tabler/icons-svelte';
 import { createQuery } from '@tanstack/svelte-query';
 import { fly } from 'svelte/transition';
+import Tooltip from '$lib/components/ui/Tooltip.svelte';
 import { orpc } from '$lib/orpc';
 
 /**
@@ -15,9 +16,13 @@ interface Props {
 	placeholder?: string;
 	/** ユーザー選択ハンドラ */
 	onSelect?: (user: ApiSimpleUserInfoT) => void;
+	/** 無効化 */
+	disabled?: boolean;
+	/** 無効化時のツールチップ */
+	disabledTooltip?: string;
 }
 
-const { placeholder = 'ユーザー名を入力', onSelect }: Props = $props();
+const { placeholder = 'ユーザー名を入力', onSelect, disabled = false, disabledTooltip }: Props = $props();
 
 let searchQuery = $state('');
 let isFocused = $state(false);
@@ -48,7 +53,7 @@ $effect(() => {
 const searchResults = createQuery(() => ({
 	queryKey: ['searchUser', debouncedQuery],
 	queryFn: () => orpc.searchUser(debouncedQuery),
-	enabled: debouncedQuery.length > 0,
+	enabled: debouncedQuery.length > 0 && !disabled,
 }));
 
 /** 検索中かどうか */
@@ -109,6 +114,22 @@ function handleKeydown(event: KeyboardEvent): void {
 }
 </script>
 
+{#if disabled && disabledTooltip}
+<Tooltip text={disabledTooltip}>
+	<div class="search">
+		<div class="search-input-wrapper search-input-disabled">
+			<IconSearch size={20} class="search-icon" />
+			<input
+				type="text"
+				class="search-input"
+				{placeholder}
+				value={searchQuery}
+				disabled
+			/>
+		</div>
+	</div>
+</Tooltip>
+{:else}
 <div class="search">
 	<div class="search-input-wrapper">
 		<IconSearch size={20} class="search-icon" />
@@ -145,6 +166,7 @@ function handleKeydown(event: KeyboardEvent): void {
 		</div>
 	{/if}
 </div>
+{/if}
 
 <style>
 	.search {
@@ -166,6 +188,11 @@ function handleKeydown(event: KeyboardEvent): void {
 
 	.search-input-wrapper:focus-within {
 		border-color: #4E4B71;
+	}
+
+	.search-input-disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
 	}
 
 	.search :global(.search-icon) {

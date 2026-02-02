@@ -3,6 +3,7 @@ import type { SettingTypeT } from '@midnight-network/shared/rpc/me/models';
 import { GraphSpan } from '@midnight-network/shared/rpc/user/models';
 import { IconSettings } from '@tabler/icons-svelte';
 import { createMutation, createQuery, useQueryClient } from '@tanstack/svelte-query';
+import { goto } from '$app/navigation';
 import { page } from '$app/stores';
 import BarChart from '$lib/components/charts/BarChart.svelte';
 import Heatmap from '$lib/components/charts/Heatmap.svelte';
@@ -16,11 +17,21 @@ import Statistics from '$lib/components/user/Statistics.svelte';
 import UserAvatar from '$lib/components/user/UserAvatar.svelte';
 import { primeMisskeyUsers } from '$lib/data/misskey-users';
 import { orpc } from '$lib/orpc';
+import { sessionUser, sessionReady } from '$lib/stores/session';
 
 /**
  * ユーザープロフィールページ
  * @description ユーザーの詳細情報、統計、チャートを表示
  */
+
+const currentUser = $derived($sessionUser);
+const isReady = $derived($sessionReady);
+
+$effect(() => {
+	if (isReady && !currentUser) {
+		goto('/login');
+	}
+});
 
 /** ユーザー名 */
 const username = $derived($page.params.username);

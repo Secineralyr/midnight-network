@@ -23,12 +23,14 @@ const currentUser = $derived($sessionUser);
 const todayTopQuery = createQuery(() => ({
 	queryKey: ['todayTop'],
 	queryFn: () => orpc.todayTop(),
+	enabled: Boolean(currentUser),
 }));
 
 /** ランクpt上位データ */
 const rankTopQuery = createQuery(() => ({
 	queryKey: ['rankTop'],
 	queryFn: () => orpc.rankTop(),
+	enabled: Boolean(currentUser),
 }));
 
 const topUserIds = $derived([
@@ -94,7 +96,7 @@ function handleUserCardClick(username: string): void {
 				<h1 class="title">MidNight Network</h1>
 			</div>
 			<div class="search">
-				<UserSearch onSelect={handleUserSelect} />
+				<UserSearch onSelect={handleUserSelect} disabled={!currentUser} disabledTooltip="ログインしてください" />
 			</div>
 		</div>
 	</section>
@@ -110,24 +112,35 @@ function handleUserCardClick(username: string): void {
 	{/if}
 
 	<section class="leaderboards">
-		<div class="leaderboards__panel">
-			<Top3Leaderboard
-				title="今日の試合上位"
-				type="today"
-				todayData={todayTopQuery.data}
-				isLoading={todayTopQuery.isLoading}
-				onUserSelect={handleUserCardClick}
-			/>
-		</div>
-		<div class="leaderboards__panel">
-			<Top3Leaderboard
-				title="ランクpt上位"
-				type="rankPt"
-				rankPtData={rankTopQuery.data}
-				isLoading={rankTopQuery.isLoading}
-				onUserSelect={handleUserCardClick}
-			/>
-		</div>
+		{#if currentUser}
+			<div class="leaderboards__panel">
+				<Top3Leaderboard
+					title="今日の試合上位"
+					type="today"
+					todayData={todayTopQuery.data}
+					isLoading={todayTopQuery.isLoading}
+					onUserSelect={handleUserCardClick}
+				/>
+			</div>
+			<div class="leaderboards__panel">
+				<Top3Leaderboard
+					title="ランクpt上位"
+					type="rankPt"
+					rankPtData={rankTopQuery.data}
+					isLoading={rankTopQuery.isLoading}
+					onUserSelect={handleUserCardClick}
+				/>
+			</div>
+		{:else}
+			<div class="leaderboards__panel">
+				<h3 class="leaderboard-section-title">今日の試合上位</h3>
+				<p class="login-required-message">ログインしてください</p>
+			</div>
+			<div class="leaderboards__panel">
+				<h3 class="leaderboard-section-title">ランクpt上位</h3>
+				<p class="login-required-message">ログインしてください</p>
+			</div>
+		{/if}
 	</section>
 </div>
 
@@ -185,6 +198,24 @@ function handleUserCardClick(username: string): void {
 
 	.leaderboards__panel {
 		width: 320px;
+	}
+
+	.leaderboard-section-title {
+		font-family: 'M PLUS 2', sans-serif;
+		font-size: 1rem;
+		font-weight: 600;
+		color: #fff;
+		margin-bottom: 12px;
+	}
+
+	.login-required-message {
+		font-family: 'M PLUS 2', sans-serif;
+		font-size: 0.875rem;
+		color: #6b6f7e;
+		text-align: center;
+		padding: 20px;
+		background-color: #201E3A;
+		border-radius: 4px;
 	}
 
 	.result-section {

@@ -42,9 +42,9 @@ const authedMiddleware = base.$context<AuthContext>().middleware(({ context, nex
 const authorized = maybeAuthorized.use(authedMiddleware);
 
 export const router = base.router({
-	searchUser: base.searchUser.handler((opt) => searchUser(opt.input)),
-	todayTop: base.todayTop.handler((opt) => todayTop(opt.input)),
-	rankTop: base.rankTop.handler((opt) => rankTop(opt.input)),
+	searchUser: authorized.searchUser.handler((opt) => searchUser(opt.input)),
+	todayTop: authorized.todayTop.handler((opt) => todayTop(opt.input)),
+	rankTop: authorized.rankTop.handler((opt) => rankTop(opt.input)),
 	me: {
 		lastResult: authorized.me.lastResult.handler((opt) => lastResult(opt.context, opt.input)),
 		getSettings: authorized.me.getSettings.handler((opt) => getSettings(opt.context, opt.input)),
@@ -52,18 +52,18 @@ export const router = base.router({
 		userInfo: authorized.me.userInfo.handler((opt) => userInfo(opt.context, opt.input)),
 	},
 	leaderboard: {
-		averageTime: maybeAuthorized.leaderboard.averageTime.handler((opt) => averageTime(opt.input)),
-		matchTime: maybeAuthorized.leaderboard.matchTime.handler((opt) => matchTime(opt.input)),
-		rank: maybeAuthorized.leaderboard.rank.handler((opt) => rank(opt.input)),
-		rankHistogram: maybeAuthorized.leaderboard.rankHistogram.handler((opt) => rankHistogram(opt.input)),
-		wr: maybeAuthorized.leaderboard.wr.handler((opt) => wr(opt.input)),
+		averageTime: authorized.leaderboard.averageTime.handler((opt) => averageTime(opt.input)),
+		matchTime: authorized.leaderboard.matchTime.handler((opt) => matchTime(opt.input)),
+		rank: authorized.leaderboard.rank.handler((opt) => rank(opt.input)),
+		rankHistogram: authorized.leaderboard.rankHistogram.handler((opt) => rankHistogram(opt.input)),
+		wr: authorized.leaderboard.wr.handler((opt) => wr(opt.input)),
 	},
 	user: {
-		profile: base.user.profile.handler((opt) => profile(opt.input)),
-		earnedPtChart: base.user.earnedPtChart.handler((opt) => earnedPtChart(opt.input)),
-		heatmapChart: base.user.heatmapChart.handler((opt) => heatmapChart(opt.input)),
-		postTimeChart: base.user.postTimeChart.handler((opt) => postTimeChart(opt.input)),
-		radarChart: base.user.radarChart.handler((opt) => radarChart(opt.input)),
-		totalPtChart: base.user.totalPtChart.handler((opt) => totalPtChart(opt.input)),
+		profile: authorized.user.profile.handler((opt) => profile(opt.input)),
+		earnedPtChart: authorized.user.earnedPtChart.handler((opt) => earnedPtChart(opt.input)),
+		heatmapChart: authorized.user.heatmapChart.handler((opt) => heatmapChart(opt.input)),
+		postTimeChart: authorized.user.postTimeChart.handler((opt) => postTimeChart(opt.input)),
+		radarChart: authorized.user.radarChart.handler((opt) => radarChart(opt.input)),
+		totalPtChart: authorized.user.totalPtChart.handler((opt) => totalPtChart(opt.input)),
 	},
 });
