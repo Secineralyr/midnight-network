@@ -13,12 +13,18 @@ import {
 	WrResponse,
 } from './rpc/leaderboard/models';
 import {
+	GetPushStatusParams,
+	GetPushStatusResponse,
 	GetSettingsParams,
 	GetSettingsResponse,
 	LastResultParams,
 	LastResultResponse,
 	SetSettingsParams,
 	SetSettingsResponse,
+	SubscribePushParams,
+	SubscribePushResponse,
+	UnsubscribePushParams,
+	UnsubscribePushResponse,
 	UserInfoParams,
 	UserInfoResponse,
 } from './rpc/me/models';
@@ -50,6 +56,9 @@ export const meContract = {
 	getSettings: oc.input(GetSettingsParams).output(GetSettingsResponse),
 	setSettings: oc.input(SetSettingsParams).output(SetSettingsResponse),
 	userInfo: oc.input(UserInfoParams).output(UserInfoResponse),
+	subscribePush: oc.input(SubscribePushParams).output(SubscribePushResponse),
+	unsubscribePush: oc.input(UnsubscribePushParams).output(UnsubscribePushResponse),
+	getPushStatus: oc.input(GetPushStatusParams).output(GetPushStatusResponse),
 } as const;
 
 export const userContract = {

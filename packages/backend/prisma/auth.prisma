@@ -10,6 +10,8 @@ model AuthUser {
   sessions      Session[]
   accounts      Account[]
 
+  pushSubscriptions String?
+
   @@unique([email])
   @@map("AuthUser")
 }

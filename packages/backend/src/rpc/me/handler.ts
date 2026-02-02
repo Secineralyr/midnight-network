@@ -1,11 +1,17 @@
 import { RankType } from '@midnight-network/shared/rank';
 import type {
+	GetPushStatusParamsT,
+	GetPushStatusResponseT,
 	GetSettingsParamsT,
 	GetSettingsResponseT,
 	LastResultParamsT,
 	LastResultResponseT,
 	SetSettingsParamsT,
 	SetSettingsResponseT,
+	SubscribePushParamsT,
+	SubscribePushResponseT,
+	UnsubscribePushParamsT,
+	UnsubscribePushResponseT,
 	UserInfoResponseT,
 } from '@midnight-network/shared/rpc/me/models';
 import { RankShiftType } from '@midnight-network/shared/rpc/me/models';
@@ -15,6 +21,7 @@ import { prisma } from '../../db';
 import type { AuthContext } from '../../rpc';
 import { withCache } from '../helpers/cache';
 import { calculateTimeDifferenceSeconds } from '../helpers/match';
+import { parsePushSubscriptions } from '../helpers/push';
 import { calculateRankFromPoints, rankNumberToRankTypeValue } from '../helpers/rank';
 import { makeCurrentRank } from '../helpers/stats';
 
@@ -245,4 +252,78 @@ export async function userInfo(ctx: AuthContext, _: UserInfoParamsT): Promise<Us
 			latestRank: rank.rank,
 		};
 	});
+}
+
+/**
+ * Push通知のサブスクリプションを登録する。
+ */
+export async function subscribePush(ctx: AuthContext, input: SubscribePushParamsT): Promise<SubscribePushResponseT> {
+	const userId = ctx.user?.id;
+	console.info(`rpc.me.subscribePush: ${userId}`);
+	if (!userId) {
+		return;
+	}
+
+	const authUser = await prisma.authUser.findUnique({
+		where: { id: userId },
+		select: { pushSubscriptions: true },
+	});
+
+	const subs = parsePushSubscriptions(authUser?.pushSubscriptions);
+	const existing = subs.findIndex((s) => s.endpoint === input.endpoint);
+	if (existing >= 0) {
+		subs[existing] = { endpoint: input.endpoint, p256dh: input.p256dh, auth: input.auth };
+	} else {
+		subs.push({ endpoint: input.endpoint, p256dh: input.p256dh, auth: input.auth });
+	}
+
+	await prisma.authUser.update({
+		where: { id: userId },
+		data: { pushSubscriptions: JSON.stringify(subs) },
+	});
+}
+
+/**
+ * Push通知のサブスクリプションを解除する。
+ */
+export async function unsubscribePush(ctx: AuthContext, input: UnsubscribePushParamsT): Promise<UnsubscribePushResponseT> {
+	const userId = ctx.user?.id;
+	console.info(`rpc.me.unsubscribePush: ${userId}`);
+	if (!userId) {
+		return;
+	}
+
+	const authUser = await prisma.authUser.findUnique({
+		where: { id: userId },
+		select: { pushSubscriptions: true },
+	});
+
+	const subs = parsePushSubscriptions(authUser?.pushSubscriptions).filter((s) => s.endpoint !== input.endpoint);
+
+	await prisma.authUser.update({
+		where: { id: userId },
+		data: { pushSubscriptions: subs.length > 0 ? JSON.stringify(subs) : null },
+	});
+}
+
+/**
+ * Push通知の購読状態を取得する。
+ */
+export async function getPushStatus(ctx: AuthContext, _input: GetPushStatusParamsT): Promise<GetPushStatusResponseT> {
+	const userId = ctx.user?.id;
+	console.info(`rpc.me.getPushStatus: ${userId}`);
+	if (!userId) {
+		return { enabled: false, endpoints: [] };
+	}
+
+	const authUser = await prisma.authUser.findUnique({
+		where: { id: userId },
+		select: { pushSubscriptions: true },
+	});
+
+	const subs = parsePushSubscriptions(authUser?.pushSubscriptions);
+	return {
+		enabled: subs.length > 0,
+		endpoints: subs.map((s) => s.endpoint),
+	};
 }

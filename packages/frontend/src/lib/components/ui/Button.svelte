@@ -1,22 +1,10 @@
 <script lang="ts">
-import { animate } from 'motion';
-
-/**
- * ボタンコンポーネント
- * @description 共通ボタンUI。ホバー・クリック時のアニメーション付き
- */
-
 /** ボタンのバリアント */
-type ButtonVariant = 'primary' | 'secondary' | 'ghost';
-
-/** ボタンのサイズ */
-type ButtonSize = 'sm' | 'md' | 'lg';
+type ButtonVariant = 'primary' | 'secondary';
 
 interface Props {
 	/** ボタンのバリアント */
 	variant?: ButtonVariant;
-	/** ボタンのサイズ */
-	size?: ButtonSize;
 	/** 無効状態 */
 	disabled?: boolean;
 	/** ボタンタイプ */
@@ -27,48 +15,25 @@ interface Props {
 	children?: import('svelte').Snippet;
 }
 
-const { variant = 'primary', size = 'md', disabled = false, type = 'button', onclick, children }: Props = $props();
+const { variant = 'primary', disabled = false, type = 'button', onclick, children }: Props = $props();
 
 let buttonElement: HTMLButtonElement | undefined = $state();
-
-/**
- * ホバー開始時のアニメーション
- */
-function handleMouseEnter(): void {
-	if (buttonElement && !disabled) {
-		animate(buttonElement, { scale: 1.02 }, { duration: 0.15 });
-	}
-}
-
-/**
- * ホバー終了時のアニメーション
- */
-function handleMouseLeave(): void {
-	if (buttonElement && !disabled) {
-		animate(buttonElement, { scale: 1 }, { duration: 0.15 });
-	}
-}
 
 /**
  * クリック時のアニメーション
  */
 function handleClick(event: MouseEvent): void {
-	if (buttonElement && !disabled) {
-		animate(buttonElement, { scale: [1, 0.95, 1] }, { duration: 0.2 });
-	}
 	onclick?.(event);
 }
 </script>
 
 <button
 	bind:this={buttonElement}
-	class={`btn ${variant} ${size}`}
+	class={`btn ${variant}`}
 	class:disabled={disabled}
 	{type}
 	{disabled}
 	onclick={handleClick}
-	onmouseenter={handleMouseEnter}
-	onmouseleave={handleMouseLeave}
 >
 	{#if children}
 		{@render children()}
@@ -82,58 +47,35 @@ function handleClick(event: MouseEvent): void {
 		justify-content: center;
 		gap: 10px;
 		border-radius: 4px;
-		font-weight: 600;
+		font-weight: 500;
 		border: none;
 		cursor: pointer;
 		transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 		white-space: nowrap;
+		min-height: 32px;
+		width: inherit;
+		padding: 5px 15px;
+		font-size: 1em;
 	}
 
 	.btn.primary {
-		background: #201E3A;
-		color: #ffffff;
+		background: #B8C4FF;
+		color: #000;
 	}
 
 	.btn.primary:hover:not(.disabled) {
-		background: #35325a;
+		background: #6970cf;
+		color: #fff;
 	}
 
 	.btn.secondary {
-		background: transparent;
-		color: #c6c9df;
-		border: 1px solid #3b3854;
+		background: #2F2D53;
+		color: #fff;
 	}
 
 	.btn.secondary:hover:not(.disabled) {
-		color: #ffffff;
-		border-color: #58557b;
-	}
-
-	.btn.ghost {
-		background: transparent;
-		color: #c6c9df;
-	}
-
-	.btn.ghost:hover:not(.disabled) {
-		color: #ffffff;
-	}
-
-	.btn.sm {
-		min-height: 32px;
-		padding: 6px 14px;
-		font-size: 14px;
-	}
-
-	.btn.md {
-		min-height: 40px;
-		padding: 10px 18px;
-		font-size: 16px;
-	}
-
-	.btn.lg {
-		min-height: 48px;
-		padding: 12px 24px;
-		font-size: 18px;
+		color: #fff;
+		background: #383669;
 	}
 
 	.btn.disabled {

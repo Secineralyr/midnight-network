@@ -24,6 +24,14 @@ export const auth = betterAuth({
 	plugins: [miauthPlugin()],
 	user: {
 		modelName: 'AuthUser',
+		additionalFields: {
+			pushSubscriptions: {
+				type: 'string',
+				required: false,
+				defaultValue: null,
+				input: false,
+			},
+		},
 	},
 	databaseHooks: {
 		user: {

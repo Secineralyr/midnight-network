@@ -6,3 +6,4 @@ BOT_USER_NAME = "username"
 DISABLE_USER_NAME = ["username"]
 ADMIN_USER_NAME = "<your username>"
 WEBHOOK_SECRET = "<secret>"
+VAPID_PRIVATE_KEY = "<secret>"

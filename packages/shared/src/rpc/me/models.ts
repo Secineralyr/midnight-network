@@ -50,6 +50,40 @@ export const LastResultResponse = z.optional(
 
 export type LastResultResponseT = z.infer<typeof LastResultResponse>;
 
+// Push Subscription
+export const SubscribePushParams = z.object({
+	endpoint: z.string().url(),
+	p256dh: z.string(),
+	auth: z.string(),
+});
+
+export type SubscribePushParamsT = z.infer<typeof SubscribePushParams>;
+
+export const SubscribePushResponse = z.void();
+
+export type SubscribePushResponseT = z.infer<typeof SubscribePushResponse>;
+
+export const UnsubscribePushParams = z.object({
+	endpoint: z.string().url(),
+});
+
+export type UnsubscribePushParamsT = z.infer<typeof UnsubscribePushParams>;
+
+export const UnsubscribePushResponse = z.void();
+
+export type UnsubscribePushResponseT = z.infer<typeof UnsubscribePushResponse>;
+
+export const GetPushStatusParams = z.void();
+
+export type GetPushStatusParamsT = z.infer<typeof GetPushStatusParams>;
+
+export const GetPushStatusResponse = z.object({
+	enabled: z.boolean(),
+	endpoints: z.array(z.string()),
+});
+
+export type GetPushStatusResponseT = z.infer<typeof GetPushStatusResponse>;
+
 export const UserInfoParams = z.void();
 
 export type UserInfoParamsT = z.infer<typeof UserInfoParams>;

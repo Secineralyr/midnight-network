@@ -1,14 +1,14 @@
 <script lang="ts">
-import type { UserInfoResponseT } from '@midnight-network/shared/rpc/me/models';
-import { IconLogout, IconUser } from '@tabler/icons-svelte';
+import type { SettingTypeT, UserInfoResponseT } from '@midnight-network/shared/rpc/me/models';
+import { IconLogout, IconSettings, IconUser } from '@tabler/icons-svelte';
 import { fly } from 'svelte/transition';
 import { goto } from '$app/navigation';
 import RankIcon from '../rank/RankIcon.svelte';
-
-/**
- * ログインユーザーパネルコンポーネント
- * @description ヘッダーのユーザーアイコンクリック時に表示されるパネル
- */
+import { orpc } from '$lib/orpc';
+import { sessionUser } from '$lib/stores/session';
+import { createQuery, createMutation } from '@tanstack/svelte-query';
+import SettingsModal from '../modal/SettingsModal.svelte';
+	import { setUserSettingsOpened } from '$lib/stores/state';
 
 interface Props {
 	/** ユーザー情報 */
@@ -44,6 +44,13 @@ function handleBackdropClick(event: MouseEvent): void {
 		onClose();
 	}
 }
+
+/**
+ * 設定モーダルを開く
+ */
+function openSettings(): void {
+	setUserSettingsOpened(true);
+}
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
@@ -62,6 +69,10 @@ function handleBackdropClick(event: MouseEvent): void {
 		<button type="button" class="panel-action" onclick={goToMyPage}>
 			<span class="panel-text">マイページ</span>
 			<IconUser size={16} stroke={3} />
+		</button>
+		<button type="button" class="panel-action" onclick={openSettings}>
+			<span class="panel-text">設定</span>
+			<IconSettings size={16} stroke={3} />
 		</button>
 		<button type="button" class="panel-action" onclick={handleLogout}>
 			<span class="panel-text">ログアウト</span>

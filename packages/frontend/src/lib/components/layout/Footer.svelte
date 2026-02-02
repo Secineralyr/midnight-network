@@ -202,7 +202,6 @@ function handleModalKeydown(event: KeyboardEvent): void {
 		background: #201E3A;
 		border-radius: 4px;
 		padding: 20px;
-		box-shadow: 0 10px 100px rgba(0, 0, 0, 0.4);
 	}
 
 	.mi-modal-header {
@@ -224,7 +223,7 @@ function handleModalKeydown(event: KeyboardEvent): void {
 		border: none;
 		background: rgba(148, 168, 255, 0.1);
 		color: #fff;
-		border-radius: 10px;
+		border-radius: 9999px;
 		padding: 6px;
 		display: grid;
 		place-items: center;

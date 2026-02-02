@@ -1,23 +1,19 @@
 <script lang="ts">
-import type { SettingTypeT } from '@midnight-network/shared/rpc/me/models';
 import { GraphSpan } from '@midnight-network/shared/rpc/user/models';
-import { IconSettings } from '@tabler/icons-svelte';
-import { createMutation, createQuery, useQueryClient } from '@tanstack/svelte-query';
+import { createQuery, useQueryClient } from '@tanstack/svelte-query';
 import { goto } from '$app/navigation';
-import { page } from '$app/stores';
+import { page } from '$app/state';
 import BarChart from '$lib/components/charts/BarChart.svelte';
 import Heatmap from '$lib/components/charts/Heatmap.svelte';
 import LineChart from '$lib/components/charts/LineChart.svelte';
 import RadarChart from '$lib/components/charts/RadarChart.svelte';
-import SettingsModal from '$lib/components/modal/SettingsModal.svelte';
 import RankDisplay from '$lib/components/rank/RankDisplay.svelte';
-import Button from '$lib/components/ui/Button.svelte';
 import RankStatus from '$lib/components/user/RankStatus.svelte';
 import Statistics from '$lib/components/user/Statistics.svelte';
 import UserAvatar from '$lib/components/user/UserAvatar.svelte';
 import { primeMisskeyUsers } from '$lib/data/misskey-users';
 import { orpc } from '$lib/orpc';
-import { sessionUser, sessionReady } from '$lib/stores/session';
+import { sessionReady, sessionUser } from '$lib/stores/session';
 
 /**
  * ユーザープロフィールページ
@@ -34,7 +30,7 @@ $effect(() => {
 });
 
 /** ユーザー名 */
-const username = $derived($page.params.username);
+const username = $derived(page.params.username);
 
 const queryClient = useQueryClient();
 
@@ -70,12 +66,6 @@ type GraphSpanValue = (typeof GraphSpan)[keyof typeof GraphSpan];
 let totalPtSpan = $state<GraphSpanValue>(GraphSpan.Daily);
 let earnedPtSpan = $state<GraphSpanValue>(GraphSpan.Daily);
 let postTimeSpan = $state<GraphSpanValue>(GraphSpan.Daily);
-
-/** 設定モーダル表示状態 */
-let isSettingsOpen = $state(false);
-
-/** 自分のプロフィールかどうか（TODO: 認証連携） */
-const isOwnProfile = $state(false);
 
 /** ユーザープロフィール取得 */
 const profileQuery = createQuery(() => ({
@@ -149,21 +139,6 @@ const heatmapQuery = createQuery(() => ({
 	enabled: Boolean(userId),
 }));
 
-/** 設定取得 */
-const settingsQuery = createQuery(() => ({
-	queryKey: ['settings'],
-	queryFn: () => orpc.me.getSettings(),
-	enabled: isOwnProfile,
-}));
-
-/** 設定更新ミューテーション */
-const settingsMutation = createMutation(() => ({
-	mutationFn: (settings: Partial<SettingTypeT>) => orpc.me.setSettings(settings),
-	onSuccess: () => {
-		settingsQuery.refetch();
-	},
-}));
-
 /** 期間オプション */
 const spanOptions = [
 	{ label: '日別', value: String(GraphSpan.Daily) },
@@ -185,28 +160,6 @@ function handleEarnedPtSpanChange(span: string): void {
 function handlePostTimeSpanChange(span: string): void {
 	postTimeSpan = Number(span) as GraphSpanValue;
 }
-
-/**
- * 設定モーダルを開く
- */
-function openSettings(): void {
-	isSettingsOpen = true;
-}
-
-/**
- * 設定モーダルを閉じる
- */
-function closeSettings(): void {
-	isSettingsOpen = false;
-}
-
-/**
- * 設定保存ハンドラ
- * @param settings - 新しい設定
- */
-function handleSaveSettings(settings: Partial<SettingTypeT>): void {
-	settingsMutation.mutate(settings);
-}
 </script>
 
 <svelte:head>
@@ -221,14 +174,6 @@ function handleSaveSettings(settings: Partial<SettingTypeT>): void {
 			</div>
 			<h1 class="user-username">@{username}</h1>
 		</div>
-		{#if isOwnProfile}
-			<div class="user-settings">
-				<Button variant="ghost" size="sm" onclick={openSettings}>
-					<IconSettings size={18} />
-					設定
-				</Button>
-			</div>
-		{/if}
 	</div>
 
 	{#if profileQuery.data}
@@ -327,15 +272,6 @@ function handleSaveSettings(settings: Partial<SettingTypeT>): void {
 	{/if}
 </div>
 
-{#if isOwnProfile && settingsQuery.data}
-	<SettingsModal
-		settings={settingsQuery.data}
-		isOpen={isSettingsOpen}
-		onClose={closeSettings}
-		onSave={handleSaveSettings}
-	/>
-{/if}
-
 <style>
 	.user-page {
 		padding-bottom: 50px;
@@ -375,13 +311,7 @@ function handleSaveSettings(settings: Partial<SettingTypeT>): void {
 	}
 
 	.user-settings {
-		position: absolute;
-		top: 12px;
-		right: 0;
-		display: inline-flex;
-		align-items: center;
-		gap: 5px;
-		font-size: 0.85rem;
+		width: 100%;
 	}
 
 	.user-content {

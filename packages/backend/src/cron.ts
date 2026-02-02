@@ -24,7 +24,10 @@ import type {
 	UserSettingsCreateManyInput,
 } from './generated/prisma/models';
 import { createRetryMisskeyApiClientFetcher } from './misskey';
+import { parsePushSubscriptions } from './rpc/helpers/push';
+import { calculateRankFromPoints, rankNumberToRankTypeValue } from './rpc/helpers/rank';
 import { getTargetTime, wait } from './util';
+import { sendPushNotification } from './web-push';
 
 function getTargetTimeRange(): [number, number] {
 	const targetTime = getTargetTime();
@@ -568,7 +571,94 @@ async function upsertRankResultData(
 	await updateRankStatusData.map((v) => prisma.userRankStatus.update(v));
 }
 
-export async function processCronMain() {
+/**
+ * 参加ユーザーにPush通知を送信する。
+ * 通知内容: 順位、タイム、獲得pt、反映後合計pt、ランクアップ有無、現在ランク
+ */
+async function sendMatchResultNotifications(records: Record<string, MatchRecordData>) {
+	const userIds = Object.keys(records);
+	if (userIds.length === 0) {
+		return;
+	}
+	const [authUsers, rankStatuses, partCounts, latestMatch] = await Promise.all([
+		prisma.authUser.findMany({
+			where: { id: { in: userIds }, pushSubscriptions: { not: null } },
+			select: { id: true, pushSubscriptions: true },
+		}),
+		prisma.userRankStatus.findMany({ where: { id: { in: userIds } } }),
+		prisma.userParticipantsCount.findMany({ where: { userId: { in: userIds } } }),
+		prisma.matchDate.findFirst({ orderBy: { date: 'desc' } }),
+	]);
+
+	const subsByUser = new Map(
+		authUsers.map((au) => [au.id, parsePushSubscriptions(au.pushSubscriptions)] as const).filter(([, s]) => s.length > 0),
+	);
+	if (subsByUser.size === 0) {
+		return;
+	}
+
+	const statusMap = Object.fromEntries(rankStatuses.map((s) => [s.id, s]));
+	const partCountMap = Object.fromEntries(partCounts.map((r) => [r.userId, r.participantsCount]));
+
+	const [histories, prevHistories] = latestMatch
+		? await Promise.all([
+				prisma.userRankHistory.findMany({ where: { userId: { in: userIds }, matchId: latestMatch.id } }),
+				prisma.userRankHistory.findMany({
+					where: { userId: { in: userIds }, matchId: { not: latestMatch.id } },
+					orderBy: { matchId: 'desc' },
+					distinct: ['userId'],
+				}),
+			])
+		: [[], []];
+	const historyMap = Object.fromEntries(histories.map((h) => [h.userId, h]));
+	const prevMap = Object.fromEntries(prevHistories.map((h) => [h.userId, h]));
+
+	const sendPromises: Promise<void>[] = [];
+	for (const [userId, subs] of subsByUser) {
+		const record = records[userId];
+		if (!record) {
+			continue;
+		}
+
+		const totalPt = statusMap[userId]?.pt ?? 0;
+		const count = partCountMap[userId] ?? 0;
+		const { rankNumber, isNoRank } = calculateRankFromPoints(totalPt, count);
+		const prev = prevMap[userId];
+		const rankUp = prev ? rankNumber > calculateRankFromPoints(prev.pt, Math.max(0, count - 1)).rankNumber : false;
+		const timeSec = record.dt / 1000;
+
+		const payload = JSON.stringify({
+			type: 'match_result',
+			place: record.place,
+			time: record.dt >= 0 ? `+${timeSec.toFixed(3)}` : `${timeSec.toFixed(3)}`,
+			earnedPt: historyMap[userId]?.earnedPt ?? 0,
+			totalPt,
+			rankUp,
+			rank: rankNumberToRankTypeValue(rankNumber, isNoRank),
+		});
+
+		for (const sub of subs) {
+			sendPromises.push(
+				sendPushNotification(sub, payload).then(async (res) => {
+					if (!res.gone) {
+						return;
+					}
+					const au = await prisma.authUser.findUnique({ where: { id: userId }, select: { pushSubscriptions: true } });
+					const filtered = parsePushSubscriptions(au?.pushSubscriptions).filter((s) => s.endpoint !== sub.endpoint);
+					await prisma.authUser.update({
+						where: { id: userId },
+						data: { pushSubscriptions: filtered.length > 0 ? JSON.stringify(filtered) : null },
+					});
+				}),
+			);
+		}
+	}
+
+	const results = await Promise.allSettled(sendPromises);
+	console.info(`cron.pushNotifications: sent ${results.filter((r) => r.status === 'fulfilled').length}/${results.length}`);
+}
+
+export async function processCronMain(options?: { isRerun?: boolean }) {
 	console.info('start main process');
 	const targetTime = getTargetTime();
 
@@ -614,6 +704,12 @@ export async function processCronMain() {
 	console.info('cron.mainProcess: start update rank');
 	// ランク計算
 	await upsertRankResultData(records, validRecords, eventMatch, matchDate);
+
+	// Push通知送信（再実行時はスキップ）
+	if (!options?.isRerun) {
+		console.info('cron.mainProcess: send push notifications');
+		await sendMatchResultNotifications(records);
+	}
 }
 
 /**
@@ -622,7 +718,7 @@ export async function processCronMain() {
 
 export async function processCronMainRerun() {
 	await prepareRerunState();
-	await processCronMain();
+	await processCronMain({ isRerun: true });
 }
 
 export async function processCronRemind() {

@@ -9,6 +9,7 @@ import '$lib/styles/global.css';
 import { fly } from 'svelte/transition';
 import { page } from '$app/state';
 import { createAuthClient } from '$lib/auth/auth-client';
+import SettingsModal from '$lib/components/modal/SettingsModal.svelte';
 import { setSessionState } from '$lib/stores/session';
 
 /**
@@ -53,6 +54,7 @@ onMount(async () => {
 		</main>
 		{/key}
 		<Footer />
+		<SettingsModal />
 	</div>
 </QueryClientProvider>
 

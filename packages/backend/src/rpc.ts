@@ -4,7 +4,7 @@ import type { RequestHeadersPluginContext } from '@orpc/server/plugins';
 import { auth } from './auth';
 import { rankTop, searchUser, todayTop } from './rpc/handler';
 import { averageTime, matchTime, rank, rankHistogram, wr } from './rpc/leaderboard/handler';
-import { getSettings, lastResult, setSettings, userInfo } from './rpc/me/handler';
+import { getPushStatus, getSettings, lastResult, setSettings, subscribePush, unsubscribePush, userInfo } from './rpc/me/handler';
 import { earnedPtChart, heatmapChart, postTimeChart, profile, radarChart, totalPtChart } from './rpc/user/handler';
 
 export type RpcContext = RequestHeadersPluginContext & {
@@ -50,6 +50,9 @@ export const router = base.router({
 		getSettings: authorized.me.getSettings.handler((opt) => getSettings(opt.context, opt.input)),
 		setSettings: authorized.me.setSettings.handler((opt) => setSettings(opt.context, opt.input)),
 		userInfo: authorized.me.userInfo.handler((opt) => userInfo(opt.context, opt.input)),
+		subscribePush: authorized.me.subscribePush.handler((opt) => subscribePush(opt.context, opt.input)),
+		unsubscribePush: authorized.me.unsubscribePush.handler((opt) => unsubscribePush(opt.context, opt.input)),
+		getPushStatus: authorized.me.getPushStatus.handler((opt) => getPushStatus(opt.context, opt.input)),
 	},
 	leaderboard: {
 		averageTime: authorized.leaderboard.averageTime.handler((opt) => averageTime(opt.input)),
