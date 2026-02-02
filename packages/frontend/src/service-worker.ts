@@ -74,6 +74,18 @@ self.addEventListener('push', (event) => {
 	try {
 		const data = event.data.json();
 		if (data.type !== 'match_result') {
+			if (data.type === 'test') {
+				const options: ExtendedNotificationOptions = {
+					body: 'てすとだよああああああああああ\n行けてたらいいはなし\n3行目\n4行目',
+					icon: '/logo-192.png',
+					badge: '/logo-192.png',
+					tag: 'match-result',
+					data: { url: '/' },
+					renotify: true,
+				};
+
+				event.waitUntil(self.registration.showNotification('テスト通知', options));
+			}
 			return;
 		}
 
