@@ -94,15 +94,16 @@ async function handlePushToggle() {
 				alert('SW not ready');
 				return;
 			}
-			const subscription = await Promise.race([
-				swRegistration.pushManager.subscribe({
+			const subscription = swRegistration.pushManager.subscribe({
 					userVisibleOnly: true,
 					applicationServerKey: vapidKey.slice(),
-				}),
-				new Promise<never>((_, rej) => setTimeout(() => rej(new Error('timeout')), 5000)),
-			]);
+				}).then((v) => (alert(v),v));
+			swRegistration.pushManager.permissionState({
+				userVisibleOnly: true,
+				applicationServerKey: vapidKey.slice(),
+			}).then((v) => alert(v));
 
-			const json = subscription.toJSON();
+			const json = (await subscription).toJSON();
 			const keys = json.keys ?? {};
 			await orpc.me.subscribePush({
 				endpoint: json.endpoint ?? '',
