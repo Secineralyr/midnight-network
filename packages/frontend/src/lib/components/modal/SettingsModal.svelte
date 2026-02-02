@@ -94,16 +94,12 @@ async function handlePushToggle() {
 				alert('SW not ready');
 				return;
 			}
-			const subscription = swRegistration.pushManager.subscribe({
-					userVisibleOnly: true,
-					applicationServerKey: vapidKey.slice(),
-				}).then((v) => (alert(v),v));
-			swRegistration.pushManager.permissionState({
+			const subscription = await swRegistration.pushManager.subscribe({
 				userVisibleOnly: true,
 				applicationServerKey: vapidKey.slice(),
-			}).then((v) => alert(v));
+			});
 
-			const json = (await subscription).toJSON();
+			const json = subscription.toJSON();
 			const keys = json.keys ?? {};
 			await orpc.me.subscribePush({
 				endpoint: json.endpoint ?? '',
@@ -147,10 +143,6 @@ function handleToggle(key: keyof SettingTypeT, value: boolean): void {
 function handleSave(): void {
 	handleSaveSettings(localSettings);
 	closeSettings();
-}
-
-async function handleNotification() {
-	await orpc.me.testPush();
 }
 
 /** 設定項目の定義 */
@@ -223,7 +215,6 @@ const settingItems: { key: keyof SettingTypeT; label: string }[] = [
 				{/if}
 			</div>
 			<div class="modal-footer">
-				<Button variant="secondary" onclick={handleNotification}>Test</Button>
 				<Button variant="secondary" onclick={handleSave}>保存</Button>
 			</div>
 		</div>
