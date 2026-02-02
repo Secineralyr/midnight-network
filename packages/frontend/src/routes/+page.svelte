@@ -80,6 +80,10 @@ function handleUserCardClick(username: string): void {
 }
 </script>
 
+<svelte:head>
+	<title>Home - MidNight Network</title>
+</svelte:head>
+
 <div class="top-page">
 	<section class="hero">
 		<div>
