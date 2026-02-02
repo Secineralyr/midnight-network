@@ -351,7 +351,13 @@ export async function testPush(ctx: AuthContext, _input: TestPushParamsT): Promi
 	}
 
 	const payload = JSON.stringify({
-		type: 'test',
+		type: 'match_result',
+		place: 1,
+		time: '+12.345',
+		earnedPt: 100,
+		totalPt: 1500,
+		rankUp: true,
+		rank: 'gold',
 	});
 
 	const results = await Promise.all(subs.map((sub) => sendPushNotification(sub, payload)));
