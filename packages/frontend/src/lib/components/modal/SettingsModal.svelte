@@ -39,10 +39,16 @@ function handleSaveSettings(settings: Partial<SettingTypeT>): void {
 	settingsMutation.mutate(settings);
 }
 
-let localSettings = $derived.by<SettingTypeT>(() => ({ ...settingsQuery.data }));
+let localSettings = $state<SettingTypeT>({ ...settingsQuery.data });
 let pushEnabled = $state(false);
 let pushLoading = $state(false);
 const pushSupported = $derived('serviceWorker' in navigator && 'PushManager' in window);
+
+$effect(() => {
+	if (isOpen && settingsQuery.data) {
+		localSettings = { ...settingsQuery.data };
+	}
+});
 
 $effect(() => {
 	if (pushSupported && isOpen) {
@@ -52,8 +58,9 @@ $effect(() => {
 
 async function loadPushStatus() {
 	try {
-		const status = await orpc.me.getPushStatus();
-		pushEnabled = status.enabled;
+		const swRegistration = await navigator.serviceWorker.ready;
+		const subscription = await swRegistration.pushManager.getSubscription();
+		pushEnabled = subscription !== null;
 	} catch {
 		pushEnabled = false;
 	}
@@ -173,6 +180,7 @@ const settingItems: { key: keyof SettingTypeT; label: string }[] = [
 				</button>
 			</div>
 			<div class="modal-body">
+				<h3 class="section-header">公開設定</h3>
 				{#each settingItems as item (item.key)}
 					<div class="modal-item">
 						<span class="modal-label">{item.label}</span>
@@ -189,9 +197,13 @@ const settingItems: { key: keyof SettingTypeT; label: string }[] = [
 						</button>
 					</div>
 				{/each}
+				<div class="section-footer">
+					<Button variant="secondary" onclick={handleSave}>公開設定を保存</Button>
+				</div>
 
 				{#if pushSupported}
 					<div class="modal-divider"></div>
+					<h3 class="section-header">通知（このデバイス）</h3>
 					<div class="modal-item">
 						<span class="modal-label">
 							試合結果の通知を受け取る
@@ -213,9 +225,6 @@ const settingItems: { key: keyof SettingTypeT; label: string }[] = [
 						</button>
 					</div>
 				{/if}
-			</div>
-			<div class="modal-footer">
-				<Button variant="secondary" onclick={handleSave}>保存</Button>
 			</div>
 		</div>
 	</div>
@@ -308,6 +317,20 @@ const settingItems: { key: keyof SettingTypeT; label: string }[] = [
 		background: rgba(148, 168, 255, 0.05);
 	}
 
+	.section-header {
+		margin: 0;
+		font-size: 0.95rem;
+		font-weight: 600;
+		color: #bebed8;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.section-footer {
+		display: flex;
+		justify-content: flex-end;
+	}
+
 	.modal-divider {
 		height: 1px;
 		background: rgba(148, 168, 255, 0.1);
@@ -356,9 +379,4 @@ const settingItems: { key: keyof SettingTypeT; label: string }[] = [
 		background: #b9c4ff;
 	}
 
-	.modal-footer {
-		display: flex;
-		justify-content: flex-end;
-		margin-top: 16px;
-	}
 </style>
