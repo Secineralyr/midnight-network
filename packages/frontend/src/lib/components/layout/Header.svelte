@@ -297,7 +297,7 @@ function handleWindowClick(event: MouseEvent): void {
 	/* モバイル表示 (300px - 899px) */
 	@media (max-width: 899px) {
 		header {
-			padding: 0 10px;
+			padding: env(safe-area-inset-top) 10px 0;
 		}
 		header > div {
 			padding: 10px;
