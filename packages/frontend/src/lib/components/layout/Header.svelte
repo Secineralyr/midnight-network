@@ -193,7 +193,7 @@ function handleWindowClick(event: MouseEvent): void {
 		margin: 0 auto;
 		padding: env(safe-area-inset-top) 150px 0;
 		width: 1140px;
-		height: 56px;
+		height: calc(56px + env(safe-area-inset-top));
 		background: linear-gradient(
 			to right,
 			transparent 0%,

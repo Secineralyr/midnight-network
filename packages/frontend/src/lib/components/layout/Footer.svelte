@@ -100,7 +100,7 @@ function handleModalKeydown(event: KeyboardEvent): void {
 		padding: 20px 40px calc(20px + env(safe-area-inset-bottom));
 		width: 100%;
 		max-width: 840px;
-		height: 80px;
+		height: calc(80px + env(safe-area-inset-bottom));
 		margin: 0 auto;
 	}
 
