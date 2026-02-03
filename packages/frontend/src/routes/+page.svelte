@@ -173,6 +173,7 @@ function handleUserCardClick(username: string): void {
 		display: flex;
 		gap: 10px;
 		align-items: center;
+		justify-content: center;
 	}
 
 	.title {

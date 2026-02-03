@@ -97,7 +97,7 @@ function handleModalKeydown(event: KeyboardEvent): void {
 
 <style>
 	footer {
-		padding: 20px 40px;
+		padding: 20px 40px calc(20px + env(safe-area-inset-bottom));
 		width: 100%;
 		max-width: 840px;
 		height: 80px;
@@ -107,7 +107,7 @@ function handleModalKeydown(event: KeyboardEvent): void {
 	/* モバイル表示 */
 	@media (max-width: 899px) {
 		footer {
-			padding: 20px;
+			padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
 		}
 		.inner {
 			gap: 15px;
