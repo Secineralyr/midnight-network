@@ -30,6 +30,7 @@ catalog:
   echarts: ^6.0.0
   elysia: ^1.4.19
   lefthook: ^2.0.12
+  mdsvex: ^0.12.6
   misskey-js: ^2025.12.1
   motion: ^12.23.26
   p-retry: ^7.1.1
