@@ -191,9 +191,9 @@ function handleWindowClick(event: MouseEvent): void {
 		left: 0;
 		right: 0;
 		margin: 0 auto;
-		padding: env(safe-area-inset-top) 150px 0;
+		padding: var(--safe-area-top) 150px 0;
 		width: 1140px;
-		height: calc(56px + env(safe-area-inset-top));
+		height: calc(var(--app-header-height) + var(--safe-area-top));
 		background: linear-gradient(
 			to right,
 			transparent 0%,
@@ -297,7 +297,7 @@ function handleWindowClick(event: MouseEvent): void {
 	/* モバイル表示 (300px - 899px) */
 	@media (max-width: 899px) {
 		header {
-			padding: env(safe-area-inset-top) 10px 0;
+			padding: var(--safe-area-top) 10px 0;
 		}
 		header > div {
 			padding: 10px;

@@ -97,17 +97,17 @@ function handleModalKeydown(event: KeyboardEvent): void {
 
 <style>
 	footer {
-		padding: 20px 40px calc(20px + env(safe-area-inset-bottom));
+		padding: 20px 40px calc(20px + var(--safe-area-bottom));
 		width: 100%;
 		max-width: 840px;
-		height: calc(80px + env(safe-area-inset-bottom));
+		height: calc(80px + var(--safe-area-bottom));
 		margin: 0 auto;
 	}
 
 	/* モバイル表示 */
 	@media (max-width: 899px) {
 		footer {
-			padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+			padding: 20px 20px calc(20px + var(--safe-area-bottom));
 		}
 		.inner {
 			gap: 15px;

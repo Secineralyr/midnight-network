@@ -18,6 +18,12 @@ html {
 	-moz-osx-font-smoothing: grayscale;
 }
 
+:root {
+	--safe-area-top: env(safe-area-inset-top);
+	--safe-area-bottom: env(safe-area-inset-bottom);
+	--app-header-height: 56px;
+}
+
 body {
 	font-family: 'M PLUS 2', sans-serif;
 	background-color: #1c1724;

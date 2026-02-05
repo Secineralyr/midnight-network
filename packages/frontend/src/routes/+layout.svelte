@@ -60,7 +60,7 @@ onMount(async () => {
 
 <style>
 	.main {
-		padding-top: 56px;
+		padding-top: calc(var(--app-header-height) + var(--safe-area-top));
 		max-width: 840px;
 		margin: 0 auto;
 		margin-bottom: 80px;
