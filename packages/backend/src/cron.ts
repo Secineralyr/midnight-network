@@ -568,7 +568,7 @@ async function upsertRankResultData(
 		await prisma.userRankHistory.createMany({ data: createRankHistories });
 	}
 	console.info('cron.mainProcess: update rank status');
-	await updateRankStatusData.map((v) => prisma.userRankStatus.update(v));
+	await Promise.all(updateRankStatusData.map((v) => prisma.userRankStatus.update(v)));
 }
 
 /**
