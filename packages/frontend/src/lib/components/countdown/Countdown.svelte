@@ -1,10 +1,11 @@
-<script lang="ts">
+﻿<script lang="ts">
 import { onMount } from 'svelte';
 import { fly } from 'svelte/transition';
+import { SvelteDate } from 'svelte/reactivity';
 import { formatTime } from '$lib/utils/format';
 
 /**
- * カウントダウンコンポーネント
+ * Countdown component
  * @description 次の集計までの残り時間を表示
  */
 
@@ -13,27 +14,45 @@ interface Props {
 	targetTime: number;
 }
 
-const { targetTime }: Props = $props();
+const { targetTime: initialTargetTime }: Props = $props();
 
-let remainingSeconds = $state(0);
+const now = new SvelteDate();
+let targetTime = $state(initialTargetTime);
+
+function getNextTargetTime(baseTime = Date.now()): number {
+	const target = new Date(baseTime);
+	target.setUTCHours(Number(import.meta.env.VITE_TARGET_HOUR), Number(import.meta.env.VITE_TARGET_MINUTES), 0, 0);
+	if (target.getTime() <= baseTime) {
+		target.setUTCDate(target.getUTCDate() + 1);
+	}
+	return target.getTime();
+}
+
+let rafId: number;
+
+function tick(): void {
+	const currentTime = Date.now();
+	now.setTime(currentTime);
+	if (targetTime <= currentTime) {
+		targetTime = getNextTargetTime(currentTime);
+	}
+	rafId = requestAnimationFrame(tick);
+}
 
 onMount(() => {
-	function updateCountdown(): void {
-		const now = Date.now();
-		const diff = Math.max(0, targetTime - now);
-		remainingSeconds = diff / 1000;
-	}
-
-	updateCountdown();
-	const interval = setInterval(updateCountdown, 1);
+	const currentTime = Date.now();
+	now.setTime(currentTime);
+	targetTime = getNextTargetTime(currentTime);
+	rafId = requestAnimationFrame(tick);
 
 	return () => {
-		clearInterval(interval);
+		cancelAnimationFrame(rafId);
 	};
 });
 
 /** フォーマットされた残り時間 */
-const formattedTime = $derived(formatTime(remainingSeconds));
+const remainingMs = $derived(Math.max(0, targetTime - now.getTime()));
+const formattedTime = $derived(formatTime(remainingMs / 1000));
 </script>
 
 <div class="root" in:fly={{ y: 10, duration: 400 }}>
