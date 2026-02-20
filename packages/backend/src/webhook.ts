@@ -30,6 +30,7 @@ const commands = {
 	ping: /\/ping/,
 	adminRerun: /\/admin:rerun/,
 } as const;
+const adminRerunRunIdMatch = /\/admin:rerun(?:\s+(\d+))?/;
 
 async function routeBotCommand(note: Note) {
 	console.info('command action');
@@ -41,8 +42,10 @@ async function routeBotCommand(note: Note) {
 		return;
 	}
 
-	if (note.user.username === env.ADMIN_USER_NAME && commands.adminRerun.test(note.text)) {
-		await processCronMainRerun();
+	if (note.user.username === env.ADMIN_USER_NAME && commands.adminRerun.test(note.text) && note.text !== null) {
+		const runIdMatch = note.text.match(adminRerunRunIdMatch);
+		const runId = runIdMatch?.[1] ? Number(runIdMatch[1]) : undefined;
+		await processCronMainRerun(runId);
 		await mkApi('notes/reactions/create', { noteId: note.id, reaction: '✅' });
 	} else if (commands.follow.test(note.text)) {
 		console.info('execute follow command');

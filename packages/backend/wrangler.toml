@@ -33,6 +33,10 @@ id = "REPLACE_ME"
 binding = "CACHE"
 id = "REPLACE_ME"
 
+[[r2_buckets]]
+binding = "RANK_STATUS_SNAPSHOTS"
+bucket_name = "REPLACE_ME"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "midnight-network"

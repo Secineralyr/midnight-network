@@ -24,6 +24,7 @@ import type {
 	UserSettingsCreateManyInput,
 } from './generated/prisma/models';
 import { createRetryMisskeyApiClientFetcher } from './misskey';
+import { readUserRankStatusSnapshot, writeUserRankStatusSnapshot } from './rank-status-snapshot';
 import { parsePushSubscriptions } from './rpc/helpers/push';
 import { calculateRankFromPoints, rankNumberToRankTypeValue } from './rpc/helpers/rank';
 import { getTargetTime, wait } from './util';
@@ -95,201 +96,22 @@ type MatchRecordData = {
 	place: number;
 };
 
-type RerunBaseStatus = {
-	pt: number;
-	streakParticipationAt: number;
-	streakAbsenceAt: number;
-	streakWithinTopAt: number;
-	streakFlyingAt: number;
-	protectCoolTime: number;
-};
-
-/**
- * rerun 用に集計前の status をユーザーごとに構築する。
- */
-async function buildRerunBaseStatusMap(matchDate: MatchDate): Promise<Record<string, RerunBaseStatus>> {
-	const users = await prisma.user.findMany({ select: { id: true } });
-	// そのuserの最後に変動した試合
-	const latestHistoryKeys = await prisma.userRankHistory.groupBy({
-		by: ['userId'],
-		where: {
-			matchDate: {
-				date: {
-					lt: matchDate.date,
-				},
-			},
-		},
-		_max: { matchId: true },
-	});
-
-	const historyPairs = latestHistoryKeys
-		.map((record) => {
-			const matchId = record._max.matchId;
-			if (matchId === null) {
-				return undefined;
-			}
-			return { userId: record.userId, matchId };
-		})
-		.filter((v): v is NonNullable<typeof v> => v !== undefined);
-
-	const selectFields = {
-		userId: true,
-		pt: true,
-		streakParticipationAt: true,
-		streakAbsenceAt: true,
-		streakWithinTopAt: true,
-		streakFlyingAt: true,
-		protectCoolTime: true,
-		matchDate: {
-			select: { date: true },
-		},
-	} as const;
-	// 何故かいっぺんに取得できない
-	const historiesTask = historyPairs.map((v) =>
-		prisma.userRankHistory.findFirst({
-			where: v,
-			select: selectFields,
-		}),
+async function writeMatchResultStatusSnapshot(matchDate: MatchDate): Promise<void> {
+	console.info('cron.mainProcess: write status snapshot before rank update');
+	const status = await prisma.userRankStatus.findMany();
+	await writeUserRankStatusSnapshot(
+		matchDate.id,
+		Date.now(),
+		status.map((s) => ({
+			id: s.id,
+			pt: s.pt,
+			streakParticipationAt: s.streakParticipationAt,
+			streakAbsenceAt: s.streakAbsenceAt,
+			streakWithinTopAt: s.streakWithinTopAt,
+			streakFlyingAt: s.streakFlyingAt,
+			protectCoolTime: s.protectCoolTime,
+		})),
 	);
-	const histories = (await Promise.all(historiesTask)).flat().filter((v): v is NonNullable<typeof v> => v !== null);
-
-	const latestHistoryMap = new Map<string, (typeof histories)[number]>();
-	for (const history of histories) {
-		if (!latestHistoryMap.has(history.userId)) {
-			latestHistoryMap.set(history.userId, history);
-		}
-	}
-
-	const uniqueLastDates = new Set<number>();
-	for (const history of latestHistoryMap.values()) {
-		uniqueLastDates.add(history.matchDate.date.getTime());
-	}
-
-	// ユーザーの持つ最新履歴の試合から何試合行われてきたか
-	const gapEntries = await Promise.all(
-		[...uniqueLastDates].map(async (lastDateTime) => {
-			const gap = await prisma.matchDate.count({
-				where: {
-					date: {
-						gt: new Date(lastDateTime),
-						lt: matchDate.date,
-					},
-				},
-			});
-			return [lastDateTime, gap] as const;
-		}),
-	);
-	const gapCountMap = new Map<number, number>(gapEntries);
-
-	const baseStatusMap: Record<string, RerunBaseStatus> = {};
-	for (const user of users) {
-		const history = latestHistoryMap.get(user.id);
-		// そもそも存在しないユーザーは参加していないので全て0であるはずである。
-		if (!history) {
-			baseStatusMap[user.id] = {
-				pt: 0,
-				streakParticipationAt: 0,
-				streakAbsenceAt: 0,
-				streakWithinTopAt: 0,
-				streakFlyingAt: 0,
-				protectCoolTime: 0,
-			};
-			continue;
-		}
-
-		const lastDateTime = history.matchDate.date.getTime();
-		const gap = gapCountMap.get(lastDateTime) ?? 0;
-		const hasGap = gap > 0;
-
-		// 最後の変動からどれだけ経過したかをgapとし、
-		// そのgapが0以上であれば変動してないかつ未参加である。
-		// なので連続参加系の値は基本的に0となる
-		baseStatusMap[user.id] = {
-			pt: history.pt,
-			streakParticipationAt: hasGap ? 0 : history.streakParticipationAt,
-			streakAbsenceAt: history.streakAbsenceAt + gap,
-			streakWithinTopAt: hasGap ? 0 : history.streakWithinTopAt,
-			streakFlyingAt: hasGap ? 0 : history.streakFlyingAt,
-			protectCoolTime: history.protectCoolTime,
-		};
-	}
-
-	return baseStatusMap;
-}
-
-/**
- * baseStatusMap の内容で UserRankStatus を巻き戻す。
- */
-async function resetRankStatusFromBaseStatusMap(baseStatusMap: Record<string, RerunBaseStatus>): Promise<void> {
-	const userIds = Object.keys(baseStatusMap);
-	if (userIds.length === 0) {
-		return;
-	}
-
-	const resetStatusData = userIds
-		.map((userId) => {
-			const baseStatus = baseStatusMap[userId];
-			if (!baseStatus) {
-				return undefined;
-			}
-			return {
-				id: userId,
-				pt: baseStatus.pt,
-				streakParticipationAt: baseStatus.streakParticipationAt,
-				streakAbsenceAt: baseStatus.streakAbsenceAt,
-				streakWithinTopAt: baseStatus.streakWithinTopAt,
-				streakFlyingAt: baseStatus.streakFlyingAt,
-				protectCoolTime: baseStatus.protectCoolTime,
-			};
-		})
-		.filter((v): v is NonNullable<typeof v> => v !== undefined);
-
-	if (resetStatusData.length === 0) {
-		console.info('cron.mainProcess: no reset rank status');
-		return;
-	}
-
-	console.info('cron.mainProcess: reset rank status for rerun');
-	await upsertMany(prisma, 'UserRankStatus', prisma.userRankStatus, {
-		autoTimestamps: true,
-		conflictKeys: ['id'],
-		updateKeys: [
-			'pt',
-			'streakParticipationAt',
-			'streakAbsenceAt',
-			'streakWithinTopAt',
-			'streakFlyingAt',
-			'protectCoolTime',
-		],
-		data: resetStatusData,
-	});
-}
-
-/**
- * rerun 実行前の復元と削除をまとめて行う。
- */
-async function prepareRerunState(): Promise<void> {
-	const targetTimeDate = new Date(getTargetTime());
-
-	console.info('cron.mainProcess: find latest matchDate (rerun)');
-	const matchDate = await prisma.matchDate.findFirst({
-		where: {
-			date: targetTimeDate,
-		},
-	});
-
-	if (matchDate === null) {
-		console.info('cron.mainProcess: no matchDate data. exit rerun prepare');
-		return;
-	}
-
-	const baseStatusMap = await buildRerunBaseStatusMap(matchDate);
-	await resetRankStatusFromBaseStatusMap(baseStatusMap);
-
-	console.info('cron.mainProcess: delete records for rerun');
-	await prisma.record.deleteMany({ where: { matchDateId: matchDate.id } });
-	console.info('cron.mainProcess: delete histories for rerun');
-	await prisma.userRankHistory.deleteMany({ where: { matchId: matchDate.id } });
 }
 
 function calculatePlaces(validRecords: MatchRecordData[]) {
@@ -538,11 +360,6 @@ async function upsertRankResultData(
 				userId: uid,
 				pt: result.nextTotalPoints,
 				earnedPt: result.pointDelta,
-				streakParticipationAt: result.nextStreak.consecutiveParticipationDays,
-				streakAbsenceAt: result.nextStreak.consecutiveAbsenceDays,
-				streakWithinTopAt: result.nextStreak.consecutiveWithinZoneDays,
-				streakFlyingAt: result.nextStreak.consecutiveFlyingCount,
-				protectCoolTime: result.nextBorderProtection.cooldownDays,
 				matchId: matchDate.id,
 			});
 		}
@@ -701,6 +518,9 @@ export async function processCronMain(options?: { isRerun?: boolean }) {
 	records = processedData.records;
 	const { eventMatch, matchDate } = processedData;
 
+	// MatchDateとRecordが挿入されてしまっているが、まだUserRankStatusは問題ないのでここでスナップショットを取る
+	await writeMatchResultStatusSnapshot(matchDate);
+
 	console.info('cron.mainProcess: start update rank');
 	// ランク計算
 	await upsertRankResultData(records, validRecords, eventMatch, matchDate);
@@ -716,8 +536,46 @@ export async function processCronMain(options?: { isRerun?: boolean }) {
  * rerun 用の事前復元を行ってから通常集計を実行する。
  */
 
-export async function processCronMainRerun() {
-	await prepareRerunState();
+export async function processCronMainRerun(runId?: number) {
+	console.info('start main process for rerun');
+	const latestMatchDate = await prisma.matchDate.findFirst({
+		orderBy: { id: 'desc' },
+	});
+
+	const matchTargetTime = latestMatchDate?.date.getTime();
+	const currenttargetTime = getTargetTime();
+
+	if (latestMatchDate && matchTargetTime === currenttargetTime) {
+		const snapshot = await readUserRankStatusSnapshot(latestMatchDate.id, runId);
+		if (snapshot !== null) {
+			console.info('cron.reRunProcess: delete UserRankHistory');
+			await prisma.userRankHistory.deleteMany({ where: { matchId: latestMatchDate.id } });
+			console.info('cron.reRunProcess: delete Records');
+			await prisma.record.deleteMany({ where: { matchDateId: latestMatchDate.id } });
+			console.info('cron.reRunProcess: delete MatchDate');
+			await prisma.matchDate.deleteMany({ where: { id: latestMatchDate.id } });
+
+			console.info('cron.reRunProcess: restore userRankStatus');
+			await upsertMany(prisma, 'UserRankStatus', prisma.userRankStatus, {
+				autoTimestamps: true,
+				conflictKeys: ['id'],
+				updateKeys: [
+					'pt',
+					'streakParticipationAt',
+					'streakAbsenceAt',
+					'streakWithinTopAt',
+					'streakFlyingAt',
+					'protectCoolTime',
+				],
+				data: snapshot.status,
+			});
+		} else {
+			console.info('cron.reRunProcess: no snapshot for matchDate.');
+		}
+	} else {
+		console.info('cron.reRunProcess: no matchDate data.');
+	}
+
 	await processCronMain({ isRerun: true });
 }
 
