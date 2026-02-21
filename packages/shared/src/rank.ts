@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Secineralyr
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 export const RankType = {
 	NoRank: -1,
 	BeginnerBefore: 0,

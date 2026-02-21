@@ -1,3 +1,5 @@
+<!-- SPDX-FileCopyrightText: 2026 Secineralyr -->
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <script lang="ts">
 import { QueryClientProvider } from '@tanstack/svelte-query';
 import { onMount } from 'svelte';

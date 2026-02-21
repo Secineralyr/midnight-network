@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Secineralyr
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import type { RankCalculationEvent, RankNumber, RankStreakState } from '@midnight-network/shared/rank-status-system';
 
 import { calculateExpectedMedianPlacement, calculateNormalizedRankValue, calculateRankFactor } from './rank-metrics.js';

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Secineralyr
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { contract } from '@midnight-network/shared/rpc';
 import { implement, ORPCError } from '@orpc/server';
 import type { RequestHeadersPluginContext } from '@orpc/server/plugins';

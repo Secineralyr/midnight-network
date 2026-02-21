@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Secineralyr
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { MiAuthScopes } from '@midnight-network/shared/auth-misskey';
 import type { User as BAUser, BetterAuthPlugin } from 'better-auth';
 import { APIError, createAuthEndpoint } from 'better-auth/api';

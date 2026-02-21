@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Secineralyr
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { env } from 'cloudflare:workers';
 import { calculateRankUpdate } from '@midnight-network/rank-calc';
 import type {

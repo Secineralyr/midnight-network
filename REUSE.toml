@@ -1,0 +1,65 @@
+version = 1
+
+# JSON / YAML / dotfiles (コメント不可ファイル)
+[[annotations]]
+path = [
+    "**/*.json",
+    "pnpm-workspace.yaml",
+    "pnpm-lock.yaml",
+    ".editorconfig",
+    ".npmrc",
+    ".gitignore",
+    "lefthook.yml",
+]
+SPDX-FileCopyrightText = "2026 Secineralyr"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+# SQL マイグレーションファイル
+[[annotations]]
+path = "packages/backend/prisma/migrations/**"
+SPDX-FileCopyrightText = "2026 Secineralyr"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+# wrangler 設定ファイル
+[[annotations]]
+path = "packages/*/wrangler.toml"
+SPDX-FileCopyrightText = "2026 Secineralyr"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+# エディタ / CI / DevContainer 設定
+[[annotations]]
+path = [
+    ".devcontainer/**",
+    ".vscode/**",
+    ".github/**",
+]
+SPDX-FileCopyrightText = "2026 Secineralyr"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+# webmanifest
+[[annotations]]
+path = [
+    "packages/frontend/static/manifest.webmanifest",
+]
+SPDX-FileCopyrightText = "2026 Secineralyr"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+# Image Asset
+[[annotations]]
+path = [
+    "packages/frontend/static/**/*.png",
+]
+SPDX-FileCopyrightText = "2026 Secineralyr"
+SPDX-License-Identifier = "LicenseRef-Secineralyr-Normal-Asset"
+
+# backend .dev.vars テンプレート
+[[annotations]]
+path = "packages/backend/.dev.vars.example"
+SPDX-FileCopyrightText = "2026 Secineralyr"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+# frontend .env テンプレート
+[[annotations]]
+path = "packages/frontend/.env.example"
+SPDX-FileCopyrightText = "2026 Secineralyr"
+SPDX-License-Identifier = "AGPL-3.0-or-later"

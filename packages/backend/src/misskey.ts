@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Secineralyr
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { env } from 'cloudflare:workers';
 import { createHostToOrigin } from '@midnight-network/shared/url';
 import type { Endpoints } from 'misskey-js';

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Secineralyr
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 view UserParticipantsCount {
     userId            String @unique
     user              User   @relation(fields: [userId], references: [id])
@@ -126,5 +129,5 @@ view UserRankYesterday {
     userId String @unique
     user   User   @relation(fields: [userId], references: [id])
     pt     Int
-    place Int
+    place  Int
 }

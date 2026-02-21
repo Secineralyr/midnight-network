@@ -1,3 +1,5 @@
+<!-- SPDX-FileCopyrightText: 2026 Secineralyr -->
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <script lang="ts">
 /** ボタンのバリアント */
 type ButtonVariant = 'primary' | 'secondary';

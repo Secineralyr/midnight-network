@@ -1,3 +1,5 @@
+<!-- SPDX-FileCopyrightText: 2026 Secineralyr -->
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <script lang="ts">
 import type { SettingTypeT, UserInfoResponseT } from '@midnight-network/shared/rpc/me/models';
 import { IconLogout, IconSettings, IconUser } from '@tabler/icons-svelte';

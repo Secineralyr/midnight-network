@@ -1,3 +1,5 @@
+<!-- SPDX-FileCopyrightText: 2026 Secineralyr -->
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <script lang="ts">
 import type { BasicTableResponseDataT } from '@midnight-network/shared/rpc/leaderboard/models';
 import type { ColumnDef } from '@tanstack/svelte-table';

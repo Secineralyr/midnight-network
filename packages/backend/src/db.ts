@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Secineralyr
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { env } from 'cloudflare:workers';
 import { PrismaD1 } from '@prisma/adapter-d1';
 import { PrismaClient } from './generated/prisma/client';

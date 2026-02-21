@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Secineralyr
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { RankType } from '@midnight-network/shared/rank';
 import type { RankNumber } from '@midnight-network/shared/rank-status-system';
 import { rankPointThresholds } from '@midnight-network/shared/rank-status-system';

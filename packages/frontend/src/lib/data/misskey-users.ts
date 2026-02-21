@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Secineralyr
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { createHostToOrigin } from '@midnight-network/shared/url';
 import type { QueryClient } from '@tanstack/svelte-query';
 import { APIClient as MkAPIClient } from 'misskey-js/api.js';

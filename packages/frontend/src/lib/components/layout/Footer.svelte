@@ -1,3 +1,5 @@
+<!-- SPDX-FileCopyrightText: 2026 Secineralyr -->
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <script lang="ts">
 import { IconBrandGithub, IconChevronRight, IconX } from '@tabler/icons-svelte';
 import { blur, fade } from 'svelte/transition';
