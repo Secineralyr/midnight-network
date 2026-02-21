@@ -3,6 +3,7 @@
 <script lang="ts">
 import { RankType } from '@midnight-network/shared/rank';
 import { getRankGrade, type RankTypeValue } from '$lib/utils/rank';
+import { onErrorImageDisplayNone } from '$lib/utils/style';
 
 /**
  * ランクアイコンコンポーネント
@@ -22,9 +23,9 @@ const grade = $derived(getRankGrade(rank));
 
 <div class={`rank-icon rank-icon--${grade} ${className}`.trim()} {style}>
 	{#if rank !== RankType.NoRank}
-		<img src="/rank/time/{rank}.png" alt="Rank {grade}" class="rank-icon-image" />
+		<img src="/rank/time/{rank}.png" alt="Rank {grade}" class="rank-icon-image" onerror={(e) => onErrorImageDisplayNone(e.currentTarget)} />
 	{:else}
-		<img src="/rank/time/nr.png" alt="No Rank" class="rank-icon-image" />
+		<img src="/rank/time/nr.png" alt="No Rank" class="rank-icon-image" onerror={(e) => onErrorImageDisplayNone(e.currentTarget)} />
 	{/if}
 </div>
 

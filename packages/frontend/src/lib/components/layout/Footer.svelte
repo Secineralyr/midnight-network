@@ -4,6 +4,7 @@
 import { IconBrandGithub, IconChevronRight, IconX } from '@tabler/icons-svelte';
 import { blur, fade } from 'svelte/transition';
 import MiIcon from '$lib/assets/MiIcon.svelte';
+import { onErrorImageDisplayNone } from '$lib/utils/style';
 
 const miLinks = [
 	{ href: 'https://misskey.io/@sangatsu_tsuitachi', label: 'ランカーBot' },
@@ -32,7 +33,7 @@ function handleModalKeydown(event: KeyboardEvent): void {
 <footer>
 	<div class="inner">
 		<div class="left">
-			<a href="https://secinet.jp" target="_blank" rel="noopener noreferrer" class="logo"><img src="/secineralyr_text_logo.png" alt="Secineralyr"></a>
+			<a href="https://secinet.jp" target="_blank" rel="noopener noreferrer" class="logo"><img src="/secineralyr_text_logo.png" alt="Secineralyr" onerror={(e) => onErrorImageDisplayNone(e.currentTarget)}></a>
 			<nav class="nav">
 				<!-- 以下は現状無視 -->
 				<!-- <a href="/contact" class="link">お問い合わせ</a>

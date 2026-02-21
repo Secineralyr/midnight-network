@@ -2,7 +2,7 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <script lang="ts">
 import { RankType } from '@midnight-network/shared/rank';
-import type { RankTypeValue } from '$lib/utils/rank';
+import { onErrorImageDisplayNone } from '$lib/utils/style';
 
 /**
  * ランクバッジコンポーネント
@@ -20,7 +20,7 @@ const { rank, class: className = '', style = '' }: Props = $props();
 
 <div class={`rank-badge ${className}`.trim()} {style}>
 	{#if rank !== RankType.NoRank}
-		<img src="/rank/budge/{rank}.png" alt="Rank badge" class="rank-badge-image" />
+		<img src="/rank/budge/{rank}.png" alt="Rank badge" class="rank-badge-image" onerror={(e) => onErrorImageDisplayNone(e.currentTarget)} />
 	{/if}
 </div>
 

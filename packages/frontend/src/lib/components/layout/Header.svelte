@@ -13,6 +13,7 @@ import RankBadge from '../rank/RankBadge.svelte';
 import UserSearch from '../search/UserSearch.svelte';
 import LoggedInPanel from '../user/LoggedInPanel.svelte';
 import UserAvatar from '../user/UserAvatar.svelte';
+import { onErrorImageDisplayNone } from '$lib/utils/style';
 
 /**
  * ヘッダーコンポーネント
@@ -110,7 +111,7 @@ function handleWindowClick(event: MouseEvent): void {
 	<div>
 		<div class="left-side">
 			<a href="/">
-				<img src="/logo.png" alt="MidNight Network"/>
+				<img src="/logo.png" alt="MidNight Network" onerror={(e) => onErrorImageDisplayNone(e.currentTarget)}/>
 			</a>
 			<div class="line"></div>
 			<nav>

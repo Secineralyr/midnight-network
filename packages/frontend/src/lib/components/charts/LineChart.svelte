@@ -114,7 +114,7 @@ const chartOptions: EChartsOption = $derived({
 					const rank = getRankFromPt(pt);
 					if (rank !== RankType.NoRank) {
 						const badgePath = getRankBadgePath(rank);
-						html += `<br/><span style="vertical-align: middle">ランク: </span><img src="${badgePath}" alt="Rank" style="display: inline; width: 24px; height: 24px; vertical-align: middle; margin-top: 4px;" />`;
+						html += `<br/><span style="vertical-align: middle">ランク: </span><img src="${badgePath}" alt="Rank" style="display: inline; width: 24px; height: 24px; vertical-align: middle; margin-top: 4px;" onerror="this.style.display='none'" />`;
 					}
 				}
 

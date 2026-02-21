@@ -26,12 +26,21 @@ const userQuery = createQuery(() => ({
 
 const avatarUrl = $derived(userQuery.data?.avatarUrl ?? null);
 const resolvedAlt = $derived(alt || userQuery.data?.username || userId || '');
+
+let imgFailed = $state(false);
+
+// avatarUrl が変わったらリセット
+$effect(() => {
+	if (avatarUrl) {
+		imgFailed = false;
+	}
+});
 </script>
 
 {#if userQuery.isLoading}
 	<div class="avatar-placeholder skeleton" aria-hidden="true"></div>
-{:else if avatarUrl}
-	<img class="avatar-image" src={avatarUrl} alt={resolvedAlt} {loading} {decoding} />
+{:else if avatarUrl && !imgFailed}
+	<img class="avatar-image" src={avatarUrl} alt={resolvedAlt} {loading} {decoding} onerror={() => { imgFailed = true; }} />
 {:else}
 	<div class="avatar-placeholder" aria-hidden="true"></div>
 {/if}

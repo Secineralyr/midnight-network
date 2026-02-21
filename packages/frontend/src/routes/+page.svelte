@@ -11,6 +11,7 @@ import UserSearch from '$lib/components/search/UserSearch.svelte';
 import { primeMisskeyUsers } from '$lib/data/misskey-users';
 import { orpc } from '$lib/orpc';
 import { sessionUser } from '$lib/stores/session';
+import { onErrorImageDisplayNone } from '$lib/utils/style';
 
 const queryClient = useQueryClient();
 
@@ -93,7 +94,7 @@ function handleUserCardClick(username: string): void {
 		<div>
 			<div class="title-content">
 				<div class="logo">
-					<img src="/logo.png" alt="MidNight Network" class="logo-image" />
+					<img src="/logo.png" alt="MidNight Network" class="logo-image" onerror={(e) => onErrorImageDisplayNone(e.currentTarget)} />
 				</div>
 				<h1 class="title">MidNight Network</h1>
 			</div>
