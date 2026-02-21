@@ -37,6 +37,16 @@ id = "REPLACE_ME"
 binding = "RANK_STATUS_SNAPSHOTS"
 bucket_name = "replace-me"
 
+[[queues.producers]]
+binding = "RERUN_QUEUE"
+queue = "replace-me"
+
+[[queues.consumers]]
+queue = "replace-me"
+max_batch_size = 1
+max_retries = 2
+max_concurrency = 1
+
 [[d1_databases]]
 binding = "DB"
 database_name = "midnight-network"

@@ -1,8 +1,9 @@
 import { env } from 'cloudflare:workers';
 import type { Note } from 'misskey-js/entities.js';
-import { processCronMainRerun } from './cron';
 import { prisma } from './db';
 import { createRetryMisskeyApiClientFetcher } from './misskey';
+import type { RerunQueueMessage } from './rerun-queue';
+import { tryAcquireRerunLock } from './rerun-queue';
 import { getTargetTime, numberBetween } from './util';
 
 // 今はmentionしかないけど、一応機能追加用にこうしてる
@@ -42,11 +43,34 @@ async function routeBotCommand(note: Note) {
 		return;
 	}
 
+	// NOTE: misskeyのHttpRequestServiceで行われているtimeoutによって5秒以上の実行はTCP切断のリスクあり。
+	//       そのため、4秒を超える実行の場合はQueueで処理するべきである。
 	if (note.user.username === env.ADMIN_USER_NAME && commands.adminRerun.test(note.text) && note.text !== null) {
 		const runIdMatch = note.text.match(adminRerunRunIdMatch);
 		const runId = runIdMatch?.[1] ? Number(runIdMatch[1]) : undefined;
-		await processCronMainRerun(runId);
+
+		const acquired = await tryAcquireRerunLock(runId);
+		if (!acquired) {
+			await mkApi('notes/create', {
+				text: `@${note.user.username} Rerun already queued.`,
+				replyId: note.id,
+			});
+			return;
+		}
+
+		await env.RERUN_QUEUE.send({
+			noteId: note.id,
+			username: note.user.username,
+			runId,
+			requestedAt: Date.now(),
+		} satisfies RerunQueueMessage);
+
 		await mkApi('notes/reactions/create', { noteId: note.id, reaction: '✅' });
+
+		await mkApi('notes/create', {
+			text: `@${note.user.username} Rerun Queued!`,
+			replyId: note.id,
+		});
 	} else if (commands.follow.test(note.text)) {
 		console.info('execute follow command');
 		await mkApi('following/create', { userId: note.userId });

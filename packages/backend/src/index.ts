@@ -7,8 +7,11 @@ import { RequestHeadersPlugin } from '@orpc/server/plugins';
 import { Elysia, t } from 'elysia';
 import { CloudflareAdapter } from 'elysia/adapter/cloudflare-worker';
 import { auth } from './auth';
-import { processCronMain, processCronRemind } from './cron';
+import { processCronMain, processCronMainRerun, processCronRemind } from './cron';
+import { createRetryMisskeyApiClientFetcher } from './misskey';
 import { checkRateLimit, createRateLimitResponse } from './rate-limit';
+import type { RerunQueueMessage } from './rerun-queue';
+import { releaseRerunLock, updateRerunLockRunning } from './rerun-queue';
 import { router } from './rpc';
 import { mkWebhookTypes, processWebhook } from './webhook';
 
@@ -84,6 +87,28 @@ const app = new Elysia({
 
 export default {
 	fetch: app.fetch,
+	async queue(batch: MessageBatch<RerunQueueMessage>) {
+		for (const message of batch.messages) {
+			const { noteId, username, runId } = message.body;
+			const mkApi = createRetryMisskeyApiClientFetcher();
+			try {
+				console.info('queue: start rerun', { runId, noteId });
+				await updateRerunLockRunning(runId);
+				await processCronMainRerun(runId);
+				await releaseRerunLock();
+				await mkApi('notes/create', {
+					text: `@${username} Rerun Finished!`,
+					replyId: noteId,
+				});
+				message.ack();
+				console.info('queue: rerun completed', { runId, noteId });
+			} catch (error) {
+				console.error('queue: rerun failed', error);
+				// ロックは解放せずリトライ（TTL で最終的に自動解放される）
+				message.retry();
+			}
+		}
+	},
 	async scheduled(event: ScheduledEvent) {
 		const cron = event.cron;
 		console.info('cron start:', cron);
