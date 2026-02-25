@@ -538,7 +538,6 @@ export async function processCronMain(options?: { isRerun?: boolean }) {
 /**
  * rerun 用の事前復元を行ってから通常集計を実行する。
  */
-
 export async function processCronMainRerun(runId?: number) {
 	console.info('start main process for rerun');
 	const latestMatchDate = await prisma.matchDate.findFirst({
@@ -551,12 +550,15 @@ export async function processCronMainRerun(runId?: number) {
 	if (latestMatchDate && matchTargetTime === currenttargetTime) {
 		const snapshot = await readUserRankStatusSnapshot(latestMatchDate.id, runId);
 		if (snapshot !== null) {
+			console.info(
+				`cron.reRunProcess: apply snapshot data [ runId = ${snapshot.runId}, matchDateId = ${snapshot.matchDateId}, createdAt = ${snapshot.createdAt} ]`,
+			);
+
 			console.info('cron.reRunProcess: delete UserRankHistory');
 			await prisma.userRankHistory.deleteMany({ where: { matchId: latestMatchDate.id } });
 			console.info('cron.reRunProcess: delete Records');
 			await prisma.record.deleteMany({ where: { matchDateId: latestMatchDate.id } });
-			console.info('cron.reRunProcess: delete MatchDate');
-			await prisma.matchDate.deleteMany({ where: { id: latestMatchDate.id } });
+			// NOTE: matchDateは前回結果のスナップショット整合性を取るためにidを再利用する目的のため、削除しない
 
 			console.info('cron.reRunProcess: restore userRankStatus');
 			await upsertMany(prisma, 'UserRankStatus', prisma.userRankStatus, {

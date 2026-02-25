@@ -91,30 +91,37 @@ const app = new Elysia({
 export default {
 	fetch: app.fetch,
 	async queue(batch: MessageBatch<RerunQueueMessage>) {
-		for (const message of batch.messages) {
-			const { noteId, username, runId } = message.body;
-			const mkApi = createRetryMisskeyApiClientFetcher();
-			try {
-				console.info('queue: start rerun', { runId, noteId });
-				await updateRerunLockRunning(runId);
-				await processCronMainRerun(runId);
-				await releaseRerunLock();
-				await mkApi('notes/create', {
-					text: `@${username} Rerun Finished!`,
-					replyId: noteId,
-				});
-				message.ack();
-				console.info('queue: rerun completed', { runId, noteId });
-			} catch (error) {
-				console.error('queue: rerun failed', error);
-				// ロックは解放せずリトライ（TTL で最終的に自動解放される）
-				message.retry();
-			}
+		const message = batch.messages[0];
+		if (message === undefined) {
+			console.error('queue: message is none?');
+			return;
 		}
+
+		const { noteId, username, runId } = message.body;
+		try {
+			console.info(`queue: start rerun. [ runId = ${runId}, noteId = ${noteId} ]`);
+
+			await updateRerunLockRunning(runId);
+			await processCronMainRerun(runId);
+			await releaseRerunLock();
+
+			message.ack();
+			console.info(`queue: rerun completed. [ runId = ${runId}, noteId = ${noteId} ]`);
+		} catch (error) {
+			console.error(`queue: rerun failed. ${error}`);
+			// ロックは解放せずリトライ（TTL で最終的に自動解放される）
+			message.retry();
+		}
+
+		const mkApi = createRetryMisskeyApiClientFetcher();
+		await mkApi('notes/create', {
+			text: `@${username} Rerun Finished!`,
+			replyId: noteId,
+		});
 	},
 	async scheduled(event: ScheduledEvent) {
 		const cron = event.cron;
-		console.info('cron start:', cron);
+		console.info(`cron start: ${cron}`);
 		switch (cron) {
 			case env.crons.CRON_DAILY:
 				await processCronMain();
@@ -125,7 +132,7 @@ export default {
 			default:
 				break;
 		}
-		console.info('cron end:', cron);
+		console.info(`cron end: ${cron}`);
 		return;
 	},
 };
