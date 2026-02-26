@@ -156,6 +156,7 @@ Additionally, edit the following items as needed:
 | `DISABLE_WEBHOOK_BEFORE_TARGET_MATCH` | How long before the aggregation time to ignore webhook responses (ms) |
 | `DISABLE_WEBHOOK_AFTER_TARGET_MATCH` | How long after the aggregation time to re-enable webhook responses (ms) |
 | `VAPID_PUBLIC_KEY` | VAPID public key for push notifications |
+| `DB_QUERY_LOGGING` | Log the executed query (for debug) |
 
 There are also cron execution settings.
 These exist because `triggers.cron` alone cannot control individual processes, so these definitions are used for that control.

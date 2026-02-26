@@ -157,6 +157,7 @@ pnpm -r build
 | `DISABLE_WEBHOOK_BEFORE_TARGET_MATCH` | 集計時にwebhookによる応答を無視する、集計時間からどれだけ前から無効にするか(ms) |
 | `DISABLE_WEBHOOK_AFTER_TARGET_MATCH` | 集計時にwebhookによる応答を無視する、集計時間からどれだけ後に有効にするか(ms) |
 | `VAPID_PUBLIC_KEY` | プッシュ通知用VAPID公開鍵 |
+| `DB_QUERY_LOGGING` | 実行クエリをログに残すか(検証用) |
 
 また、cron用の実行設定もあります。
 これは`triggers.cron`では各種プロセスの制御が不可能なため、制御するための定義です。
