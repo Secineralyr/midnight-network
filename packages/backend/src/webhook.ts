@@ -57,6 +57,7 @@ async function routeBotCommand(note: Note) {
 			await mkApi('notes/create', {
 				text: `@${note.user.username} Rerun already queued.`,
 				replyId: note.id,
+				visibility: 'specified',
 			});
 			return;
 		}
@@ -73,6 +74,7 @@ async function routeBotCommand(note: Note) {
 		await mkApi('notes/create', {
 			text: `@${note.user.username} Rerun Queued!`,
 			replyId: note.id,
+			visibility: 'specified',
 		});
 	} else if (commands.follow.test(note.text)) {
 		console.info('execute follow command');

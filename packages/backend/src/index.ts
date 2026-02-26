@@ -117,6 +117,7 @@ export default {
 		await mkApi('notes/create', {
 			text: `@${username} Rerun Finished!`,
 			replyId: noteId,
+			visibility: 'specified',
 		});
 	},
 	async scheduled(event: ScheduledEvent) {
