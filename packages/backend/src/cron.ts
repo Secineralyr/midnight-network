@@ -23,7 +23,6 @@ import type {
 	UserCreateManyInput,
 	UserRankHistoryCreateManyInput,
 	UserRankStatusCreateManyInput,
-	UserRankStatusUpdateArgs,
 	UserSettingsCreateManyInput,
 } from './generated/prisma/models';
 import { createRetryMisskeyApiClientFetcher } from './misskey';
@@ -31,7 +30,7 @@ import { readUserRankStatusSnapshot, writeUserRankStatusSnapshot } from './rank-
 import { parsePushSubscriptions } from './rpc/helpers/push';
 import { calculateRankFromPoints, rankNumberToRankTypeValue } from './rpc/helpers/rank';
 import { getTargetTime, wait } from './util';
-import { sendPushNotification } from './web-push';
+import { sendPushNotification, type PushSubscriptionData } from './web-push';
 import { RankShiftType } from '@midnight-network/shared/rpc/me/models';
 
 function getTargetTimeRange(): [number, number] {
@@ -306,7 +305,7 @@ async function upsertRankResultData(
 
 	const userRankStatuses = await prisma.userRankStatus.findMany();
 	const createRankHistories: UserRankHistoryCreateManyInput[] = [];
-	const updateRankStatusData: UserRankStatusUpdateArgs[] = [];
+	const updateRankStatusData: UserRankStatusCreateManyInput[] = [];
 	for (const user of allUsers) {
 		const uid = user.id;
 		let userRankStatus = userRankStatuses.find((v) => v.id === uid);
@@ -373,15 +372,13 @@ async function upsertRankResultData(
 		}
 
 		updateRankStatusData.push({
-			where: { id: uid },
-			data: {
-				pt: result.nextTotalPoints,
-				streakParticipationAt: result.nextStreak.consecutiveParticipationDays,
-				streakAbsenceAt: result.nextStreak.consecutiveAbsenceDays,
-				streakWithinTopAt: result.nextStreak.consecutiveWithinZoneDays,
-				streakFlyingAt: result.nextStreak.consecutiveFlyingCount,
-				protectCoolTime: result.nextBorderProtection.cooldownDays,
-			},
+			id: uid,
+			pt: result.nextTotalPoints,
+			streakParticipationAt: result.nextStreak.consecutiveParticipationDays,
+			streakAbsenceAt: result.nextStreak.consecutiveAbsenceDays,
+			streakWithinTopAt: result.nextStreak.consecutiveWithinZoneDays,
+			streakFlyingAt: result.nextStreak.consecutiveFlyingCount,
+			protectCoolTime: result.nextBorderProtection.cooldownDays,
 		});
 	}
 
@@ -393,7 +390,14 @@ async function upsertRankResultData(
 		await prisma.userRankHistory.createMany({ data: createRankHistories });
 	}
 	console.info('cron.mainProcess: update rank status');
-	await Promise.all(updateRankStatusData.map((v) => prisma.userRankStatus.update(v)));
+	if (updateRankStatusData.length > 0) {
+		await upsertMany(prisma, 'UserRankStatus', prisma.userRankStatus, {
+			autoTimestamps: true,
+			conflictKeys: ['id'],
+			updateKeys: ['pt', 'streakParticipationAt', 'streakAbsenceAt', 'streakWithinTopAt', 'streakFlyingAt', 'protectCoolTime'],
+			data: updateRankStatusData,
+		});
+	}
 
 	return borderProtectedUserIds;
 }
@@ -440,7 +444,7 @@ async function sendMatchResultNotifications(records: Record<string, MatchRecordD
 	const historyMap = Object.fromEntries(histories.map((h) => [h.userId, h]));
 	const prevMap = Object.fromEntries(prevHistories.map((h) => [h.userId, h]));
 
-	const sendPromises: Promise<void>[] = [];
+	const sendPromises: Promise<{ sub: PushSubscriptionData; userId: string; gone: boolean }>[] = [];
 	for (const [userId, subs] of subsByUser) {
 		const record = records[userId];
 		if (!record) {
@@ -469,23 +473,37 @@ async function sendMatchResultNotifications(records: Record<string, MatchRecordD
 
 		for (const sub of subs) {
 			sendPromises.push(
-				sendPushNotification(sub, payload).then(async (res) => {
-					if (!res.gone) {
-						return;
-					}
-					const au = await prisma.authUser.findUnique({ where: { id: userId }, select: { pushSubscriptions: true } });
-					const filtered = parsePushSubscriptions(au?.pushSubscriptions).filter((s) => s.endpoint !== sub.endpoint);
-					await prisma.authUser.update({
-						where: { id: userId },
-						data: { pushSubscriptions: filtered.length > 0 ? JSON.stringify(filtered) : null },
-					});
-				}),
+				sendPushNotification(sub, payload).then((res) => ({
+					sub,
+					userId,
+					gone: res.gone ?? false,
+				})),
 			);
 		}
 	}
 
 	const results = await Promise.allSettled(sendPromises);
 	console.info(`cron.pushNotifications: sent ${results.filter((r) => r.status === 'fulfilled').length}/${results.length}`);
+
+	// gone サブスクリプションを userId ごとに集約
+	const goneEndpointsByUser = new Map<string, string[]>();
+	for (const r of results) {
+		if (r.status === 'fulfilled' && r.value.gone) {
+			const endpoints = goneEndpointsByUser.get(r.value.userId) ?? [];
+			endpoints.push(r.value.sub.endpoint);
+			goneEndpointsByUser.set(r.value.userId, endpoints);
+		}
+	}
+
+	// gone サブスクリプションをまとめて削除（ユーザーごとに1回のDB操作）
+	for (const [userId, goneEndpoints] of goneEndpointsByUser) {
+		const au = await prisma.authUser.findUnique({ where: { id: userId }, select: { pushSubscriptions: true } });
+		const filtered = parsePushSubscriptions(au?.pushSubscriptions).filter((s) => !goneEndpoints.includes(s.endpoint));
+		await prisma.authUser.update({
+			where: { id: userId },
+			data: { pushSubscriptions: filtered.length > 0 ? JSON.stringify(filtered) : null },
+		});
+	}
 }
 
 export async function processCronMain(options?: { isRerun?: boolean }) {
