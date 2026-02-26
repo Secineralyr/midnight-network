@@ -36,3 +36,15 @@ export const RankText = {
 } as const satisfies Record<keyof typeof RankType, string>;
 
 export const rankGradeRange = 1000 as const;
+
+type RankTypeValue = (typeof RankType)[keyof typeof RankType];
+
+/** RankTypeの値から表示テキストを取得する */
+export function rankTypeValueToText(value: RankTypeValue): string {
+	for (const key of Object.keys(RankType) as (keyof typeof RankType)[]) {
+		if (RankType[key] === value) {
+			return RankText[key];
+		}
+	}
+	return RankText.NoRank;
+}

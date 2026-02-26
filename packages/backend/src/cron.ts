@@ -32,6 +32,7 @@ import { parsePushSubscriptions } from './rpc/helpers/push';
 import { calculateRankFromPoints, rankNumberToRankTypeValue } from './rpc/helpers/rank';
 import { getTargetTime, wait } from './util';
 import { sendPushNotification } from './web-push';
+import { RankShiftType } from '@midnight-network/shared/rpc/me/models';
 
 function getTargetTimeRange(): [number, number] {
 	const targetTime = getTargetTime();
@@ -273,8 +274,9 @@ async function upsertRankResultData(
 	validRecords: MatchRecordData[],
 	eventMatch: EventMatch | null,
 	matchDate: MatchDate,
-) {
+): Promise<string[]> {
 	const validCount = validRecords.length;
+	const borderProtectedUserIds: string[] = [];
 
 	const allUsers = await prisma.user.findMany();
 	const withinTopUids = validRecords.filter((rec) => rec.place <= 10);
@@ -358,6 +360,9 @@ async function upsertRankResultData(
 		}
 
 		const result = calculateRankUpdate(currentState, event);
+		if (result.usedBorderProtection) {
+			borderProtectedUserIds.push(uid);
+		}
 		if (!(event.kind === 'absent' && result.pointDelta === 0)) {
 			createRankHistories.push({
 				userId: uid,
@@ -389,13 +394,15 @@ async function upsertRankResultData(
 	}
 	console.info('cron.mainProcess: update rank status');
 	await Promise.all(updateRankStatusData.map((v) => prisma.userRankStatus.update(v)));
+
+	return borderProtectedUserIds;
 }
 
 /**
  * 参加ユーザーにPush通知を送信する。
  * 通知内容: 順位、タイム、獲得pt、反映後合計pt、ランクアップ有無、現在ランク
  */
-async function sendMatchResultNotifications(records: Record<string, MatchRecordData>) {
+async function sendMatchResultNotifications(records: Record<string, MatchRecordData>, borderProtectedUserIds: string[]) {
 	const userIds = Object.keys(records);
 	if (userIds.length === 0) {
 		return;
@@ -444,17 +451,20 @@ async function sendMatchResultNotifications(records: Record<string, MatchRecordD
 		const count = partCountMap[userId] ?? 0;
 		const { rankNumber, isNoRank } = calculateRankFromPoints(totalPt, count);
 		const prev = prevMap[userId];
-		const rankUp = prev ? rankNumber > calculateRankFromPoints(prev.pt, Math.max(0, count - 1)).rankNumber : false;
+		const prevRankNumber = prev ? calculateRankFromPoints(prev.pt, Math.max(0, count - 1)).rankNumber : rankNumber;
+		const rankShift = rankNumber > prevRankNumber ? RankShiftType.RankUp : rankNumber < prevRankNumber ? RankShiftType.RankDown : RankShiftType.None;
 		const timeSec = record.dt / 1000;
 
 		const payload = JSON.stringify({
 			type: 'match_result',
+			targetDate: latestMatch?.date.toISOString() ?? new Date(getTargetTime()).toISOString(),
 			place: record.place,
-			time: record.dt >= 0 ? `+${timeSec.toFixed(3)}` : `${timeSec.toFixed(3)}`,
+			time: timeSec,
 			earnedPt: historyMap[userId]?.earnedPt ?? 0,
-			totalPt,
-			rankUp,
-			rank: rankNumberToRankTypeValue(rankNumber, isNoRank),
+			latestTotalPt: totalPt,
+			latestRank: rankNumberToRankTypeValue(rankNumber, isNoRank),
+			rankShift,
+			usedBorderProtection: borderProtectedUserIds.includes(userId),
 		});
 
 		for (const sub of subs) {
@@ -526,12 +536,12 @@ export async function processCronMain(options?: { isRerun?: boolean }) {
 
 	console.info('cron.mainProcess: start update rank');
 	// ランク計算
-	await upsertRankResultData(records, validRecords, eventMatch, matchDate);
+	const borderProtectedUserIds = await upsertRankResultData(records, validRecords, eventMatch, matchDate);
 
 	// Push通知送信（再実行時はスキップ）
 	if (!options?.isRerun) {
 		console.info('cron.mainProcess: send push notifications');
-		await sendMatchResultNotifications(records);
+		await sendMatchResultNotifications(records, borderProtectedUserIds);
 	}
 }
 

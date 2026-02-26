@@ -13,6 +13,7 @@ interface ExtendedNotificationOptions extends NotificationOptions {
 }
 
 import { build, files, version } from '$service-worker';
+import { rankTypeValueToText } from '@midnight-network/shared/rank';
 
 const CACHE = `cache-${version}`;
 const ASSETS = [...build, ...files];
@@ -80,12 +81,36 @@ self.addEventListener('push', (event) => {
 			return;
 		}
 
-		const { place, time, earnedPt, totalPt, rankUp, rank } = data;
-		const ptSign = earnedPt >= 0 ? '+' : '';
-		const rankUpText = rankUp ? ' [RANK UP!]' : '';
+		const { targetDate, place, time, earnedPt, latestTotalPt, latestRank, rankShift, usedBorderProtection } = data;
 
-		const title = `今回のリザルト: ${place}位 | ${time}s`;
-		const body = `順位: ${place}位\nタイム: ${time}\n獲得pt: ${ptSign}${earnedPt}pt (合計: ${totalPt}pt)\nランク: ${rank}${rankUpText}`;
+		// ランクテキスト
+		const rankText = rankTypeValueToText(latestRank);
+
+		// ランクシフト・プロテクト表示
+		let rankShiftText = '';
+		if (usedBorderProtection) {
+			rankShiftText = ' [プロテクト!]';
+		} else if (rankShift > 0) {
+			rankShiftText = ' [ランクアップ]';
+		} else if (rankShift < 0) {
+			rankShiftText = ' [ランクダウン]';
+		}
+
+		// フライング判定
+		const placeText = place === -1 ? 'フライング' : `${place}位`;
+
+		// タイムフォーマット（符号 + 末尾s）
+		const timeText = `${time >= 0 ? '+' : ''}${time.toFixed(3)}s`;
+
+		// 日付フォーマット (YYYY/MM/DD)
+		const d = new Date(targetDate);
+		const dateStr = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+
+		// ポイント符号
+		const ptSign = earnedPt >= 0 ? '+' : '';
+
+		const title = `${dateStr}のリザルト`;
+		const body = `順位: ${placeText}\nタイム: ${timeText}\n獲得pt: ${ptSign}${earnedPt}pt (合計: ${latestTotalPt}pt)\nランク: ${rankText}${rankShiftText}`;
 
 		const options: ExtendedNotificationOptions = {
 			body,
