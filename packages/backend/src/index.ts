@@ -44,7 +44,7 @@ const app = new Elysia({
 			console.info('start webhook process');
 			await processWebhook(body);
 			console.info('end webhook process');
-			return new Response(null, { status: 204 });
+			return new Response(null, { status: 200 });
 		},
 		{
 			headers: t.Object({
