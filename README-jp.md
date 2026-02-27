@@ -87,6 +87,7 @@ cp packages/backend/.dev.vars.template packages/backend/.dev.vars
 | `ADMIN_USER_NAME` | 管理者ユーザー名 |
 | `WEBHOOK_SECRET` | Webhookシークレットキー |
 | `VAPID_PRIVATE_KEY` | プッシュ通知用VAPID秘密鍵 |
+| `BETTER_AUTH_SECRET` | 認証セッション暗号化用シークレットキー(32文字以上) |
 
 **フロントエンド** - テンプレートをコピーして設定:
 

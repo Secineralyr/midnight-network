@@ -86,6 +86,7 @@ cp packages/backend/.dev.vars.template packages/backend/.dev.vars
 | `ADMIN_USER_NAME` | Admin user name |
 | `WEBHOOK_SECRET` | Webhook secret key |
 | `VAPID_PRIVATE_KEY` | VAPID private key for push notifications |
+| `BETTER_AUTH_SECRET` | Secret key for auth session encryption (32+ chars) |
 
 **Frontend** — Copy the template and configure:
 

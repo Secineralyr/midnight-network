@@ -25,6 +25,21 @@ export const auth = betterAuth({
 		enabled: false,
 	},
 	plugins: [miauthPlugin()],
+	secondaryStorage: {
+		get: async (key) => await env.SESSION.get(key),
+		set: async (key, value, ttl) => {
+			await env.SESSION.put(key, value, ttl ? { expirationTtl: ttl } : undefined);
+		},
+		delete: async (key) => await env.SESSION.delete(key),
+	},
+	session: {
+		storeSessionInDatabase: true,
+		cookieCache: {
+			enabled: true,
+			maxAge: 5 * 60,
+			strategy: 'jwe',
+		},
+	},
 	user: {
 		modelName: 'AuthUser',
 		additionalFields: {

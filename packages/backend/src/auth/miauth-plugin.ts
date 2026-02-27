@@ -99,7 +99,7 @@ export const miauthPlugin = () => {
 						token: string;
 						user: User;
 					}>();
-					const { token, user: misskeyUser } = data;
+					const { user: misskeyUser } = data;
 
 					// 既存アカウントを検索
 					const existingAccount = await ctx.context.internalAdapter.findAccount(misskeyUser.id);
@@ -124,8 +124,8 @@ export const miauthPlugin = () => {
 							});
 						}
 
-						// アクセストークンを更新
-						await ctx.context.internalAdapter.updateAccount(existingAccount.id, { accessToken: token });
+						// アクセストークンは保存しない（未使用のため）
+						await ctx.context.internalAdapter.updateAccount(existingAccount.id, { accessToken: null });
 					} else {
 						// 新規ユーザーとアカウントを作成
 						const result = await ctx.context.internalAdapter.createOAuthUser(
@@ -143,7 +143,7 @@ export const miauthPlugin = () => {
 								id: misskeyUser.id,
 								userId: misskeyUser.id,
 								accountId: misskeyUser.id,
-								accessToken: token,
+								accessToken: null,
 							},
 						);
 
