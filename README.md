@@ -262,6 +262,7 @@ Runs automatically on push:
 | `FRONTEND_WRANGLER_TOML` | Full contents of the frontend `wrangler.toml` for this environment |
 | `VITE_API_ROOT` | Frontend API root (empty for same-origin) |
 | `VAPID_PUBLIC_KEY` | VAPID public key for push notifications |
+| `D1_DB_NAME` | D1 database name |
 
 Note: Worker Secrets (e.g. `API_TOKEN`, `WEBHOOK_SECRET`, `BETTER_AUTH_SECRET`) must be configured directly on Cloudflare (via Dashboard or `wrangler secret put`). They are not managed by the deployment workflow.
 

@@ -263,6 +263,7 @@ VS Code 用の Dev Container 設定が含まれています:
 | `FRONTEND_WRANGLER_TOML` | この環境用のフロントエンド `wrangler.toml` の全文 |
 | `VITE_API_ROOT` | フロントエンドAPIルート（同一オリジンの場合は空） |
 | `VAPID_PUBLIC_KEY` | プッシュ通知用VAPID公開鍵 |
+| `D1_DB_NAME` | D1のデータベース名 |
 
 注意: Worker Secrets（`API_TOKEN`, `WEBHOOK_SECRET`, `BETTER_AUTH_SECRET` 等）はCloudflare側（Dashboardまたは `wrangler secret put`）で直接設定する必要があります。デプロイワークフローでは管理しません。
 
