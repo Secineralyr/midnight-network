@@ -50,8 +50,8 @@ jobs:
       - name: Build backend
         run: pnpm --filter @midnight-network/backend build
 
-      - name: Write wrangler.toml
-        run: echo "${{ secrets.BACKEND_WRANGLER_TOML }}" > packages/backend/wrangler.toml
+      - name: Append env overrides to wrangler.toml
+        run: printf '\n%s\n' "${{ secrets.BACKEND_WRANGLER_TOML }}" >> packages/backend/wrangler.toml
 
       - name: Deploy backend
         uses: cloudflare/wrangler-action@v3
@@ -59,7 +59,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: packages/backend
-          command: deploy
+          command: deploy --env ${{ needs.setup.outputs.environment }}
 
       - name: Run D1 migrations
         uses: cloudflare/wrangler-action@v3
@@ -67,7 +67,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: packages/backend
-          command: d1 migrations apply midnight-network --remote
+          command: d1 migrations apply midnight-network --remote --env ${{ needs.setup.outputs.environment }}
 
   deploy-frontend:
     needs: setup
@@ -98,8 +98,8 @@ jobs:
           VITE_TARGET_MINUTES: "0"
           VITE_VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
 
-      - name: Write wrangler.toml
-        run: echo "${{ secrets.FRONTEND_WRANGLER_TOML }}" > packages/frontend/wrangler.toml
+      - name: Append env overrides to wrangler.toml
+        run: printf '\n%s\n' "${{ secrets.FRONTEND_WRANGLER_TOML }}" >> packages/frontend/wrangler.toml
 
       - name: Deploy frontend
         uses: cloudflare/wrangler-action@v3
@@ -107,4 +107,4 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: packages/frontend
-          command: deploy
+          command: deploy --env ${{ needs.setup.outputs.environment }}
