@@ -54,7 +54,9 @@ jobs:
         run: pnpm --filter @midnight-network/backend build
 
       - name: Append env overrides to wrangler.toml
-        run: printf '\n%s\n' "${{ secrets.BACKEND_WRANGLER_TOML }}" >> packages/backend/wrangler.toml
+        run: printf '\n%s\n' "$W_CONF_T" >> packages/backend/wrangler.toml
+        env:
+          W_CONF_T: ${{ secrets.BACKEND_WRANGLER_TOML }}
 
       - name: Deploy backend
         uses: cloudflare/wrangler-action@v3
@@ -102,7 +104,9 @@ jobs:
           VITE_VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
 
       - name: Append env overrides to wrangler.toml
-        run: printf '\n%s\n' "${{ secrets.FRONTEND_WRANGLER_TOML }}" >> packages/frontend/wrangler.toml
+        run: printf '\n%s\n' "$W_CONF_T" >> packages/frontend/wrangler.toml
+        env:
+          W_CONF_T: ${{ secrets.FRONTEND_WRANGLER_TOML }}
 
       - name: Deploy frontend
         uses: cloudflare/wrangler-action@v3
