@@ -1,8 +1,9 @@
 name = "midnight-network-frontend"
 compatibility_date = "2025-12-16"
-routes = [
-	{ pattern = "<host>/*", zone_name = "<host>" }
-]
+# routes = [
+# 	{ pattern = "<host>/*", zone_name = "<host>" }
+# ]
+# custom_domains = ["<host>"]
 
 [observability]
 enabled = true
