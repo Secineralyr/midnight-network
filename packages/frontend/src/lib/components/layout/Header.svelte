@@ -9,11 +9,11 @@ import { afterNavigate, goto } from '$app/navigation';
 import { primeMisskeyUsers } from '$lib/data/misskey-users';
 import { orpc } from '$lib/orpc';
 import { sessionReady, sessionUser } from '$lib/stores/session';
+import { onErrorImageDisplayNone } from '$lib/utils/style';
 import RankBadge from '../rank/RankBadge.svelte';
 import UserSearch from '../search/UserSearch.svelte';
 import LoggedInPanel from '../user/LoggedInPanel.svelte';
 import UserAvatar from '../user/UserAvatar.svelte';
-import { onErrorImageDisplayNone } from '$lib/utils/style';
 
 /**
  * ヘッダーコンポーネント
