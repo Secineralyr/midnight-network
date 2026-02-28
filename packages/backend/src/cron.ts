@@ -18,8 +18,9 @@ import type { Note } from 'misskey-js/entities.js';
 import { calculateRankStatusFromTotalPoints } from '../../rank-calc/src/rank-number';
 import { placeEmojis } from './consts';
 import { prisma } from './db';
+import { chunkFinder } from './db/helper';
 import { upsertMany } from './db/upsert-many';
-import type { EventMatch, MatchDate } from './generated/prisma/client';
+import type { EventMatch, MatchDate, } from './generated/prisma/client';
 import type {
 	UserCreateManyInput,
 	UserRankHistoryCreateManyInput,
@@ -476,15 +477,23 @@ async function sendMatchResultNotifications(records: Record<string, MatchRecordD
 	if (userIds.length === 0) {
 		return;
 	}
-	const [authUsers, rankStatuses, partCounts, latestMatch] = await Promise.all([
-		prisma.authUser.findMany({
-			where: { id: { in: userIds }, pushSubscriptions: { not: null } },
-			select: { id: true, pushSubscriptions: true },
-		}),
-		prisma.userRankStatus.findMany({ where: { id: { in: userIds } } }),
-		prisma.userParticipantsCount.findMany({ where: { userId: { in: userIds } } }),
-		prisma.matchDate.findFirst({ orderBy: { date: 'desc' } }),
-	]);
+	const authUsers = await chunkFinder(
+		userIds,
+		async (userIds) =>
+			await prisma.authUser.findMany({
+				where: { id: { in: userIds }, pushSubscriptions: { not: null } },
+				select: { id: true, pushSubscriptions: true },
+			}),
+	);
+	const rankStatuses = await chunkFinder(
+		userIds,
+		async (userIds) => await prisma.userRankStatus.findMany({ where: { id: { in: userIds } } }),
+	);
+	const partCounts = await chunkFinder(
+		userIds,
+		async (userIds) => await prisma.userParticipantsCount.findMany({ where: { userId: { in: userIds } } }),
+	);
+	const latestMatch = await prisma.matchDate.findFirst({ orderBy: { date: 'desc' } });
 
 	const subsByUser = new Map(
 		authUsers.map((au) => [au.id, parsePushSubscriptions(au.pushSubscriptions)] as const).filter(([, s]) => s.length > 0),
@@ -496,16 +505,24 @@ async function sendMatchResultNotifications(records: Record<string, MatchRecordD
 	const statusMap = Object.fromEntries(rankStatuses.map((s) => [s.id, s]));
 	const partCountMap = Object.fromEntries(partCounts.map((r) => [r.userId, r.participantsCount]));
 
-	const [histories, prevHistories] = latestMatch
-		? await Promise.all([
-				prisma.userRankHistory.findMany({ where: { userId: { in: userIds }, matchId: latestMatch.id } }),
-				prisma.userRankHistory.findMany({
-					where: { userId: { in: userIds }, matchId: { not: latestMatch.id } },
-					orderBy: { matchId: 'desc' },
-					distinct: ['userId'],
-				}),
-			])
-		: [[], []];
+	const histories = latestMatch
+		? await chunkFinder(
+				userIds,
+				async (userIds) =>
+					await prisma.userRankHistory.findMany({ where: { userId: { in: userIds }, matchId: latestMatch.id } }),
+			)
+		: [];
+	const prevHistories = latestMatch
+		? await chunkFinder(
+				userIds,
+				async (userIds) =>
+					await prisma.userRankHistory.findMany({
+						where: { userId: { in: userIds }, matchId: { not: latestMatch.id } },
+						orderBy: { matchId: 'desc' },
+						distinct: ['userId'],
+					}),
+			)
+		: [];
 	const historyMap = Object.fromEntries(histories.map((h) => [h.userId, h]));
 	const prevMap = Object.fromEntries(prevHistories.map((h) => [h.userId, h]));
 

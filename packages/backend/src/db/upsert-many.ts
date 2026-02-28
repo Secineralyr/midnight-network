@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Secineralyr
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import { D1_MAX_VARIABLES } from '../consts';
 import { Prisma, type PrismaClient } from '../generated/prisma/client';
 
 /**
@@ -100,11 +101,6 @@ export type UpsertManyArgs<
 	 */
 	autoTimestamps?: boolean;
 };
-
-/**
- * D1のSQL変数制限
- */
-const D1_MAX_VARIABLES = 100;
 
 /**
  * Prismaの自動タイムスタンプフィールド
