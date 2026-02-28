@@ -12,8 +12,8 @@ interface ExtendedNotificationOptions extends NotificationOptions {
 	renotify?: boolean;
 }
 
-import { build, files, version } from '$service-worker';
 import { rankTypeValueToText } from '@midnight-network/shared/rank';
+import { build, files, version } from '$service-worker';
 
 const CACHE = `cache-${version}`;
 const ASSETS = [...build, ...files];

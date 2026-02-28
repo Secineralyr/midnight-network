@@ -1,12 +1,12 @@
 <!-- SPDX-FileCopyrightText: 2026 Secineralyr -->
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <script lang="ts">
-import { orpc } from '$lib/orpc';
-import { setUserSettingsOpened, userSettingsOpened } from '$lib/stores/state';
 import type { SettingTypeT } from '@midnight-network/shared/rpc/me/models';
 import { IconX } from '@tabler/icons-svelte';
 import { createMutation, createQuery } from '@tanstack/svelte-query';
 import { blur, fade } from 'svelte/transition';
+import { orpc } from '$lib/orpc';
+import { setUserSettingsOpened, userSettingsOpened } from '$lib/stores/state';
 import Button from '../ui/Button.svelte';
 
 /** 設定モーダル表示状態 */
@@ -69,8 +69,8 @@ async function loadPushStatus() {
 }
 
 let swRegistration: ServiceWorkerRegistration | null = null;
-navigator.serviceWorker.ready.then(reg => {
-  swRegistration = reg;
+navigator.serviceWorker.ready.then((reg) => {
+	swRegistration = reg;
 });
 async function handlePushToggle() {
 	if (pushLoading) {

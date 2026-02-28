@@ -2,8 +2,8 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <script lang="ts">
 import { onMount } from 'svelte';
-import { fly } from 'svelte/transition';
 import { SvelteDate } from 'svelte/reactivity';
+import { fly } from 'svelte/transition';
 import { formatTime } from '$lib/utils/format';
 
 /**

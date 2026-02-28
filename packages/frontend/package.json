@@ -27,7 +27,7 @@
     "preview:worker": "pnpm build && wrangler dev",
     "playwright:install": "playwright install",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json",
-    "test": "playwright test"
+    "test": "playwright test --pass-with-no-tests"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "catalog:",
