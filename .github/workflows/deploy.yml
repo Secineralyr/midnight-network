@@ -1,0 +1,110 @@
+name: Deploy to Cloudflare
+
+on:
+  push:
+    branches: [main, staging]
+
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.env.outputs.environment }}
+    steps:
+      - id: env
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "environment=production" >> "$GITHUB_OUTPUT"
+          else
+            echo "environment=staging" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy-backend:
+    needs: setup
+    runs-on: ubuntu-latest
+    environment: ${{ needs.setup.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - run: corepack enable
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build shared packages
+        run: |
+          pnpm --filter @midnight-network/shared build
+          pnpm --filter @midnight-network/rank-calc build
+
+      - name: Apply local D1 migrations (required for Prisma type generation)
+        run: pnpm --filter @midnight-network/backend migrate:local
+
+      - name: Build backend
+        run: pnpm --filter @midnight-network/backend build
+
+      - name: Write wrangler.toml
+        run: echo "${{ secrets.BACKEND_WRANGLER_TOML }}" > packages/backend/wrangler.toml
+
+      - name: Deploy backend
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: packages/backend
+          command: deploy
+
+      - name: Run D1 migrations
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: packages/backend
+          command: d1 migrations apply midnight-network --remote
+
+  deploy-frontend:
+    needs: setup
+    runs-on: ubuntu-latest
+    environment: ${{ needs.setup.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - run: corepack enable
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build shared packages
+        run: pnpm --filter @midnight-network/shared build
+
+      - name: Build frontend
+        working-directory: packages/frontend
+        run: pnpm build
+        env:
+          VITE_API_ROOT: ${{ secrets.VITE_API_ROOT }}
+          VITE_TARGET_HOUR: "15"
+          VITE_TARGET_MINUTES: "0"
+          VITE_VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+
+      - name: Write wrangler.toml
+        run: echo "${{ secrets.FRONTEND_WRANGLER_TOML }}" > packages/frontend/wrangler.toml
+
+      - name: Deploy frontend
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: packages/frontend
+          command: deploy

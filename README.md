@@ -46,9 +46,8 @@ packages/
 
 ## Prerequisites
 
-- [Volta](https://volta.sh/): Automatically manages Node.js & pnpm versions (pinned in `package.json`)
-  - Node.js: `24^`
-  - pnpm: `10^`
+- Node.js: `24^`
+- pnpm: `10^`
 - [Cloudflare](https://www.cloudflare.com/): Account (for D1, KV, R2, Workers, Queues)
 - [Misskey](https://misskey-hub.net/): Instance access and API token
 
@@ -229,7 +228,46 @@ A Dev Container configuration is included for VS Code:
 
 ## Deployment
 
-### Backend
+### CI/CD (GitHub Actions)
+
+Automated CI and deployment workflows are configured in `.github/workflows/`.
+
+#### CI
+
+Runs on pull requests:
+
+- Lint & format check (Biome)
+- Local D1 migration (for Prisma type generation)
+- Build all packages
+- Typecheck
+- Tests
+
+#### Deploy
+
+Runs automatically on push:
+
+- Builds shared packages, backend, and frontend
+- Replaces `wrangler.toml` with the production/staging version stored in GitHub Secrets
+- Deploys backend and frontend to Cloudflare Workers via `wrangler deploy`
+- Runs remote D1 migrations after backend deployment
+- Frontend `VITE_*` environment variables are injected at build time
+
+#### Required GitHub Secrets
+
+| Secret | Description |
+|--------|-------------|
+| `CLOUDFLARE_API_TOKEN` | Wrangler API token (Workers edit permission) |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account ID |
+| `BACKEND_WRANGLER_TOML` | Full contents of the backend `wrangler.toml` for this environment |
+| `FRONTEND_WRANGLER_TOML` | Full contents of the frontend `wrangler.toml` for this environment |
+| `VITE_API_ROOT` | Frontend API root (empty for same-origin) |
+| `VAPID_PUBLIC_KEY` | VAPID public key for push notifications |
+
+Note: Worker Secrets (e.g. `API_TOKEN`, `WEBHOOK_SECRET`, `BETTER_AUTH_SECRET`) must be configured directly on Cloudflare (via Dashboard or `wrangler secret put`). They are not managed by the deployment workflow.
+
+### Manual Deployment
+
+#### Backend
 
 Deploy as a Cloudflare Worker
 
@@ -247,7 +285,7 @@ pnpm --filter @midnight-network/backend deploy
 
 Configure resource bindings in `packages/backend/wrangler.toml`.
 
-### Frontend
+#### Frontend
 
 The frontend is built as a static site using `@sveltejs/adapter-static`:
 

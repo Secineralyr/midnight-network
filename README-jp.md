@@ -47,9 +47,8 @@ packages/
 
 ## 必要要件
 
-- [Volta](https://volta.sh/): Node.jsとpnpmのバージョンを自動管理(`package.json`で固定)
-  - Node.js: `24^`
-  - pnpm: `10^`
+- Node.js: `24^`
+- pnpm: `10^`
 - [Cloudflare](https://www.cloudflare.com/): アカウント(D1, KV, R2, Workers, Queues用)
 - [Misskey](https://misskey-hub.net/): インスタンスへのアクセスと API トークン
 
@@ -230,7 +229,46 @@ VS Code 用の Dev Container 設定が含まれています:
 
 ## デプロイ
 
-### バックエンド
+### CI/CD (GitHub Actions)
+
+`.github/workflows/`に自動CI・デプロイワークフローが構成されています。
+
+#### CI
+
+プルリクエスト時に実行:
+
+- Lint・フォーマットチェック(Biome)
+- ローカルD1マイグレーション(Prisma型生成のため)
+- 全パッケージのビルド
+- 型チェック
+- テスト
+
+#### デプロイ
+
+プッシュ時に自動実行:
+
+- 共有パッケージ・バックエンド・フロントエンドのビルド
+- GitHub Secretsに格納された本番/検証用の `wrangler.toml` で置き換え
+- `wrangler deploy` によるCloudflare Workersへのデプロイ
+- バックエンドデプロイ後にリモートD1マイグレーションを実行
+- フロントエンドの `VITE_*` 環境変数はビルド時に注入
+
+#### 必要なGitHub Secrets
+
+| Secret | 説明 |
+|--------|------|
+| `CLOUDFLARE_API_TOKEN` | Wrangler APIトークン（Workers編集権限） |
+| `CLOUDFLARE_ACCOUNT_ID` | CloudflareアカウントID |
+| `BACKEND_WRANGLER_TOML` | この環境用のバックエンド `wrangler.toml` の全文 |
+| `FRONTEND_WRANGLER_TOML` | この環境用のフロントエンド `wrangler.toml` の全文 |
+| `VITE_API_ROOT` | フロントエンドAPIルート（同一オリジンの場合は空） |
+| `VAPID_PUBLIC_KEY` | プッシュ通知用VAPID公開鍵 |
+
+注意: Worker Secrets（`API_TOKEN`, `WEBHOOK_SECRET`, `BETTER_AUTH_SECRET` 等）はCloudflare側（Dashboardまたは `wrangler secret put`）で直接設定する必要があります。デプロイワークフローでは管理しません。
+
+### 手動デプロイ
+
+#### バックエンド
 
 Cloudflare Worker としてデプロイ
 
@@ -248,7 +286,7 @@ pnpm --filter @midnight-network/backend deploy
 
 リソースバインディングは `packages/backend/wrangler.toml` で設定してください。
 
-### フロントエンド
+#### フロントエンド
 
 フロントエンドは`@sveltejs/adapter-static`を使用して静的サイトとしてビルドされます:
 
