@@ -54,7 +54,9 @@ jobs:
         run: pnpm --filter @midnight-network/backend build
 
       - name: Append env overrides to wrangler.toml
-        run: printf '\n%s\n' "$W_CONF_T" >> packages/backend/wrangler.toml
+        run: |
+          printf '\n' >> packages/backend/wrangler.toml
+          echo "$W_CONF_T" >> packages/backend/wrangler.toml
         env:
           W_CONF_T: ${{ secrets.BACKEND_WRANGLER_TOML }}
 
@@ -104,7 +106,9 @@ jobs:
           VITE_VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
 
       - name: Append env overrides to wrangler.toml
-        run: printf '\n%s\n' "$W_CONF_T" >> packages/frontend/wrangler.toml
+        run: |
+          printf '\n' >> packages/backend/wrangler.toml
+          echo "$W_CONF_T" >> packages/backend/wrangler.toml
         env:
           W_CONF_T: ${{ secrets.FRONTEND_WRANGLER_TOML }}
 
