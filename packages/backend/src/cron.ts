@@ -20,7 +20,7 @@ import { placeEmojis } from './consts';
 import { prisma } from './db';
 import { chunkFinder } from './db/helper';
 import { upsertMany } from './db/upsert-many';
-import type { EventMatch, MatchDate, } from './generated/prisma/client';
+import type { EventMatch, MatchDate } from './generated/prisma/client';
 import type {
 	UserCreateManyInput,
 	UserRankHistoryCreateManyInput,

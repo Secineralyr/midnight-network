@@ -1,5 +1,5 @@
-import { D1_MAX_VARIABLES } from "../consts";
-import { chunk } from "../util";
+import { D1_MAX_VARIABLES } from '../consts';
+import { chunk } from '../util';
 
 export async function chunkFinder<A, R>(array: A[], finder: (chunkArray: A[]) => Promise<R[]>): Promise<R[]> {
 	const results: R[][] = [];
