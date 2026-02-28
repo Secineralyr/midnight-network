@@ -29,6 +29,9 @@ jobs:
       - name: Lint & Format check
         run: pnpm check
 
+      - name: Copy .dev.vars.template to .dev.vars (required for wrangler types)
+        run: cp packages/backend/.dev.vars.template packages/backend/.dev.vars
+
       - name: Apply local D1 migrations (required for Prisma type generation)
         run: pnpm --filter @midnight-network/backend migrate:local
 
