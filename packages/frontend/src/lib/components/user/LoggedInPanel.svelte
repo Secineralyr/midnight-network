@@ -3,14 +3,14 @@
 <script lang="ts">
 import type { SettingTypeT, UserInfoResponseT } from '@midnight-network/shared/rpc/me/models';
 import { IconLogout, IconSettings, IconUser } from '@tabler/icons-svelte';
+import { createMutation, createQuery } from '@tanstack/svelte-query';
 import { fly } from 'svelte/transition';
 import { goto } from '$app/navigation';
-import RankIcon from '../rank/RankIcon.svelte';
 import { orpc } from '$lib/orpc';
 import { sessionUser } from '$lib/stores/session';
-import { createQuery, createMutation } from '@tanstack/svelte-query';
+import { setUserSettingsOpened } from '$lib/stores/state';
 import SettingsModal from '../modal/SettingsModal.svelte';
-	import { setUserSettingsOpened } from '$lib/stores/state';
+import RankIcon from '../rank/RankIcon.svelte';
 
 interface Props {
 	/** ユーザー情報 */

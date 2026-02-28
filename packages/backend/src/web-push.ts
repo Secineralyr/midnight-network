@@ -201,4 +201,3 @@ async function hkdfExpand(prk: Uint8Array, info: Uint8Array, length: number): Pr
 	const output = new Uint8Array(await crypto.subtle.sign('HMAC', key, input.buffer as ArrayBuffer));
 	return output.slice(0, length);
 }
-

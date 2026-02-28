@@ -259,10 +259,7 @@ async function executeBatch<TDelegate extends PrismaDelegate>(
 	// DO UPDATE SET部分を構築
 	// updatedAtがデータに含まれている場合、自動的にupdateKeysに追加
 	const effectiveUpdateKeys = [...updateKeys];
-	if (
-		TIMESTAMP_FIELDS.updatedAt in firstItem &&
-		!effectiveUpdateKeys.includes(TIMESTAMP_FIELDS.updatedAt)
-	) {
+	if (TIMESTAMP_FIELDS.updatedAt in firstItem && !effectiveUpdateKeys.includes(TIMESTAMP_FIELDS.updatedAt)) {
 		effectiveUpdateKeys.push(TIMESTAMP_FIELDS.updatedAt);
 	}
 	const updateSetParts = effectiveUpdateKeys.map((col) => `"${col}" = excluded."${col}"`);
