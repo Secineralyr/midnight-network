@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { env } from 'cloudflare:workers';
+import { RERUN_LOCK_KEY } from '../../rerun-queue';
 
 /**
  * 次回のターゲットマッチ時刻（UTC）を取得する。
@@ -68,6 +69,22 @@ export function getFromCache<T>(key: string): Promise<T | null> {
  */
 export async function setToCache<T>(key: string, value: T, ttlSeconds: number): Promise<void> {
 	await env.CACHE.put(key, JSON.stringify(value), { expirationTtl: ttlSeconds });
+}
+
+/**
+ * KV内のキャッシュを全削除する。
+ * `rerun:` プレフィクスのキー（rerunロック用）はパージ対象外。
+ */
+export async function purgeCache(): Promise<void> {
+	let cursor: string | undefined;
+	do {
+		const listResult = await env.CACHE.list({ cursor, limit: 1000 });
+		const deletePromises = listResult.keys
+			.filter((key) => key.name !== RERUN_LOCK_KEY)
+			.map((key) => env.CACHE.delete(key.name));
+		await Promise.all(deletePromises);
+		cursor = listResult.list_complete ? undefined : (listResult.cursor ?? undefined);
+	} while (cursor !== undefined);
 }
 
 /**

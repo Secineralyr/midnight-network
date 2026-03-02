@@ -29,6 +29,7 @@ import type {
 } from './generated/prisma/models';
 import { createRetryMisskeyApiClientFetcher } from './misskey';
 import { readUserRankStatusSnapshot, writeUserRankStatusSnapshot } from './rank-status-snapshot';
+import { purgeCache } from './rpc/helpers/cache';
 import { parsePushSubscriptions } from './rpc/helpers/push';
 import { calculateRankFromPoints, rankNumberToRankTypeValue } from './rpc/helpers/rank';
 import { getTargetTime, wait } from './util';
@@ -610,6 +611,8 @@ export async function processCronMain(options?: { isRerun?: boolean }) {
 	console.info('cron.mainProcess: start update rank');
 	// ランク計算
 	const borderProtectedUserIds = await upsertRankResultData(records, validRecords, eventMatch, matchDate);
+
+	await purgeCache();
 
 	// Push通知送信（再実行時はスキップ）
 	if (!options?.isRerun) {
