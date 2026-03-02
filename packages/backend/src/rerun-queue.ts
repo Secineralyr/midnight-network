@@ -3,7 +3,7 @@
 
 import { env } from 'cloudflare:workers';
 
-const RERUN_LOCK_KEY = 'rerun:lock';
+export const RERUN_LOCK_KEY = 'rerun:lock';
 const RERUN_LOCK_TTL_SECONDS = 900; // 15分（Queue consumer の最大実行時間に合わせる）
 
 export type RerunQueueMessage = {
