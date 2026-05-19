@@ -17,6 +17,7 @@
     "@tsparticles/svelte": "catalog:",
     "better-auth": "catalog:",
     "echarts": "catalog:",
+    "katex": "catalog:",
     "misskey-js": "catalog:",
     "motion": "catalog:"
   },

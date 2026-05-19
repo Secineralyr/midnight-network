@@ -87,6 +87,9 @@ catalogs:
     elysia:
       specifier: ^1.4.19
       version: 1.4.19
+    katex:
+      specifier: ^0.16.47
+      version: 0.16.47
     lefthook:
       specifier: ^2.1.6
       version: 2.1.6
@@ -200,7 +203,7 @@ importers:
     dependencies:
       '@humanspeak/svelte-markdown':
         specifier: 'catalog:'
-        version: 1.5.1(svelte@5.46.0)
+        version: 1.5.1(katex@0.16.47)(svelte@5.46.0)
       '@midnight-network/shared':
         specifier: workspace:*
         version: link:../shared
@@ -237,6 +240,9 @@ importers:
       echarts:
         specifier: 'catalog:'
         version: 6.0.0
+      katex:
+        specifier: 'catalog:'
+        version: 0.16.47
       misskey-js:
         specifier: 'catalog:'
         version: 2025.12.1
@@ -1878,6 +1884,10 @@ packages:
     resolution: {integrity: sha512-Vw8qHK3bZM9y/P10u3Vib8o/DdkvA2OtPtZvD871QKjy74Wj1WSKFILMPRPSdUSx5RFK1arlJzEtA4PkFgnbuA==}
     engines: {node: '>=18'}
 
+  commander@8.3.0:
+    resolution: {integrity: sha512-OkTL9umf+He2DZkUq8f8J9of7yL6RJKI24dVITBmNfZBmri9zYZQrKkuXiKhyfPSu8tUhnVBB1iKXevvnlR4Ww==}
+    engines: {node: '>= 12'}
+
   confbox@0.2.2:
     resolution: {integrity: sha512-1NB+BKqhtNipMsov4xI/NnhCKp9XG9NamYp5PVm9klAT0fsrNPjaFICsCFhNhwZJKNh7zB/3q8qXz0E9oaMNtQ==}
 
@@ -2315,6 +2325,10 @@ packages:
   json5@2.2.3:
     resolution: {integrity: sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg==}
     engines: {node: '>=6'}
+    hasBin: true
+
+  katex@0.16.47:
+    resolution: {integrity: sha512-Eeo8Ys1doU1z+x8AZsPpQu+p/QcZBI5PeOo7QGQdy2x2m0MU/hYagBbGOmXwr5KVbEfVuWv9LpnQWeehogurjg==}
     hasBin: true
 
   kleur@3.0.3:
@@ -3704,13 +3718,15 @@ snapshots:
 
   '@humanspeak/memory-cache@1.0.6': {}
 
-  '@humanspeak/svelte-markdown@1.5.1(svelte@5.46.0)':
+  '@humanspeak/svelte-markdown@1.5.1(katex@0.16.47)(svelte@5.46.0)':
     dependencies:
       '@humanspeak/memory-cache': 1.0.6
       github-slugger: 2.0.0
       htmlparser2: 12.0.0
       marked: 18.0.3
       svelte: 5.46.0
+    optionalDependencies:
+      katex: 0.16.47
 
   '@img/sharp-darwin-arm64@0.33.5':
     optionalDependencies:
@@ -4647,6 +4663,8 @@ snapshots:
 
   commander@12.1.0: {}
 
+  commander@8.3.0: {}
+
   confbox@0.2.2: {}
 
   consola@3.4.2: {}
@@ -4978,6 +4996,10 @@ snapshots:
   jsesc@3.1.0: {}
 
   json5@2.2.3: {}
+
+  katex@0.16.47:
+    dependencies:
+      commander: 8.3.0
 
   kleur@3.0.3: {}
 
