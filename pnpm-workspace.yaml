@@ -1,9 +1,20 @@
 packages:
   - packages/*
 
+allowBuilds:
+  '@prisma/client': true
+  '@prisma/engines': true
+  '@tsparticles/engine': true
+  better-sqlite3: true
+  esbuild: true
+  lefthook: true
+  prisma: true
+  sharp: true
+  workerd: true
+
 catalog:
   '@better-auth/cli': ^1.4.7
-  '@biomejs/biome': ^2.3.9
+  '@biomejs/biome': ^2.4.15
   '@cloudflare/workers-types': 4.20251216.0
   '@elysiajs/cors': ^1.4.1
   '@opentelemetry/api': 1.9.0
@@ -29,7 +40,7 @@ catalog:
   better-auth: ^1.4.7
   echarts: ^6.0.0
   elysia: ^1.4.19
-  lefthook: ^2.0.12
+  lefthook: ^2.1.6
   mdsvex: ^0.12.6
   misskey-js: ^2025.12.1
   motion: ^12.23.26
