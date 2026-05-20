@@ -169,7 +169,7 @@ function handleWindowClick(event: MouseEvent): void {
 					in:fade={{ duration: 200 }}
 					out:fade={{ duration: 200 }}
 				>
-					<IconSearch size={20} onClose={close} />
+					<IconSearch size={20} />
 				</button>
 			{/if}
 			{#if currentUser}
