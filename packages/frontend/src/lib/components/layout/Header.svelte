@@ -2,7 +2,7 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <script lang="ts">
 import type { ApiSimpleUserInfoT } from '@midnight-network/shared/rpc/models';
-import { IconSearch } from '@tabler/icons-svelte';
+import { IconMenu2, IconSearch } from '@tabler/icons-svelte';
 import { createQuery, useQueryClient } from '@tanstack/svelte-query';
 import { blur, fade } from 'svelte/transition';
 import { afterNavigate, goto } from '$app/navigation';
@@ -14,6 +14,7 @@ import RankBadge from '../rank/RankBadge.svelte';
 import UserSearch from '../search/UserSearch.svelte';
 import LoggedInPanel from '../user/LoggedInPanel.svelte';
 import UserAvatar from '../user/UserAvatar.svelte';
+import NavMenuPanel from './NavMenuPanel.svelte';
 
 /**
  * ヘッダーコンポーネント
@@ -50,9 +51,11 @@ $effect(() => {
 	primeMisskeyUsers(queryClient, [userId]).catch(() => null);
 });
 
-let isPanelOpen = $state(false);
+let isUserPanelOpen = $state(false);
+let isNavPanelOpen = $state(false);
 let isSearchOpen = $state(false);
 let userMenuContainer: HTMLDivElement;
+let navMenuContainer: HTMLDivElement;
 
 afterNavigate(() => {
 	if (isSearchOpen) {
@@ -64,18 +67,33 @@ afterNavigate(() => {
  * ユーザーアイコンクリック時のハンドラ
  */
 function handleUserClick(): void {
-	isPanelOpen = !isPanelOpen;
+	isUserPanelOpen = !isUserPanelOpen;
 }
 
 /**
- * パネルを閉じる
+ * メニューアイコンクリック時のハンドラ
  */
-function closePanel(): void {
-	isPanelOpen = false;
+function handleMenuClick(): void {
+	isNavPanelOpen = !isNavPanelOpen;
+}
+
+/**
+ * ユーザーパネルを閉じる
+ */
+function closeUserPanel(): void {
+	isUserPanelOpen = false;
+}
+
+/**
+ * ナビゲートパネルを閉じる
+ */
+function closeNavPanel(): void {
+	isNavPanelOpen = false;
 }
 
 function handleSearchClick(): void {
-	isPanelOpen = false;
+	isUserPanelOpen = false;
+	isNavPanelOpen = false;
 	isSearchOpen = true;
 	onSearchClick?.();
 }
@@ -99,8 +117,11 @@ function handleSearchKeydown(event: KeyboardEvent): void {
  * ウィンドウクリック時のハンドラ（パネル外クリックで閉じる）
  */
 function handleWindowClick(event: MouseEvent): void {
-	if (isPanelOpen && userMenuContainer && !userMenuContainer.contains(event.target as Node)) {
-		isPanelOpen = false;
+	if (isUserPanelOpen && userMenuContainer && !userMenuContainer.contains(event.target as Node)) {
+		isUserPanelOpen = false;
+	}
+	if (isNavPanelOpen && navMenuContainer && !navMenuContainer.contains(event.target as Node)) {
+		isNavPanelOpen = false;
 	}
 }
 </script>
@@ -116,10 +137,25 @@ function handleWindowClick(event: MouseEvent): void {
 			<div class="line"></div>
 			<nav>
 				<a href="/leaderboard">リーダーボード</a>
+				<a href="/ranksystem">ランクシステムについて</a>
 				<!-- 以下は現状無視 -->
 				<!-- <a href="/about">MidNightについて</a> -->
 				<!-- <a href="/ranks">ランク</a> -->
 			</nav>
+			<div class="mobile-nav" bind:this={navMenuContainer}>
+				<button class="mobile-nav-icon-button" type="button" onclick={handleMenuClick}>
+					<div class="icon">
+						<IconMenu2 />
+					</div>
+				</button>
+				{#if isNavPanelOpen}
+					<div class="panel-overlay-position">
+						<div class="panel-overlay">
+							<NavMenuPanel onClose={closeNavPanel} />
+						</div>
+					</div>
+				{/if}
+			</div>
 		</div>
 		<div class="right-side">
 			{#if showSearchButton}
@@ -145,10 +181,10 @@ function handleWindowClick(event: MouseEvent): void {
 						</div>
 						<RankBadge rank={userInfoQuery.data.latestRank} class="user-rank-badge" />
 					</button>
-					{#if isPanelOpen}
+					{#if isUserPanelOpen}
 						<div class="panel-overlay-position">
 							<div class="panel-overlay">
-								<LoggedInPanel user={userInfoQuery.data} onClose={closePanel} />
+								<LoggedInPanel user={userInfoQuery.data} onClose={closeUserPanel} />
 							</div>
 						</div>
 					{/if}
@@ -230,6 +266,15 @@ function handleWindowClick(event: MouseEvent): void {
 		background-color: #4E4B71;
 	}
 
+	header > div > .left-side > .mobile-nav {
+		display: none;
+	}
+
+	header > div > .left-side > nav {
+		display: flex;
+		gap: 10px;
+	}
+
 	header > div > .left-side > a {
 		height: 100%;
 	}
@@ -260,10 +305,10 @@ function handleWindowClick(event: MouseEvent): void {
 		height: 24px;
 	}
 
-	header > div > .right-side > .logged-user > .panel-overlay-position {
+	.panel-overlay-position {
 		position: relative;
 	}
-	header > div > .right-side > .logged-user > .panel-overlay-position > .panel-overlay {
+	.panel-overlay-position > .panel-overlay {
 		position: absolute;
 		top: 20px;
 		right: 0;
@@ -307,9 +352,20 @@ function handleWindowClick(event: MouseEvent): void {
 		}
 		header > div > .left-side {
 			gap: 20px;
+			flex-direction: row-reverse;
 		}
-		nav a {
-			font-size: 0.85rem;
+		header > div > .left-side > .mobile-nav {
+			display: block;
+		}
+		header > div > .left-side > .mobile-nav > .mobile-nav-icon-button {
+			vertical-align: -0.75em;
+		}
+		header > div > .left-side > .mobile-nav > .panel-overlay-position > .panel-overlay {
+			right: unset;
+			left: 0;
+		}
+		header > div > .left-side > nav {
+			display: none;
 		}
 		header > div > .right-side > .logged-user > .user-icon-button {
 			height: 45px;

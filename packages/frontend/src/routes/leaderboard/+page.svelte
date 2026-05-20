@@ -4,6 +4,7 @@
 import { createQuery, useQueryClient } from '@tanstack/svelte-query';
 import { goto } from '$app/navigation';
 import RankHistogram from '$lib/components/charts/RankHistogram.svelte';
+import NormalPageTop from '$lib/components/layout/NormalPageTop.svelte';
 import LeaderboardTable from '$lib/components/table/LeaderboardTable.svelte';
 import Pagination from '$lib/components/table/Pagination.svelte';
 import Select from '$lib/components/ui/Select.svelte';
@@ -115,9 +116,7 @@ function handleSortChange(criteria: string): void {
 </svelte:head>
 
 <div class="leaderboard-page">
-	<div class="leaderboard-page-hero">
-		<h1 class="leaderboard-page-title">Leaderboard</h1>
-	</div>
+	<NormalPageTop>Leaderboard</NormalPageTop>
 
 	<div class="leaderboard-page-content">
 		{#if rankQuery.data?.yourRanking}
@@ -162,23 +161,6 @@ function handleSortChange(criteria: string): void {
 
 <style>
 
-	.leaderboard-page-hero {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		padding: 20px;
-		text-align: center;
-		margin-bottom: 60px;
-		margin-top: 70px;
-	}
-
-	.leaderboard-page-title {
-		font-family: 'Lexend', sans-serif;
-		font-size: 2.25rem;
-		font-weight: 700;
-		color: #ffffff;
-	}
-
 	.leaderboard-page-content {
 		width: 100%;
 		max-width: 1200px;
@@ -217,14 +199,6 @@ function handleSortChange(criteria: string): void {
 
 	/* モバイル表示 */
 	@media (max-width: 899px) {
-		.leaderboard-page-hero {
-			margin-top: 40px;
-			margin-bottom: 30px;
-			padding: 15px;
-		}
-		.leaderboard-page-title {
-			font-size: 1.75rem;
-		}
 		.leaderboard-page-content {
 			padding: 0 10px;
 			gap: 20px;

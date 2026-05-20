@@ -635,7 +635,9 @@ export async function processCronMainRerun(runId?: number) {
 
 	if (latestMatchDate && matchTargetTime === currenttargetTime) {
 		const snapshot = await readUserRankStatusSnapshot(latestMatchDate.id, runId);
-		if (snapshot !== null) {
+		if (snapshot === null) {
+			console.info('cron.reRunProcess: no snapshot for matchDate.');
+		} else {
 			console.info(
 				`cron.reRunProcess: apply snapshot data [ runId = ${snapshot.runId}, matchDateId = ${snapshot.matchDateId}, createdAt = ${snapshot.createdAt} ]`,
 			);
@@ -660,8 +662,6 @@ export async function processCronMainRerun(runId?: number) {
 				],
 				data: snapshot.status,
 			});
-		} else {
-			console.info('cron.reRunProcess: no snapshot for matchDate.');
 		}
 	} else {
 		console.info('cron.reRunProcess: no matchDate data.');

@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "dependencies": {
+    "@humanspeak/svelte-markdown": "catalog:",
     "@midnight-network/shared": "workspace:*",
     "@opentelemetry/api": "catalog:",
     "@orpc/client": "catalog:",
@@ -16,6 +17,7 @@
     "@tsparticles/svelte": "catalog:",
     "better-auth": "catalog:",
     "echarts": "catalog:",
+    "katex": "catalog:",
     "misskey-js": "catalog:",
     "motion": "catalog:"
   },
