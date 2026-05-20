@@ -3,7 +3,7 @@
 <script lang="ts">
 import type { LastResultResponseT } from '@midnight-network/shared/rpc/me/models';
 import { RankShiftType } from '@midnight-network/shared/rpc/me/models';
-import { IconArrowBadgeDown, IconArrowBadgeUp } from '@tabler/icons-svelte';
+import { IconArrowBadgeDown, IconArrowBadgeUp, IconHelp } from '@tabler/icons-svelte';
 import { animate, stagger } from 'motion';
 import { cubicOut } from 'svelte/easing';
 import { Tween } from 'svelte/motion';
@@ -79,12 +79,20 @@ $effect(() => {
 
 <div class="result" in:fly={{ y: 20, duration: 400 }}>
 	<div class="result-header">
-		<h3 class="result-title" class:skeleton={isLoading}>
-			{#if !isLoading}前回のリザルト{/if}
-		</h3>
-		<span class="result-date" class:skeleton={isLoading}>
-			{#if !isLoading}({formatDate(result.targetDate)}){/if}
-		</span>
+		<div class="header-left">
+			<h3 class="result-title" class:skeleton={isLoading}>
+				{#if !isLoading}前回のリザルト{/if}
+			</h3>
+			<span class="result-date" class:skeleton={isLoading}>
+				{#if !isLoading}({formatDate(result.targetDate)}){/if}
+			</span>
+		</div>
+		<div>
+			<a href="/ranksystem" class="help-rank-flex">
+				<IconHelp />
+				<span>ランクについて</span>
+			</a>
+		</div>
 	</div>
 	<div class="result-content">
 		<div class="result-stats" bind:this={statsContainer}>
@@ -152,6 +160,16 @@ $effect(() => {
 	}
 
 	.result-header {
+		display: flex;
+		justify-content: space-between;
+	}
+
+	.help-rank-flex {
+		display: flex;
+		flex-direction: row-reverse;
+	}
+
+	.header-left {
 		display: flex;
 		align-items: baseline;
 		gap: 10px;
@@ -320,6 +338,14 @@ $effect(() => {
 			flex-direction: column;
 			gap: 5px;
 			align-items: flex-start;
+		}
+		.header-left {
+			flex-direction: column;
+			gap: 5px;
+			align-items: flex-start;
+		}
+		.help-rank-flex {
+			flex-direction: unset;
 		}
 		.result-title {
 			font-size: 1.1rem;

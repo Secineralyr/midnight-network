@@ -56,7 +56,7 @@ function handleClick(): void {
 }
 
 /** 値の表示テキスト */
-const valueText = $derived(type === 'time' && time !== undefined ? formatTimeDiff(time) : pt !== undefined ? formatPt(pt) : '');
+const valueText = $derived(type === 'time' && time !== undefined ? formatTimeDiff(time) : pt === undefined ? '' : formatPt(pt));
 </script>
 
 <button
