@@ -84,6 +84,13 @@ function closeUserPanel(): void {
 	isUserPanelOpen = false;
 }
 
+/**
+ * ナビゲートパネルを閉じる
+ */
+function closeNavPanel(): void {
+	isNavPanelOpen = false;
+}
+
 function handleSearchClick(): void {
 	isUserPanelOpen = false;
 	isNavPanelOpen = false;
@@ -144,7 +151,7 @@ function handleWindowClick(event: MouseEvent): void {
 				{#if isNavPanelOpen}
 					<div class="panel-overlay-position">
 						<div class="panel-overlay">
-							<NavMenuPanel />
+							<NavMenuPanel onClose={closeNavPanel} />
 						</div>
 					</div>
 				{/if}

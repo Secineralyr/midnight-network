@@ -89,7 +89,7 @@ $effect(() => {
 		</div>
 		<div>
 			<a href="/ranksystem" class="help-rank-flex">
-				<IconHelp />
+				<IconHelp size={18} />
 				<span>ランクについて</span>
 			</a>
 		</div>
@@ -167,6 +167,8 @@ $effect(() => {
 	.help-rank-flex {
 		display: flex;
 		flex-direction: row-reverse;
+		align-items: center;
+		font-size: 0.75rem;
 	}
 
 	.header-left {
