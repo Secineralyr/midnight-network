@@ -3,12 +3,12 @@
 <script lang="ts">
 import { RankType } from '@midnight-network/shared/rank';
 import type { CurrentRankT } from '@midnight-network/shared/rpc/user/models';
+import { IconHelp } from '@tabler/icons-svelte';
 import { fly } from 'svelte/transition';
 import GaugeBar from '$lib/components/ui/GaugeBar.svelte';
 import { formatPt } from '$lib/utils/format';
+import Tooltip from '../ui/Tooltip.svelte';
 import RankIcon from './RankIcon.svelte';
-	import { IconHelp } from '@tabler/icons-svelte';
-	import Tooltip from '../ui/Tooltip.svelte';
 
 /**
  * ランク表示コンポーネント

@@ -14,7 +14,7 @@ import RankBadge from '../rank/RankBadge.svelte';
 import UserSearch from '../search/UserSearch.svelte';
 import LoggedInPanel from '../user/LoggedInPanel.svelte';
 import UserAvatar from '../user/UserAvatar.svelte';
-	import NavMenuPanel from './NavMenuPanel.svelte';
+import NavMenuPanel from './NavMenuPanel.svelte';
 
 /**
  * ヘッダーコンポーネント

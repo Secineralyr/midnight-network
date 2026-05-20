@@ -4,13 +4,13 @@
 import { createQuery, useQueryClient } from '@tanstack/svelte-query';
 import { goto } from '$app/navigation';
 import RankHistogram from '$lib/components/charts/RankHistogram.svelte';
+import NormalPageTop from '$lib/components/layout/NormalPageTop.svelte';
 import LeaderboardTable from '$lib/components/table/LeaderboardTable.svelte';
 import Pagination from '$lib/components/table/Pagination.svelte';
 import Select from '$lib/components/ui/Select.svelte';
 import { primeMisskeyUsers } from '$lib/data/misskey-users';
 import { orpc } from '$lib/orpc';
 import { sessionReady, sessionUser } from '$lib/stores/session';
-import NormalPageTop from '$lib/components/layout/NormalPageTop.svelte';
 
 const currentUser = $derived($sessionUser);
 const isReady = $derived($sessionReady);
