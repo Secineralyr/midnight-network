@@ -7,6 +7,8 @@ import { fly } from 'svelte/transition';
 import GaugeBar from '$lib/components/ui/GaugeBar.svelte';
 import { formatPt } from '$lib/utils/format';
 import RankIcon from './RankIcon.svelte';
+	import { IconHelp } from '@tabler/icons-svelte';
+	import Tooltip from '../ui/Tooltip.svelte';
 
 /**
  * ランク表示コンポーネント
@@ -50,7 +52,10 @@ const progressPercent = $derived(() => {
 
 <div class="rank-display" in:fly={{ y: 10, duration: 300 }}>
 	<h3 class="rank-display-title" class:skeleton={isLoading}>
-		{#if !isLoading}現在ランク{/if}
+		{#if !isLoading}
+			<span>現在ランク</span>
+			<Tooltip text='ランクシステムについて'><a href="/ranksystem"><IconHelp /></a></Tooltip>
+		{/if}
 	</h3>
 	<div class="rank-display-icon" class:skeleton={isLoading}>
 		{#if !isLoading}<RankIcon rank={rankValue} />{/if}
@@ -85,6 +90,8 @@ const progressPercent = $derived(() => {
 		font-size: 1rem;
 		font-weight: 600;
 		margin-bottom: 10px;
+		display: flex;
+		justify-content: space-between;
 	}
 
 	.rank-display-icon {
